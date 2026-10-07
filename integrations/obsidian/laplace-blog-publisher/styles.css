@@ -41,5 +41,6 @@
 .lp-preview-modal{width:min(850px,90vw)}.lp-preview-modal .modal-content{font-family:var(--font-text);line-height:var(--line-height-normal)}
 .lp-preview{padding-top:16px;margin-top:16px;border-top:1px solid var(--background-modifier-border)}.lp-preview img{max-width:100%;max-height:500px;object-fit:contain}.lp-preview pre{overflow:auto}
 .lp-warning{color:var(--text-error);font-size:var(--font-ui-small);overflow-wrap:anywhere}
+.lp-status,.lp-progress{white-space:pre-wrap;overflow-wrap:anywhere}
 @container(max-width:720px){.lp-publisher .lp-layout{display:flex;flex-direction:column;overflow:auto}.lp-publisher .lp-sidebar{border-right:none;border-bottom:1px solid var(--background-modifier-border);max-height:220px;flex-shrink:0}.lp-publisher .lp-editor{overflow:visible;padding:20px;flex:1}.lp-publisher .lp-toolbar{padding:14px 16px}.lp-publisher .lp-article-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}.lp-publisher .setting-item-control input:not([type=checkbox]),.lp-publisher .setting-item-control select{width:200px}}
 @container(max-width:440px){.lp-publisher .setting-item{flex-wrap:wrap;gap:10px}.lp-publisher .setting-item-info{width:100%;margin:0}.lp-publisher .setting-item-control{justify-content:flex-start}.lp-publisher .lp-field input,.lp-publisher select{width:100%!important}}

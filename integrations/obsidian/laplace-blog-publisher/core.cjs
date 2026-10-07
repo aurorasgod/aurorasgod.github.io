@@ -1,6 +1,7 @@
 'use strict';
 const fs = require('node:fs/promises');
 const path = require('node:path');
+const { URL } = require('node:url');
 const { createHash } = require('node:crypto');
 const { execFile } = require('node:child_process');
 const { promisify } = require('node:util');
@@ -102,8 +103,33 @@ async function prepareArticle({text,meta,notePath,resolveFile,resolvePublished,r
   return {meta:{...meta,title,description},body,markdown,assets:[...assets.values()],warnings:[...new Set(warnings)],notices:[...new Set(notices)],files,signature};
 }
 async function run(binary,args,cwd,options={}){
-  try{return (await execute(binary,args,{cwd,timeout:120000,maxBuffer:2*1024*1024,env:{...process.env,GIT_TERMINAL_PROMPT:'0',...options.env}})).stdout.trim();}
-  catch(error){throw Error((error.stderr||error.stdout||error.message).trim().slice(-3000));}
+  const timeout=options.timeout??120000,env={...process.env,GIT_TERMINAL_PROMPT:'0',...options.env};
+  // Finder-launched macOS apps normally omit Homebrew/Node from PATH.
+  env.PATH=[path.dirname(binary),env.PATH,'/opt/homebrew/bin','/usr/local/bin','/usr/bin','/bin','/usr/sbin','/sbin'].filter(Boolean).join(path.delimiter);
+  try{return (await execute(binary,args,{cwd,timeout,maxBuffer:2*1024*1024,env})).stdout.trim();}
+  catch(error){
+    const redact=text=>String(text).replace(/(https?:\/\/)[^\s/@]+:[^\s/@]+@/g,'$1[redacted]@').replace(/\b(?:gh[pousr]_[A-Za-z0-9_]+|github_pat_[A-Za-z0-9_]+)\b/g,'[redacted]');
+    const label=path.basename(binary)+(path.basename(binary).includes('git')?' '+redact(args.filter((arg,i)=>arg!=='-c'&&args[i-1]!=='-c').join(' ')):'');
+    const detail=redact(error.stderr||error.stdout||(!error.killed&&error.code!=='ENOENT'?error.message:'')||'').trim().slice(-2500);
+    const reason=error.killed?`命令超时（${Math.round(timeout/1000)} 秒）`:error.code==='ENOENT'?'找不到可执行文件':`命令失败（${error.code??error.signal??'未知错误'}）`;
+    throw Error(`${reason}：${label}${detail?'\n'+detail:''}${error.killed?'\n请检查 GitHub 网络连接或插件的 Git 代理设置。':''}`);
+  }
+}
+function normalizeProxy(value){
+  const proxy=String(value||'').trim();if(!proxy)return '';
+  let url;try{url=new URL(proxy);}catch{throw Error('Git 代理格式无效，例如 http://127.0.0.1:7897。');}
+  if(!['http:','https:','socks5:','socks5h:'].includes(url.protocol)||!url.hostname||url.username||url.password||url.search||url.hash||!['','/'].includes(url.pathname))throw Error('Git 代理只填写 HTTP/HTTPS/SOCKS5 地址和端口，不包含密码或路径。');
+  return proxy;
+}
+async function gitNetwork(git,args,root,{gitProxy='',networkTimeout=60000}={}){
+  const proxy=normalizeProxy(gitProxy);
+  return run(git,['-c','http.lowSpeedLimit=1','-c','http.lowSpeedTime=20',...(proxy?['-c','http.proxy='+proxy]:[]),...args],root,{timeout:networkTimeout});
+}
+async function checkConnection({repo,git='git',requiredRemote,gitProxy=''}){
+  const state=await repoState(repo,git,requiredRemote);
+  const result=await gitNetwork(git,['ls-remote','origin','refs/heads/main'],state.root,{gitProxy});
+  if(!/^[a-f0-9]{40,64}\s+refs\/heads\/main$/m.test(result))throw Error('GitHub 仓库没有 main 分支。');
+  return state;
 }
 async function repoState(repo,git='git',requiredRemote='https://github.com/aurorasgod/aurorasgod.github.io.git') {
   const root=await fs.realpath(repo);
@@ -125,7 +151,7 @@ async function safeTarget(root,relative) {
   return path.join(root,relative);
 }
 async function articleHash(repo,slug){try{return hash(await fs.readFile(await safeTarget(await fs.realpath(repo),`src/content/blog/${slug}.md`)));}catch(e){if(e.code==='ENOENT')return null;throw e;}}
-async function publishArticle({repo,plan,git='git',requiredRemote,expectedArticleHash=null,build,onProgress=()=>{},onCommitted=async()=>{}}) {
+async function publishArticle({repo,plan,git='git',requiredRemote,gitProxy='',expectedArticleHash=null,build,onProgress=()=>{},onCommitted=async()=>{}}) {
   if(plan.warnings.length)throw Error('请先处理预览中的内部链接或附件问题。');
   const state=await repoState(repo,git,requiredRemote);
   if(state.status)throw Error('博客仓库还有未提交的修改，请先在 GitHub Desktop 处理。');
@@ -133,7 +159,7 @@ async function publishArticle({repo,plan,git='git',requiredRemote,expectedArticl
   try{await fs.mkdir(lock);}catch(e){if(e.code==='EEXIST')throw Error('另一项发布正在进行，请稍后再试。');throw e;}
   const backups=[];let committed=false;
   try {
-    onProgress('检查远程仓库');await run(git,['fetch','origin','main'],state.root);
+    onProgress('检查远程仓库');await gitNetwork(git,['fetch','origin','main'],state.root,{gitProxy});
     const behind=Number(await run(git,['rev-list','--count','HEAD..origin/main'],state.root)),ahead=Number(await run(git,['rev-list','--count','origin/main..HEAD'],state.root));
     if(behind)throw Error('远程仓库有新提交，请先在 GitHub Desktop 拉取更新。');
     if(ahead)throw Error('仓库有尚未推送的提交，请先在 GitHub Desktop 处理，或使用插件的重试推送。');
@@ -153,19 +179,19 @@ async function publishArticle({repo,plan,git='git',requiredRemote,expectedArticl
     onProgress('提交文章');await run(git,['commit','-m',`${plan.operation==='delete'?'Delete':'Publish'}: ${plan.meta.title.slice(0,100)}`,'--',...paths],state.root);
     committed=true;const commit=await run(git,['rev-parse','HEAD'],state.root);await onCommitted(commit);
     onProgress('推送到 GitHub');
-    try{await run(git,['push','origin','main'],state.root);return {status:'pushed',commit};}
+    try{await gitNetwork(git,['push','origin','main'],state.root,{gitProxy});return {status:'pushed',commit};}
     catch(error){return {status:'pending-push',commit,error:error.message};}
   } catch(error) {
     if(!committed){const paths=plan.files.map(f=>f.filePath);await run(git,['reset','--',...paths],state.root).catch(()=>{});for(const {target,previous,writtenHash} of backups){let current=null;try{current=await fs.readFile(target);}catch(e){if(e.code!=='ENOENT')throw e;}if((current===null?null:hash(current))!==writtenHash)continue;if(previous===null)await fs.unlink(target).catch(()=>{});else await fs.writeFile(target,previous);}}
     throw error;
   } finally {await fs.rmdir(lock);}
 }
-async function retryPush({repo,commit,git='git',requiredRemote}) {
+async function retryPush({repo,commit,git='git',requiredRemote,gitProxy=''}) {
   const state=await repoState(repo,git,requiredRemote);
   if(state.status||state.head!==commit)throw Error('仓库已发生其他修改，请在 GitHub Desktop 处理推送。');
-  await run(git,['fetch','origin','main'],state.root);
+  await gitNetwork(git,['fetch','origin','main'],state.root,{gitProxy});
   if(Number(await run(git,['rev-list','--count','HEAD..origin/main'],state.root)))throw Error('远程已更新，请在 GitHub Desktop 合并后推送。');
-  await run(git,['push','origin','main'],state.root);return {status:'pushed',commit};
+  await gitNetwork(git,['push','origin','main'],state.root,{gitProxy});return {status:'pushed',commit};
 }
 function parseArticle(markdown,slug,parseYaml){
   const match=markdown.match(/^\uFEFF?---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
@@ -196,4 +222,4 @@ async function deleteArticle({slug,parseYaml,...options}){
   const result=await publishArticle({...options,plan,onCommitted:async commit=>{record.commit=commit;await fs.writeFile(backup,JSON.stringify(record,null,2));await options.onCommitted?.(commit);}});
   return {...result,backupId:id};
 }
-module.exports={CATEGORIES,hash,today,stripFrontmatter,suggestSlug,validateMetadata,prepareArticle,repoState,articleHash,publishArticle,retryPush,run,parseArticle,readArticle,listArticles,listDeleted,deleteArticle,safeTarget};
+module.exports={CATEGORIES,hash,today,stripFrontmatter,suggestSlug,validateMetadata,prepareArticle,repoState,articleHash,publishArticle,retryPush,run,normalizeProxy,gitNetwork,checkConnection,parseArticle,readArticle,listArticles,listDeleted,deleteArticle,safeTarget};

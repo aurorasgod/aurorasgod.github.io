@@ -5,6 +5,20 @@ const {prepareArticle,repoState,publishArticle,retryPush,articleHash,run,today}=
 const meta={title:'我的文章',description:'自己的学习记录。',slug:'my-post',category:'personal',tags:['记录'],pubDate:today()};
 const file=reference=>reference==='图.png'?{path:'附件/图.png',resourceURL:'app://image',read:async()=>Buffer.from('image bytes')}:reference==='私密笔记'?{path:'私密笔记.md',read:async()=>{throw Error('Private contents must not be read');}}:null;
 const prepare=(text='## 正文\n自己的记录。',options={})=>prepareArticle({text,meta,notePath:'博客/我的文章.md',resolveFile:async r=>file(r),resolvePublished:async()=>null,...options});
+test('Desktop child processes have executable paths and actionable timeout/exit errors without leaking credentials',async()=>{
+ const bins=(await run(process.execPath,['-e','process.stdout.write(process.env.PATH)'],os.tmpdir(),{env:{PATH:'/usr/bin:/bin'}})).split(path.delimiter);
+ assert.ok(bins.includes('/opt/homebrew/bin'));assert.ok(bins.includes('/usr/local/bin'));
+ await assert.rejects(run(process.execPath,['-e','setInterval(()=>{},1000)'],os.tmpdir(),{timeout:150}),/命令超时.*\n.*Git 代理/s);
+ await assert.rejects(run('/does/not/exist',[],os.tmpdir()),/找不到可执行文件/);
+ await assert.rejects(run(process.execPath,['-e',"process.stderr.write('https://user:private@github.com ghp_private123');process.exit(7)"],os.tmpdir()),error=>{assert.match(error.message,/命令失败（7）/);assert.ok(!error.message.includes('private'));assert.ok(error.message.includes('[redacted]'));return true;});
+});
+test('Git network proxy is validated and passed per command without changing Git configuration',async t=>{
+ const {normalizeProxy,gitNetwork}=require('../integrations/obsidian/laplace-blog-publisher/core.cjs');
+ assert.equal(normalizeProxy('  http://127.0.0.1:7897 '),'http://127.0.0.1:7897');assert.equal(normalizeProxy(''),'');assert.equal(normalizeProxy('socks5h://localhost:1080'),'socks5h://localhost:1080');
+ for(const p of ['file:///private','http://user:secret@localhost:7897','localhost:7897','http://localhost/path'])assert.throws(()=>normalizeProxy(p),/Git 代理/);
+ const dir=await fs.mkdtemp(path.join(os.tmpdir(),'laplace-git-network-'));t.after(()=>fs.rm(dir,{recursive:true,force:true}));const fake=path.join(dir,'git');await fs.writeFile(fake,'#!'+process.execPath+'\nprocess.stdout.write(JSON.stringify(process.argv.slice(2)));\n',{mode:0o755});
+ const args=JSON.parse(await gitNetwork(fake,['fetch','origin','main'],dir,{gitProxy:'http://127.0.0.1:7897'}));assert.deepEqual(args,['-c','http.lowSpeedLimit=1','-c','http.lowSpeedTime=20','-c','http.proxy=http://127.0.0.1:7897','fetch','origin','main']);
+});
 test('Metadata validates before filesystem paths; generated identifiers are stable for Chinese note names',async()=>{
  const {suggestSlug,validateMetadata}=require('../integrations/obsidian/laplace-blog-publisher/core.cjs');
  for(const slug of ['', '/Users/example/我的笔记.md','../private'])assert.throws(()=>validateMetadata({...meta,slug}),/网页标识.*不用填写文件路径/);
@@ -47,6 +61,13 @@ test('Actual Git export, commit and push to isolated local remote; no private/un
 test('Failed website build rolls back exported files and stages; unrelated pending edits block publishing',async t=>{
  const {repo,options}=await fixture(t);const plan=await prepare();await assert.rejects(publishArticle({...options,plan,build:async()=>{throw Error('build failed');}}),/build failed/);await assert.rejects(fs.access(path.join(repo,'src/content/blog/my-post.md')));assert.equal((await repoState(repo,'git',options.requiredRemote)).status,'');
  await fs.writeFile(path.join(repo,'private.md'),'private');await assert.rejects(publishArticle({...options,plan}),/未提交/);await run('git',['add','private.md'],repo);await assert.rejects(publishArticle({...options,plan}),/暂存/);
+});
+test('Fetch failures show the actual error, write no article, release the lock, and allow the same preview to retry',async t=>{
+ const {repo,options}=await fixture(t),wrapper=path.join(path.dirname(repo),'git-fail-fetch');
+ await fs.writeFile(wrapper,'#!'+process.execPath+'\nconst args=process.argv.slice(2);if(args.includes("fetch")){process.stderr.write("fatal: Failed to connect to GitHub");process.exit(128);}process.exit(require("node:child_process").spawnSync("/usr/bin/git",args,{stdio:"inherit"}).status);\n',{mode:0o755});
+ const plan=await prepare();await assert.rejects(publishArticle({...options,plan,git:wrapper}),/命令失败（128）.*fetch origin main\n.*Failed to connect/s);
+ assert.equal(await articleHash(repo,meta.slug),null);await assert.rejects(fs.access(path.join(repo,'.git/laplace-blog-publisher.lock')));assert.equal(await run('git',['status','--porcelain'],repo),'');
+ assert.equal((await publishArticle({...options,plan})).status,'pushed');
 });
 test('Rejected push leaves one recoverable commit; retry pushes the same commit and cannot push another HEAD',async t=>{
  const {repo,remote,options}=await fixture(t);const hook=path.join(remote,'hooks/pre-receive');await fs.writeFile(hook,'#!/bin/sh\nexit 1\n',{mode:0o755});const plan=await prepare();let recorded;
