@@ -6,7 +6,7 @@ import { dateLabel, dateISO, readingMinutes } from '../lib/content';
 interface Props { post: CollectionEntry<'blog'>; index?: number; pinned?: boolean; }
 const { post, pinned = false } = Astro.props;
 ---
-<article class="post-row" data-post data-category={post.data.category} data-date={post.data.pubDate.valueOf()} data-search={`${post.data.title} ${post.data.description} ${post.data.tags.join(' ')} ${categoryName(post.data.category)}`.toLocaleLowerCase()}>
+<article class="post-row" data-post data-category={post.data.category} data-tags={JSON.stringify(post.data.tags)} data-date={post.data.pubDate.valueOf()} data-search={`${post.data.title} ${post.data.description} ${post.data.tags.join(' ')} ${categoryName(post.data.category)}`.toLocaleLowerCase()}>
   <div class="post-meta">
     <time datetime={dateISO(post.data.pubDate)}>{dateLabel(post.data.pubDate)}</time>
     <span>{readingMinutes(post.body)} 分钟阅读</span>
@@ -15,6 +15,6 @@ const { post, pinned = false } = Astro.props;
     <div class="post-topline"><span class="eyebrow category-caption">{categoryEnglish(post.data.category)}</span>{pinned && <span class="pinned-label">置顶</span>}</div>
     <h3><a href={url(`blog/${post.id}/`)}>{post.data.title}</a></h3>
     <p>{post.data.description}</p>
-    <div class="post-bottom"><div class="tags">{post.data.tags.map(tag => <a href={url(`articles/?q=${encodeURIComponent(tag)}`)}>#{tag}</a>)}</div><a class="read-link" href={url(`blog/${post.id}/`)} aria-label={`阅读：${post.data.title}`}>阅读笔记 <Icon name="arrow" size={15}/></a></div>
+    <div class="post-bottom"><div class="tags">{post.data.tags.map(tag => <a href={url(`articles/?tag=${encodeURIComponent(tag)}`)} aria-label={`查看标签 ${tag} 的文章`}>#{tag}</a>)}</div><a class="read-link" href={url(`blog/${post.id}/`)} aria-label={`阅读：${post.data.title}`}>阅读笔记 <Icon name="arrow" size={15}/></a></div>
   </div>
 </article>

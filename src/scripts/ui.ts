@@ -1,4 +1,4 @@
-export {};
+import { matchesSearch, tagKey, tagLabel } from '../lib/tags';
 const base = document.body.dataset.base || '/';
 const root = document.documentElement;
 const themeButton = document.querySelector<HTMLButtonElement>('[data-theme-toggle]');
@@ -15,16 +15,15 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenu();});
 document.addEventListener('click',event=>{if(!(event.target instanceof Node))return;if(!navigation?.contains(event.target)&&!menuButton?.contains(event.target))closeMenu();});
 matchMedia('(min-width:701px)').addEventListener('change',closeMenu);
 
-type SearchEntry={title:string;description:string;category:string;url:string;text:string};
+type SearchEntry={title:string;description:string;category:string;tags?:string[];url:string;text:string};
 let searchIndex:SearchEntry[]|null=null;
 let searchLoading:Promise<void>|null=null;
 const dialog=document.querySelector<HTMLDialogElement>('#search-dialog');
 const searchInput=document.querySelector<HTMLInputElement>('#global-search');
 const searchResults=document.querySelector<HTMLUListElement>('#search-results');
 const searchStatus=document.querySelector<HTMLElement>('.search-status');
-const normalize=(value:string)=>value.toLocaleLowerCase().normalize('NFKC');
-function showSearchResults(){if(!searchIndex||!searchResults||!searchInput)return;const terms=normalize(searchInput.value.trim()).split(/\s+/).filter(Boolean);const found=searchIndex.filter(entry=>terms.every(t=>normalize(entry.text).includes(t))).slice(0,8);searchResults.replaceChildren();for(const entry of found){const li=document.createElement('li');const a=document.createElement('a');a.href=entry.url;const category=document.createElement('span');category.className='search-category';category.textContent=entry.category;const title=document.createElement('strong');title.textContent=entry.title;const summary=document.createElement('p');summary.textContent=entry.description;a.append(category,title,summary);li.append(a);searchResults.append(li);}if(searchStatus)searchStatus.textContent=searchIndex.length===0?'暂无公开文章':terms.length?(found.length?`找到 ${found.length} 篇相关笔记`:'没有找到相关笔记，试试其他关键词。'):'最近的笔记';}
-async function loadSearch(){if(searchIndex)return;if(searchLoading)return searchLoading;searchLoading=(async()=>{if(searchStatus)searchStatus.textContent='正在载入笔记…';try{const response=await fetch(`${base}search-index.json`);if(!response.ok)throw new Error('Search index unavailable');searchIndex=await response.json();}catch{if(searchStatus)searchStatus.textContent='搜索暂时不可用，可以从文章页浏览。';}finally{searchLoading=null;}})();return searchLoading;}
+function showSearchResults(){if(!searchIndex||!searchResults||!searchInput)return;const query=searchInput.value.trim();const found=searchIndex.filter(entry=>matchesSearch(entry.text,entry.tags||[],query)).slice(0,8);searchResults.replaceChildren();for(const entry of found){const li=document.createElement('li');const a=document.createElement('a');a.href=entry.url;const category=document.createElement('span');category.className='search-category';category.textContent=entry.category;const title=document.createElement('strong');title.textContent=entry.title;const summary=document.createElement('p');summary.textContent=entry.description;a.append(category,title,summary);li.append(a);searchResults.append(li);}if(searchStatus)searchStatus.textContent=searchIndex.length===0?'暂无公开文章':query?(found.length?`找到 ${found.length} 篇相关笔记`:'没有找到相关笔记，试试其他关键词。'):'最近的笔记';}
+async function loadSearch(){if(searchIndex)return;if(searchLoading)return searchLoading;searchLoading=(async()=>{if(searchStatus)searchStatus.textContent='正在载入笔记…';try{const response=await fetch(`${base}search-index.json`,{cache:'no-cache'});if(!response.ok)throw new Error('Search index unavailable');searchIndex=await response.json();}catch{if(searchStatus)searchStatus.textContent='搜索暂时不可用，可以从文章页浏览。';}finally{searchLoading=null;}})();return searchLoading;}
 async function openSearch(event?:Event){if(!dialog||typeof dialog.showModal!=='function')return;event?.preventDefault();closeMenu();if(!dialog.open)dialog.showModal();searchInput?.focus();await loadSearch();showSearchResults();}
 document.querySelectorAll('[data-open-search]').forEach(trigger=>trigger.addEventListener('click',openSearch));
 document.querySelector('[data-close-search]')?.addEventListener('click',()=>dialog?.close());
@@ -35,7 +34,75 @@ searchResults?.addEventListener('keydown',event=>{const links=Array.from(searchR
 document.addEventListener('keydown',event=>{if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k'){event.preventDefault();if(dialog?.open)dialog.close();else void openSearch();}});
 
 const archive=document.querySelector<HTMLElement>('[data-archive]');
-if(archive){const search=archive.querySelector<HTMLInputElement>('[data-archive-search]')!;const sort=archive.querySelector<HTMLSelectElement>('[data-sort]')!;const buttons=Array.from(archive.querySelectorAll<HTMLButtonElement>('[data-category]'));const rows=Array.from(archive.querySelectorAll<HTMLElement>('[data-post]'));const list=archive.querySelector<HTMLElement>('[data-post-list]')!;const count=archive.querySelector<HTMLElement>('[data-result-count]')!;const empty=archive.querySelector<HTMLElement>('[data-empty]')!;const clear=archive.querySelector<HTMLButtonElement>('[data-clear-filter]')!;let category='all';function readParams(){const params=new URLSearchParams(location.search);category=buttons.some(b=>b.dataset.category===params.get('category'))?params.get('category')!:'all';search.value=params.get('q')||'';sort.value=params.get('sort')==='oldest'?'oldest':'newest';}function filter(updateUrl=true){const query=normalize(search.value.trim());const terms=query.split(/\s+/).filter(Boolean);let visible=0;for(const row of rows){const match=(category==='all'||row.dataset.category===category)&&terms.every(term=>normalize(row.dataset.search||'').includes(term));row.hidden=!match;if(match)visible++;}for(const b of buttons){const active=b.dataset.category===category;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));}for(const row of [...rows].sort((a,b)=>(Number(a.dataset.date)-Number(b.dataset.date))*(sort.value==='oldest'?1:-1)))list.append(row);count.textContent=`共 ${visible} 篇笔记`;empty.hidden=visible>0;clear.hidden=category==='all'&&!query&&sort.value==='newest';if(updateUrl){const address=new URL(location.href);address.search='';if(category!=='all')address.searchParams.set('category',category);if(search.value.trim())address.searchParams.set('q',search.value.trim());if(sort.value==='oldest')address.searchParams.set('sort','oldest');history.replaceState(null,'',address);}}for(const b of buttons)b.addEventListener('click',()=>{category=b.dataset.category||'all';filter();});search.addEventListener('input',()=>filter());sort.addEventListener('change',()=>filter());clear.addEventListener('click',()=>{category='all';search.value='';sort.value='newest';filter();search.focus();});window.addEventListener('popstate',()=>{readParams();filter(false);});readParams();filter(false);}
+if (archive) {
+  const search = archive.querySelector<HTMLInputElement>('[data-archive-search]')!;
+  const sort = archive.querySelector<HTMLSelectElement>('[data-sort]')!;
+  const tagSelect = archive.querySelector<HTMLSelectElement>('[data-tag-filter]')!;
+  const activeTag = archive.querySelector<HTMLElement>('[data-active-tag]')!;
+  const buttons = Array.from(archive.querySelectorAll<HTMLButtonElement>('[data-category]'));
+  const rows = Array.from(archive.querySelectorAll<HTMLElement>('[data-post]'));
+  const rowTags = new Map(rows.map(row => [row, JSON.parse(row.dataset.tags || '[]') as string[]]));
+  const list = archive.querySelector<HTMLElement>('[data-post-list]')!;
+  const count = archive.querySelector<HTMLElement>('[data-result-count]')!;
+  const empty = archive.querySelector<HTMLElement>('[data-empty]')!;
+  const clear = archive.querySelector<HTMLButtonElement>('[data-clear-filter]')!;
+  let category = 'all', tag = '';
+  function readParams() {
+    const params = new URLSearchParams(location.search);
+    category = buttons.some(b => b.dataset.category === params.get('category')) ? params.get('category')! : 'all';
+    search.value = params.get('q') || '';
+    sort.value = params.get('sort') === 'oldest' ? 'oldest' : 'newest';
+    tag = tagKey(params.get('tag') || '');
+    if (tag && !Array.from(tagSelect.options).some(option => option.value === tag)) {
+      const option = document.createElement('option');
+      option.value = tag;
+      option.textContent = '#' + tagLabel(params.get('tag')!) + ' · 0';
+      option.dataset.label = tagLabel(params.get('tag')!);
+      tagSelect.append(option);
+    }
+    tagSelect.value = tag;
+  }
+  function filter(updateUrl = true) {
+    const query = search.value.trim();
+    let visible = 0;
+    for (const row of rows) {
+      const tags = rowTags.get(row)!;
+      const match = (category === 'all' || row.dataset.category === category)
+        && (!tag || tags.some(value => tagKey(value) === tag))
+        && matchesSearch(row.dataset.search || '', tags, query);
+      row.hidden = !match;
+      if (match) visible++;
+    }
+    for (const button of buttons) {
+      const active = button.dataset.category === category;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-pressed', String(active));
+    }
+    for (const row of [...rows].sort((a, b) => (Number(a.dataset.date) - Number(b.dataset.date)) * (sort.value === 'oldest' ? 1 : -1))) list.append(row);
+    count.textContent = `共 ${visible} 篇笔记`;
+    activeTag.hidden = !tag;
+    activeTag.textContent = tag ? '#' + (tagSelect.selectedOptions[0]?.dataset.label || tag) : '';
+    empty.hidden = visible > 0;
+    clear.hidden = category === 'all' && !query && !tag && sort.value === 'newest';
+    if (updateUrl) {
+      const address = new URL(location.href);
+      address.search = '';
+      if (category !== 'all') address.searchParams.set('category', category);
+      if (tag) address.searchParams.set('tag', tagSelect.selectedOptions[0]?.dataset.label || tag);
+      if (query) address.searchParams.set('q', query);
+      if (sort.value === 'oldest') address.searchParams.set('sort', 'oldest');
+      history.replaceState(null, '', address);
+    }
+  }
+  for (const button of buttons) button.addEventListener('click', () => { category = button.dataset.category || 'all'; filter(); });
+  search.addEventListener('input', () => filter());
+  sort.addEventListener('change', () => filter());
+  tagSelect.addEventListener('change', () => { tag = tagSelect.value; filter(); });
+  clear.addEventListener('click', () => { category = 'all'; tag = ''; tagSelect.value = ''; search.value = ''; sort.value = 'newest'; filter(); search.focus(); });
+  window.addEventListener('popstate', () => { readParams(); filter(false); });
+  readParams();
+  filter(false);
+}
 
 for(const pre of document.querySelectorAll<HTMLPreElement>('.prose pre')){const code=pre.querySelector('code');if(!code)continue;const button=document.createElement('button');button.className='copy-code';button.type='button';button.textContent='复制代码';button.setAttribute('aria-label','复制代码');button.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(code.textContent||'');button.textContent='已复制';}catch{button.textContent='请手动复制';}setTimeout(()=>button.textContent='复制代码',2000);});pre.append(button);}
 document.querySelector<HTMLButtonElement>('[data-copy-link]')?.addEventListener('click',async event=>{const button=event.currentTarget as HTMLButtonElement;const span=button.querySelector('span');try{await navigator.clipboard.writeText(location.href);if(span)span.textContent='链接已复制';}catch{if(span)span.textContent='请复制地址栏链接';}setTimeout(()=>{if(span)span.textContent='复制文章链接';},2300);});

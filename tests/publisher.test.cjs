@@ -29,6 +29,11 @@ test('Metadata validates before filesystem paths; generated identifiers are stab
  const generated=suggestSlug('我的文章','博客/我的文章.md');assert.match(generated,/^post-[a-f0-9]{8}$/);assert.equal(suggestSlug('我的文章','博客/我的文章.md'),generated);assert.notEqual(suggestSlug('我的文章','其他/我的文章.md'),generated);assert.equal(suggestSlug('My First Post.md'),'my-first-post');
  await prepare('正文',{meta:{...meta,slug:generated}});
 });
+test('Publisher accepts hashtags or comma-separated tags and exports clean unique labels',async()=>{
+ const {parseTags}=require('../integrations/obsidian/laplace-blog-publisher/core.cjs');
+ assert.deepEqual(parseTags('#VLA #机器人学习，vla,＃电力电子'),['VLA','机器人学习','电力电子']);
+ const plan=await prepare('正文',{meta:{...meta,tags:['#VLA','vla','＃机器人学习']}});assert.deepEqual(plan.meta.tags,['VLA','机器人学习']);assert.ok(plan.markdown.includes('tags: ["VLA","机器人学习"]'));
+});
 test('Selected body and explicit public metadata only; images copied, private frontmatter/comments omitted',async()=>{
  const plan=await prepare('---\nprivate: hidden\n---\n# 我的文章\n\n内容。\n![[图.png]]\n%% private %%\n<!-- secret -->');
  assert.equal(plan.warnings.length,0);assert.equal(plan.assets.length,1);assert.ok(plan.markdown.includes('publish: true'));assert.ok(!plan.markdown.includes('hidden'));assert.ok(!plan.markdown.includes('private'));assert.ok(!plan.markdown.includes('secret'));assert.ok(!plan.body.includes('# 我的文章'));

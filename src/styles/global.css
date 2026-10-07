@@ -22,3 +22,6 @@
 @media(max-width:900px){.mobile-toc{display:block}}
 
 @media(prefers-reduced-motion:reduce){:root{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}}
+
+.archive-selects{display:flex;gap:10px;min-width:0}.archive-selects select{max-width:210px}.archive-summary{gap:12px}.active-tag{color:var(--accent);margin-left:auto}.tags>a:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:2px}
+@media(max-width:700px){.archive-controls{flex-wrap:wrap}.archive-search{max-width:none;flex-basis:100%}.archive-selects{width:100%}.archive-selects>label:first-child{flex:1;min-width:0}.archive-selects>label:first-child select{width:100%;max-width:none}}

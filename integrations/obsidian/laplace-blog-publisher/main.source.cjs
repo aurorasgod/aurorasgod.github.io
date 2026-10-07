@@ -75,7 +75,7 @@ class PublisherView extends ItemView {
   if(multiline)row.addTextArea(configure);else row.addText(configure);return input;
  }
  async prepare(){
-  if(!this.draft)throw Error('请先选择笔记或文章。');const meta={...this.draft,tags:this.draft.tags.split(/[,，]/).map(s=>s.trim()).filter(Boolean)};
+  if(!this.draft)throw Error('请先选择笔记或文章。');const meta={...this.draft,tags:core.parseTags(this.draft.tags)};
   core.validateMetadata(meta); // Validate user input before constructing any filesystem path.
   const source=this.p.currentNote?.path||`src/content/blog/${meta.slug}.md`,own=this.p.currentNote&&this.p.settings.publications[source];
   const expected=await core.articleHash(this.p.settings.repoPath,meta.slug);
@@ -147,7 +147,7 @@ class PublisherView extends ItemView {
    const fields=editor.createDiv({cls:'lp-fields'});this.field(fields,'标题','title');const slug=this.field(fields,'网页标识','slug',false,'text','网址中 /blog/ 后面的部分，例如 my-first-post。不用填写笔记或仓库路径。');if(this.target)slug.disabled=true;else button(slug.parentElement,'自动生成',()=>{this.draft.slug=core.suggestSlug(this.draft.title,this.p.currentNote?.path);slug.value=this.draft.slug;this.invalidate();});
    this.outputPath=fields.createEl('p',{cls:'lp-muted lp-output-path'});this.updateOutputPath();this.field(fields,'摘要','description',true);
    new Setting(fields).setName('分类').addDropdown(input=>{input.selectEl.id='lp-category';input.selectEl.setAttribute('aria-label','分类');for(const [id,name] of Object.entries(NAMES))input.addOption(id,name);input.setValue(this.draft.category).onChange(value=>{this.draft.category=value;this.invalidate();});});
-   this.field(fields,'标签（逗号分隔）','tags');this.field(fields,'发布日期','pubDate',false,'date');this.field(fields,'修订日期','updatedDate',false,'date');
+   this.field(fields,'标签','tags',false,'text','例如 #VLA #机器人学习，或用逗号分隔。网页标签可点击筛选。');this.field(fields,'发布日期','pubDate',false,'date');this.field(fields,'修订日期','updatedDate',false,'date');
    for(const [key,label] of [['featured','首页置顶'],['plainLinks','未公开笔记链接转为纯文字']])new Setting(fields).setName(label).addToggle(input=>{this.toggles.push(input);input.setValue(!!this.draft[key]).onChange(value=>{this.draft[key]=value;this.invalidate();});});
    const body=this.field(editor,'正文','body',true);body.addClass('lp-body-editor');
    const actions=editor.createDiv({cls:'lp-actions'});button(actions,'保存编辑稿',()=>this.saveDraft());button(actions,'预览',()=>this.preview());button(actions,this.target?'重新读取网页稿':'重新读取原笔记',async()=>{if(this.target){delete this.p.settings.drafts[this.draftKey()];await this.p.save();this.draft=null;await this.editArticle(this.target.slug);}else{this.draft.body=core.stripFrontmatter(await this.app.vault.read(this.p.currentNote)).trim();this.plan=null;await this.render();}});

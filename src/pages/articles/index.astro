@@ -4,13 +4,20 @@ import PostRow from '../../components/PostRow.astro';
 import Icon from '../../components/Icon.astro';
 import { publicPosts } from '../../lib/content';
 import { categories } from '../../site';
+import { tagKey } from '../../lib/tags';
 const posts = await publicPosts();
+const tags = new Map<string, { label: string; count: number }>();
+for (const post of posts) for (const tag of post.data.tags) {
+  const key = tagKey(tag), previous = tags.get(key);
+  tags.set(key, { label: previous?.label || tag, count: (previous?.count || 0) + 1 });
+}
+const tagOptions = [...tags].sort((a, b) => a[1].label.localeCompare(b[1].label, 'zh-CN'));
 ---
 <Base title="文章" active="articles"><div class="page-container archive-page" data-archive>
   <div class="page-heading"><div><span class="eyebrow">WRITING</span><h1>文章<span class="title-dot">.</span></h1><p>研究笔记与个人经历。</p></div><span class="page-count">{posts.length}<small>篇文章</small></span></div>
-  <div class="archive-controls"><label class="archive-search"><Icon name="search" size={18}/><span class="sr-only">搜索文章</span><input data-archive-search type="search" placeholder="搜索标题、摘要或标签"/></label><label class="sort-control"><span class="sr-only">文章排序</span><select data-sort aria-label="文章排序"><option value="newest">最新发布</option><option value="oldest">最早发布</option></select></label></div>
+  <div class="archive-controls"><label class="archive-search"><Icon name="search" size={18}/><span class="sr-only">搜索文章</span><input data-archive-search type="search" placeholder="搜索文章，或输入 #标签"/></label><div class="archive-selects"><label class="sort-control"><span class="sr-only">标签筛选</span><select data-tag-filter aria-label="标签筛选"><option value="">全部标签</option>{tagOptions.map(([key, tag]) => <option value={key} data-label={tag.label}>#{tag.label} · {tag.count}</option>)}</select></label><label class="sort-control"><span class="sr-only">文章排序</span><select data-sort aria-label="文章排序"><option value="newest">最新发布</option><option value="oldest">最早发布</option></select></label></div></div>
   <nav class="category-tabs" aria-label="文章分类"><button class="active" data-category="all" aria-pressed="true">全部<span>{posts.length}</span></button>{categories.map(c=><button data-category={c.id} aria-pressed="false">{c.name}<span>{posts.filter(p=>p.data.category===c.id).length}</span></button>)}</nav>
-  <div class="archive-summary"><span data-result-count aria-live="polite">共 {posts.length} 篇笔记</span><button class="clear-filter" data-clear-filter hidden>清除筛选</button></div>
+  <div class="archive-summary"><span data-result-count aria-live="polite">共 {posts.length} 篇笔记</span><span class="active-tag" data-active-tag hidden></span><button class="clear-filter" data-clear-filter hidden>清除筛选</button></div>
   <div class="archive-posts" data-post-list>{posts.map((post,i)=><PostRow post={post} index={i}/>)}</div>
   <div class="empty-state" data-empty hidden><h2>{posts.length?'没有找到相关文章':'文章整理中'}</h2><p>{posts.length?'试试其他关键词，或清除筛选。':'公开文章将在这里按时间归档。'}</p></div>
 </div></Base>

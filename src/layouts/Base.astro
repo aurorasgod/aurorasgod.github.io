@@ -33,9 +33,9 @@ const nav = [{id:'home',title:'首页',path:''},{id:'articles',title:'文章',pa
   <footer class="site-footer"><div><span class="footer-brand">Laplace<span>·</span></span><span class="footer-caption">© {new Date().getFullYear()} {site.fullName}</span></div><div class="footer-links"><a href={url('rss.xml')}>RSS <Icon name="rss" size={14}/></a><a href={url('about/')}>关于</a></div></footer>
   <dialog id="search-dialog" class="search-dialog" aria-labelledby="search-title">
     <div class="search-dialog-top"><h2 id="search-title">搜索笔记</h2><button class="icon-button" data-close-search aria-label="关闭搜索"><Icon name="close"/></button></div>
-    <label class="dialog-search-input"><Icon name="search"/><span class="sr-only">关键词</span><input id="global-search" type="search" placeholder="搜索标题、内容或标签…" autocomplete="off"/></label>
+    <label class="dialog-search-input"><Icon name="search"/><span class="sr-only">关键词</span><input id="global-search" type="search" placeholder="搜索文章，或输入 #标签…" autocomplete="off"/></label>
     <div class="search-status" aria-live="polite">输入关键词搜索</div><ul id="search-results" class="search-results"></ul>
-    <div class="search-help"><span>支持中文与英文关键词</span><kbd>ESC 关闭</kbd></div>
+    <div class="search-help"><span>支持关键词与 #标签，可组合搜索</span><kbd>ESC 关闭</kbd></div>
   </dialog>
   <button class="back-to-top icon-button" data-back-top aria-label="回到顶部" hidden><Icon name="back"/></button>
   <script>import '../scripts/ui.ts'; import '../scripts/activity.ts';</script>

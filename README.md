@@ -37,6 +37,10 @@ featured: false
 
 分类 ID：`embodied-ai`（具身智能）、`power-electronics`（电力电子）、`personal`（个人经历）。`publish` 默认 false，`draft: true` 和未来日期的文章不进入网站。修订时填写 `updatedDate: YYYY-MM-DD`，日期不应早于发布日期。`featured: true` 将最新的一篇置顶。
 
+**标签**：元数据填写 `tags: [VLA, 机器人学习]`；Obsidian 网站管理的标签栏也可填写 `#VLA #机器人学习` 或 `VLA, 机器人学习`。网站会显示可点击的 `#标签`，点击后精确筛选同标签文章。文章页提供“全部标签”选择框；搜索框与 ⌘K 全站搜索均支持 `#VLA`，也能将普通关键词和标签组合，例如 `训练 #VLA`。标签可与栏目分类一起筛选。
+
+**Push 后的等待**：Push 只把源码交给 GitHub；Actions 随后下载源码、安装依赖、构建 HTML 与搜索索引、上传构建文件，最后部署至 Pages。部署结束前仍显示上一版。如果某一步失败，网站继续保留上一版。使用插件“检查部署”或仓库 Actions 查看状态；显示 success 后再刷新正式网址 `https://aurorasgod.github.io`。
+
 图片放入 `public/images/`，正文使用 `![图片说明](/images/photo.webp)`。标准 Markdown、数学公式 `$...$` / `$$...$$` 和代码块均可使用。
 
 完成后，在 GitHub Desktop 查看差异，Commit → Push origin。`.github/workflows/deploy.yml` 会在 main 推送后自动构建、发布；无需上传 dist。公开仓库中的源文件本身也可公开访问，仓库只放可公开的材料。
