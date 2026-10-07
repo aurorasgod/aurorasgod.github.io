@@ -1,0 +1,5 @@
+---
+import Base from '../layouts/Base.astro';
+import {url} from '../site';
+---
+<Base title="页面未找到"><div class="not-found"><span class="eyebrow">PAGE NOT FOUND</span><h1>404<span class="title-dot">.</span></h1><p>这个页面不存在，或已经移动。</p><a class="outline-link" href={url()}>返回首页 →</a></div></Base>

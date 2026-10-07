@@ -1,0 +1,10 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import { url } from '../../site';
+export async function getStaticPaths(){return(await getCollection('projects')).map(project=>({params:{slug:project.id},props:{project}}));}
+const {project}=Astro.props;
+const {Content}=await render(project);
+---
+<Base title={project.data.title} description={project.data.description} active="projects"><article class="single-page reading-article"><a class="text-link article-back" href={url('projects/')}><Icon name="back" size={17}/>所有项目</a><header class="article-header"><span class="eyebrow">{project.data.category}</span><h1>{project.data.title}</h1><p class="article-description">{project.data.description}</p></header><div class="prose"><Content/></div>{project.data.github&&<a class="outline-link" href={project.data.github} target="_blank" rel="noopener noreferrer">查看源代码 <Icon name="arrow" size={17}/></a>}</article></Base>

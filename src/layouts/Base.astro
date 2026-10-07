@@ -1,0 +1,43 @@
+---
+import '../styles/global.css';
+import 'katex/dist/katex.min.css';
+import { site, url } from '../site';
+import Icon from '../components/Icon.astro';
+interface Props { title?: string; description?: string; active?: string; article?: boolean; }
+const { title, description = site.description, active = 'home', article = false } = Astro.props;
+const pageTitle = title ? `${title} — ${site.title}` : `${site.title} · ${site.chineseTitle}`;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const nav = [{id:'home',title:'首页',path:''},{id:'articles',title:'文章',path:'articles/'},{id:'projects',title:'项目',path:'projects/'},{id:'about',title:'关于',path:'about/'}];
+---
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="description" content={description}/><meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)"/><meta name="theme-color" content="#181818" media="(prefers-color-scheme: dark)"/>
+  <link rel="icon" href={url('favicon.svg')} type="image/svg+xml"/>
+  <link rel="canonical" href={canonical}/><link rel="alternate" type="application/rss+xml" title={site.title} href={url('rss.xml')}/>
+  <meta property="og:title" content={pageTitle}/><meta property="og:description" content={description}/><meta property="og:type" content={article?'article':'website'}/><meta property="og:url" content={canonical}/><meta property="og:image" content={new URL(url('social.svg'),Astro.site)}/>
+  <title>{pageTitle}</title>
+  <script is:inline>
+    try{const t=localStorage.getItem('field-notes-theme');document.documentElement.dataset.theme=t==='dark'||(!t&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'}catch{document.documentElement.dataset.theme='light'}
+  </script>
+</head>
+<body data-base={import.meta.env.BASE_URL}>
+  <a class="skip-link" href="#main">跳到正文</a>
+  <header class="site-header">
+    <a class="site-brand" href={url()} aria-label={`${site.title} 首页`}><span>laplace<span class="title-dot">.</span></span><span class="brand-sub">个人笔记</span></a>
+    <nav id="main-navigation" class="main-navigation" aria-label="主导航">{nav.map(item=><a href={url(item.path)} class:list={{active:active===item.id}} aria-current={active===item.id?'page':undefined}>{item.title}</a>)}</nav>
+    <div class="header-tools"><a class="icon-button search-trigger" href={url('articles/')} data-open-search aria-label="搜索文章"><Icon name="search" size={19}/><kbd>⌘ K</kbd></a><span class="tool-separator"></span><button class="icon-button theme-button" data-theme-toggle aria-label="切换主题" title="切换主题"><span class="theme-moon"><Icon name="moon" size={18}/></span><span class="theme-sun"><Icon name="sun" size={18}/></span></button><button class="icon-button mobile-menu" data-menu-toggle aria-controls="main-navigation" aria-expanded="false" aria-label="展开导航"><Icon name="menu"/></button></div>
+  </header>
+  <main id="main"><slot/></main>
+  <footer class="site-footer"><div><span class="footer-brand">Laplace<span>·</span></span><span class="footer-caption">© {new Date().getFullYear()} {site.fullName}</span></div><div class="footer-links"><a href={url('rss.xml')}>订阅 RSS <Icon name="rss" size={14}/></a><a href={url('about/')}>关于</a><span>Built with Astro</span></div></footer>
+  <dialog id="search-dialog" class="search-dialog" aria-labelledby="search-title">
+    <div class="search-dialog-top"><h2 id="search-title">搜索笔记</h2><button class="icon-button" data-close-search aria-label="关闭搜索"><Icon name="close"/></button></div>
+    <label class="dialog-search-input"><Icon name="search"/><span class="sr-only">关键词</span><input id="global-search" type="search" placeholder="搜索标题、内容或标签…" autocomplete="off"/></label>
+    <div class="search-status" aria-live="polite">输入关键词搜索</div><ul id="search-results" class="search-results"></ul>
+    <div class="search-help"><span>支持中文与英文关键词</span><kbd>ESC 关闭</kbd></div>
+  </dialog>
+  <button class="back-to-top icon-button" data-back-top aria-label="回到顶部" hidden><Icon name="back"/></button>
+  <script>import '../scripts/ui.ts'; import '../scripts/activity.ts';</script>
+</body>
+</html>

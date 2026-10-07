@@ -1,0 +1,14 @@
+---
+import { activityWindow, activityLevel, contentActivity } from '../lib/activity.mjs';
+const updates = contentActivity(Astro.props.posts);
+const days = activityWindow();
+const months = days.filter((_, i) => i % 7 === 0).map((day,i,all)=>({label:i === 0 || day.date.slice(0,7) !== all[i-1].date.slice(0,7) ? `${Number(day.date.slice(5,7))}月` : ''}));
+---
+<section class="activity-map" aria-labelledby="activity-heading" data-activity-map data-updates={JSON.stringify(updates)}>
+  <div class="activity-heading"><h2 id="activity-heading">更新记录</h2><span>近半年</span></div>
+  <div class="activity-months" aria-hidden="true">{months.map(m=><span>{m.label}</span>)}</div>
+  <div class="activity-calendar"><div class="activity-weekdays" aria-hidden="true"><span></span><span>一</span><span></span><span>三</span><span></span><span>五</span><span></span></div><div class="activity-grid" role="group" aria-label="近半年更新与访问热力图">{days.map(day=><span class="activity-cell" data-date={day.date} data-level={activityLevel(updates[day.date]||0,0)} data-future={day.future?'true':undefined} tabindex={day.future?undefined:-1} aria-label={`${day.date}，${updates[day.date]||0} 次更新，访问量正在加载`}></span>)}</div></div>
+  <div class="activity-footer"><span class="activity-summary" aria-live="polite">正在加载访问量…</span><span class="activity-legend" aria-label="颜色从浅到深代表活跃程度从低到高"><span>少</span>{[0,1,2,3,4].map(i=><i data-level={i}/>)}<span>多</span></span></div>
+  <div class="activity-detail" aria-live="polite">移到日期上查看 · 更新与访问</div>
+  <noscript>文章更新已显示；访问统计需要开启 JavaScript。</noscript>
+</section>

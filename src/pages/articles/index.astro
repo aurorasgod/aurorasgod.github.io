@@ -1,0 +1,16 @@
+---
+import Base from '../../layouts/Base.astro';
+import PostRow from '../../components/PostRow.astro';
+import Icon from '../../components/Icon.astro';
+import { publicPosts } from '../../lib/content';
+import { categories } from '../../site';
+const posts = await publicPosts();
+---
+<Base title="文章" active="articles"><div class="page-container archive-page" data-archive>
+  <div class="page-heading"><div><span class="eyebrow">THE NOTEBOOK</span><h1>文章<span class="title-dot">.</span></h1><p>按研究方向浏览，或直接搜索一个问题。</p></div><span class="page-count">{posts.length}<small>篇笔记{posts.every(p=>p.data.example)?' · 示例':''}</small></span></div>
+  <div class="archive-controls"><label class="archive-search"><Icon name="search" size={18}/><span class="sr-only">搜索文章</span><input data-archive-search type="search" placeholder="搜索标题、摘要或标签"/></label><label class="sort-control"><span class="sr-only">文章排序</span><select data-sort aria-label="文章排序"><option value="newest">最新发布</option><option value="oldest">最早发布</option></select></label></div>
+  <nav class="category-tabs" aria-label="文章分类"><button class="active" data-category="all" aria-pressed="true">全部<span>{posts.length}</span></button>{categories.map(c=><button data-category={c.id} aria-pressed="false">{c.name}<span>{posts.filter(p=>p.data.category===c.id).length}</span></button>)}</nav>
+  <div class="archive-summary"><span data-result-count aria-live="polite">共 {posts.length} 篇笔记</span><button class="clear-filter" data-clear-filter hidden>清除筛选</button></div>
+  <div class="archive-posts" data-post-list>{posts.map((post,i)=><PostRow post={post} index={i}/>)}</div>
+  <div class="empty-state" data-empty hidden><Icon name="search" size={28}/><h2>没有找到相关笔记</h2><p>试试其他关键词，或清除筛选。</p></div>
+</div></Base>
