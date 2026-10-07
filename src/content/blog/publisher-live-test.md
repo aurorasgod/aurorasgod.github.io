@@ -2,6 +2,7 @@
 title: "网站发布流程测试"
 description: "用于验证 Obsidian 发布插件的文章、图片、修改及删除流程。测试完成后移除。"
 pubDate: 2026-10-07
+updatedDate: 2026-10-07
 category: personal
 tags: ["插件测试"]
 publish: true
@@ -17,7 +18,7 @@ featured: false
 - 构建通过后自动提交并推送。
 - 测试结束后删除此网页。
 
-正文版本：第一次发布。
+正文版本：第二次发布，已从 PowerElectronics 修改。
 
 ## 图片验证
 
