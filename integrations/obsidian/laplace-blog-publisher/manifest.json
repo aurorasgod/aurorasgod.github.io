@@ -1,7 +1,7 @@
 {
   "id": "laplace-blog-publisher",
   "name": "Laplace Blog Manager",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "minAppVersion": "1.5.0",
   "description": "在 Obsidian 中创建、编辑、删除和恢复博客文章，联动研究主页。",
   "author": "Laplace",

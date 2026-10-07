@@ -27,13 +27,21 @@ function protectedMarkdown(text) {
   const masked=output.join('\n').replace(/(`+)[^`\n]*?\1/g,m=>token(m));
   return {masked,restore:value=>value.replace(/\uE000(\d+)\uE001/g,(_,i)=>saved[Number(i)])};
 }
-async function prepareArticle({text,meta,notePath,resolveFile,resolvePublished,resolvePublicAsset,plainLinks=false}) {
+function suggestSlug(title,identity=title){
+  const words=path.posix.basename(String(title||'').replace(/\\/g,'/')).replace(/\.md$/i,'').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,60).replace(/-+$/,'');
+  return words||'post-'+hash(String(identity||title||'article')).slice(0,8);
+}
+function validateMetadata(meta){
   const title=String(meta.title||'').trim(), description=String(meta.description||'').trim();
   if(!title||!description)throw Error('请填写文章标题和摘要。');
-  if(!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(meta.slug||'') || meta.slug.length>80)throw Error('文章地址使用小写英文、数字和短横线，最多 80 个字符。');
+  if(!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(meta.slug||'') || meta.slug.length>80)throw Error('网页标识使用小写英文、数字和短横线，例如 my-first-post；不用填写文件路径。可点击“自动生成”。');
   if(!CATEGORIES.includes(meta.category))throw Error('请选择有效的文章分类。');
   if(!dateValid(meta.pubDate)||meta.pubDate>today())throw Error('发布日期必须是有效日期，不能晚于今天。');
   if(meta.updatedDate&&(!dateValid(meta.updatedDate)||meta.updatedDate<meta.pubDate||meta.updatedDate>today()))throw Error('修订日期必须介于发布日期与今天之间。');
+  return {...meta,title,description};
+}
+async function prepareArticle({text,meta,notePath,resolveFile,resolvePublished,resolvePublicAsset,plainLinks=false}) {
+  meta=validateMetadata(meta);const {title,description}=meta;
   const assets=new Map(), warnings=[], notices=[];
   const base=`/images/posts/${meta.slug}/`;
   const external=target=>/^(https?:|mailto:|tel:|#)/i.test(target);
@@ -188,4 +196,4 @@ async function deleteArticle({slug,parseYaml,...options}){
   const result=await publishArticle({...options,plan,onCommitted:async commit=>{record.commit=commit;await fs.writeFile(backup,JSON.stringify(record,null,2));await options.onCommitted?.(commit);}});
   return {...result,backupId:id};
 }
-module.exports={CATEGORIES,hash,today,stripFrontmatter,prepareArticle,repoState,articleHash,publishArticle,retryPush,run,parseArticle,readArticle,listArticles,listDeleted,deleteArticle,safeTarget};
+module.exports={CATEGORIES,hash,today,stripFrontmatter,suggestSlug,validateMetadata,prepareArticle,repoState,articleHash,publishArticle,retryPush,run,parseArticle,readArticle,listArticles,listDeleted,deleteArticle,safeTarget};

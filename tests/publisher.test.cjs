@@ -5,6 +5,12 @@ const {prepareArticle,repoState,publishArticle,retryPush,articleHash,run,today}=
 const meta={title:'我的文章',description:'自己的学习记录。',slug:'my-post',category:'personal',tags:['记录'],pubDate:today()};
 const file=reference=>reference==='图.png'?{path:'附件/图.png',resourceURL:'app://image',read:async()=>Buffer.from('image bytes')}:reference==='私密笔记'?{path:'私密笔记.md',read:async()=>{throw Error('Private contents must not be read');}}:null;
 const prepare=(text='## 正文\n自己的记录。',options={})=>prepareArticle({text,meta,notePath:'博客/我的文章.md',resolveFile:async r=>file(r),resolvePublished:async()=>null,...options});
+test('Metadata validates before filesystem paths; generated identifiers are stable for Chinese note names',async()=>{
+ const {suggestSlug,validateMetadata}=require('../integrations/obsidian/laplace-blog-publisher/core.cjs');
+ for(const slug of ['', '/Users/example/我的笔记.md','../private'])assert.throws(()=>validateMetadata({...meta,slug}),/网页标识.*不用填写文件路径/);
+ const generated=suggestSlug('我的文章','博客/我的文章.md');assert.match(generated,/^post-[a-f0-9]{8}$/);assert.equal(suggestSlug('我的文章','博客/我的文章.md'),generated);assert.notEqual(suggestSlug('我的文章','其他/我的文章.md'),generated);assert.equal(suggestSlug('My First Post.md'),'my-first-post');
+ await prepare('正文',{meta:{...meta,slug:generated}});
+});
 test('Selected body and explicit public metadata only; images copied, private frontmatter/comments omitted',async()=>{
  const plan=await prepare('---\nprivate: hidden\n---\n# 我的文章\n\n内容。\n![[图.png]]\n%% private %%\n<!-- secret -->');
  assert.equal(plan.warnings.length,0);assert.equal(plan.assets.length,1);assert.ok(plan.markdown.includes('publish: true'));assert.ok(!plan.markdown.includes('hidden'));assert.ok(!plan.markdown.includes('private'));assert.ok(!plan.markdown.includes('secret'));assert.ok(!plan.body.includes('# 我的文章'));
