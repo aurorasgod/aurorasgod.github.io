@@ -112,13 +112,13 @@ async function run(binary,args,cwd,options={}){
   const timeout=options.timeout??120000,env={...process.env,GIT_TERMINAL_PROMPT:'0',...options.env};
   // Finder-launched macOS apps normally omit Homebrew/Node from PATH.
   env.PATH=[path.dirname(binary),env.PATH,'/opt/homebrew/bin','/usr/local/bin','/usr/bin','/bin','/usr/sbin','/sbin'].filter(Boolean).join(path.delimiter);
-  try{return (await execute(binary,args,{cwd,timeout,maxBuffer:2*1024*1024,env})).stdout.trim();}
+  try{const task=execute(binary,args,{cwd,timeout,maxBuffer:2*1024*1024,env});if(options.onOutput)task.child.stderr.on('data',chunk=>{try{options.onOutput(String(chunk));}catch{}});return (await task).stdout.trim();}
   catch(error){
     const redact=text=>String(text).replace(/(https?:\/\/)[^\s/@]+:[^\s/@]+@/g,'$1[redacted]@').replace(/\b(?:gh[pousr]_[A-Za-z0-9_]+|github_pat_[A-Za-z0-9_]+)\b/g,'[redacted]');
     const label=path.basename(binary)+(path.basename(binary).includes('git')?' '+redact(args.filter((arg,i)=>arg!=='-c'&&args[i-1]!=='-c').join(' ')):'');
     const detail=redact(error.stderr||error.stdout||(!error.killed&&error.code!=='ENOENT'?error.message:'')||'').trim().slice(-2500);
     const reason=error.killed?`命令超时（${Math.round(timeout/1000)} 秒）`:error.code==='ENOENT'?'找不到可执行文件':`命令失败（${error.code??error.signal??'未知错误'}）`;
-    throw Error(`${reason}：${label}${detail?'\n'+detail:''}${error.killed?'\n请检查 GitHub 网络连接或插件的 Git 代理设置。':''}`);
+    const failure=Error(`${reason}：${label}${detail?'\n'+detail:''}${error.killed?'\n请检查 GitHub 网络连接或插件的 Git 代理设置。':''}`);failure.code=error.code;failure.killed=error.killed;throw failure;
   }
 }
 function normalizeProxy(value){
@@ -127,9 +127,32 @@ function normalizeProxy(value){
   if(!['http:','https:','socks5:','socks5h:'].includes(url.protocol)||!url.hostname||url.username||url.password||url.search||url.hash||!['','/'].includes(url.pathname))throw Error('Git 代理只填写 HTTP/HTTPS/SOCKS5 地址和端口，不包含密码或路径。');
   return proxy;
 }
-async function gitNetwork(git,args,root,{gitProxy='',networkTimeout=60000}={}){
+async function gitNetwork(git,args,root,{gitProxy='',networkTimeout=60000,onOutput}={}){
   const proxy=normalizeProxy(gitProxy);
-  return run(git,['-c','http.lowSpeedLimit=1','-c','http.lowSpeedTime=20',...(proxy?['-c','http.proxy='+proxy]:[]),...args],root,{timeout:networkTimeout});
+  return run(git,['-c','http.lowSpeedLimit=1','-c','http.lowSpeedTime=20',...(proxy?['-c','http.proxy='+proxy]:[]),...args],root,{timeout:networkTimeout,onOutput});
+}
+function pushWait(value=600){const seconds=Number(value);if(!Number.isInteger(seconds)||seconds<60||seconds>1800)throw Error('推送等待时间应为 60–1800 秒。');return seconds*1000;}
+async function pushedCommit({repo,commit,git='git',requiredRemote,gitProxy=''}){
+  if(!/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(commit||''))throw Error('待推送提交无效，请检查仓库。');
+  const state=await repoState(repo,git,requiredRemote);
+  const remote=await gitNetwork(git,['ls-remote','origin','refs/heads/main'],state.root,{gitProxy});
+  const head=remote.match(/^([a-f0-9]{40,64})\s+refs\/heads\/main$/m)?.[1];
+  if(!head)throw Error('远程仓库没有 main 分支。');
+  if(head===commit)return true;
+  await gitNetwork(git,['fetch','origin','main'],state.root,{gitProxy});
+  try{await run(git,['merge-base','--is-ancestor',commit,'origin/main'],state.root);return true;}catch(error){if(error.code===1)return false;throw error;}
+}
+async function pushCommit({repo,commit,git='git',requiredRemote,gitProxy='',pushTimeoutSeconds=600,onProgress=()=>{}}){
+  const timeout=pushWait(pushTimeoutSeconds);onProgress('推送到 GitHub');
+  try{await gitNetwork(git,['push','--progress','origin','main'],repo,{gitProxy,networkTimeout:timeout,onOutput:chunk=>{
+    const lines=chunk.split(/[\r\n]/).filter(line=>/^(?:Writing objects|Enumerating objects|Counting objects|Compressing objects):/.test(line));
+    if(lines.length){const line=lines.at(-1).trim();onProgress(line.replace(/^Writing objects:/,'上传对象：').replace(/^Enumerating objects:/,'统计对象：').replace(/^Counting objects:/,'整理对象：').replace(/^Compressing objects:/,'压缩对象：'));}
+  }});return {status:'pushed',commit};}
+  catch(error){
+    onProgress('推送未正常结束，正在核对远程结果');
+    try{if(await pushedCommit({repo,commit,git,requiredRemote,gitProxy}))return {status:'pushed',commit,alreadyPushed:true};}catch{}
+    return {status:'pending-push',commit,error:error.message};
+  }
 }
 async function checkConnection({repo,git='git',requiredRemote,gitProxy=''}){
   const state=await repoState(repo,git,requiredRemote);
@@ -157,7 +180,8 @@ async function safeTarget(root,relative) {
   return path.join(root,relative);
 }
 async function articleHash(repo,slug){try{return hash(await fs.readFile(await safeTarget(await fs.realpath(repo),`src/content/blog/${slug}.md`)));}catch(e){if(e.code==='ENOENT')return null;throw e;}}
-async function publishArticle({repo,plan,git='git',requiredRemote,gitProxy='',expectedArticleHash=null,build,onProgress=()=>{},onCommitted=async()=>{}}) {
+async function publishArticle({repo,plan,git='git',requiredRemote,gitProxy='',pushTimeoutSeconds=600,expectedArticleHash=null,build,onProgress=()=>{},onCommitted=async()=>{}}) {
+  pushWait(pushTimeoutSeconds);
   if(plan.warnings.length)throw Error('请先处理预览中的内部链接或附件问题。');
   const state=await repoState(repo,git,requiredRemote);
   if(state.status)throw Error('博客仓库还有未提交的修改，请先在 GitHub Desktop 处理。');
@@ -184,20 +208,19 @@ async function publishArticle({repo,plan,git='git',requiredRemote,gitProxy='',ex
     if(!(await run(git,['diff','--cached','--name-only'],state.root)))return {status:'unchanged',commit:state.head};
     onProgress('提交文章');await run(git,['commit','-m',`${plan.operation==='delete'?'Delete':'Publish'}: ${plan.meta.title.slice(0,100)}`,'--',...paths],state.root);
     committed=true;const commit=await run(git,['rev-parse','HEAD'],state.root);await onCommitted(commit);
-    onProgress('推送到 GitHub');
-    try{await gitNetwork(git,['push','origin','main'],state.root,{gitProxy});return {status:'pushed',commit};}
-    catch(error){return {status:'pending-push',commit,error:error.message};}
+    return await pushCommit({repo:state.root,commit,git,requiredRemote,gitProxy,pushTimeoutSeconds,onProgress});
   } catch(error) {
     if(!committed){const paths=plan.files.map(f=>f.filePath);await run(git,['reset','--',...paths],state.root).catch(()=>{});for(const {target,previous,writtenHash} of backups){let current=null;try{current=await fs.readFile(target);}catch(e){if(e.code!=='ENOENT')throw e;}if((current===null?null:hash(current))!==writtenHash)continue;if(previous===null)await fs.unlink(target).catch(()=>{});else await fs.writeFile(target,previous);}}
     throw error;
   } finally {await fs.rmdir(lock);}
 }
-async function retryPush({repo,commit,git='git',requiredRemote,gitProxy=''}) {
+async function retryPush({repo,commit,git='git',requiredRemote,gitProxy='',pushTimeoutSeconds=600,onProgress=()=>{}}) {
+  if(await pushedCommit({repo,commit,git,requiredRemote,gitProxy}))return {status:'pushed',commit,alreadyPushed:true};
   const state=await repoState(repo,git,requiredRemote);
   if(state.status||state.head!==commit)throw Error('仓库已发生其他修改，请在 GitHub Desktop 处理推送。');
   await gitNetwork(git,['fetch','origin','main'],state.root,{gitProxy});
   if(Number(await run(git,['rev-list','--count','HEAD..origin/main'],state.root)))throw Error('远程已更新，请在 GitHub Desktop 合并后推送。');
-  await gitNetwork(git,['push','origin','main'],state.root,{gitProxy});return {status:'pushed',commit};
+  const result=await pushCommit({repo:state.root,commit,git,requiredRemote,gitProxy,pushTimeoutSeconds,onProgress});if(result.status!=='pushed')throw Error(result.error);return result;
 }
 function parseArticle(markdown,slug,parseYaml){
   const match=markdown.match(/^\uFEFF?---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
@@ -228,12 +251,12 @@ async function deleteArticle({slug,parseYaml,...options}){
   const result=await publishArticle({...options,plan,onCommitted:async commit=>{record.commit=commit;await fs.writeFile(backup,JSON.stringify(record,null,2));await options.onCommitted?.(commit);}});
   return {...result,backupId:id};
 }
-module.exports={CATEGORIES,hash,today,stripFrontmatter,suggestSlug,validateMetadata,prepareArticle,repoState,articleHash,publishArticle,retryPush,run,normalizeProxy,gitNetwork,checkConnection,parseArticle,readArticle,listArticles,listDeleted,deleteArticle,safeTarget};
+module.exports={CATEGORIES,hash,today,stripFrontmatter,suggestSlug,validateMetadata,prepareArticle,repoState,articleHash,publishArticle,retryPush,run,normalizeProxy,gitNetwork,checkConnection,pushWait,pushedCommit,parseArticle,readArticle,listArticles,listDeleted,deleteArticle,safeTarget};
 
 return module.exports;})();
 const VIEW='laplace-blog-publisher';
 const NAMES={'embodied-ai':'具身智能','power-electronics':'电力电子','personal':'个人经历'};
-const DEFAULT={repoPath:'',gitPath:'/usr/bin/git',nodePath:'/usr/local/bin/node',gitProxy:'',siteURL:'https://aurorasgod.github.io',activityAPI:'https://field-notes-research.gptplus6267.chatgpt.site',defaultCategory:'embodied-ai',drafts:{},publications:{},pendingCommit:'',pendingAction:null,lastCommit:''};
+const DEFAULT={repoPath:'',gitPath:'/usr/bin/git',nodePath:'/usr/local/bin/node',gitProxy:'',pushTimeoutSeconds:600,siteURL:'https://aurorasgod.github.io',activityAPI:'https://field-notes-research.gptplus6267.chatgpt.site',defaultCategory:'embodied-ai',drafts:{},publications:{},pendingCommit:'',pendingAction:null,lastCommit:'',lastAction:null};
 const button=(parent,label,action,primary=false)=>{const el=parent.createEl('button',{text:label,cls:primary?'mod-cta':'',attr:{type:'button'}});el.onclick=()=>Promise.resolve().then(action).catch(error=>{parent.closest('.lp-publisher')?.querySelector('.lp-status')?.setText(error.message);new Notice(error.message,10000);});return el;};
 const dateString=value=>value instanceof Date?value.toISOString().slice(0,10):String(value||'').slice(0,10);
 class NotePicker extends FuzzySuggestModal {
@@ -275,7 +298,7 @@ class PublisherView extends ItemView {
  getViewType(){return VIEW;}
  getDisplayText(){return '网站管理';}
  getIcon(){return 'globe';}
- async onOpen(){await this.render();}
+ async onOpen(){await this.render();if(this.p.settings.pendingCommit)try{await this.syncPending();}catch(error){this.status?.setText('同步发布状态失败：'+error.message);}}
  async leave(){if(this.busy)throw Error('正在更新网站，请稍后。');if(this.draft)await this.saveDraft(false);}
  draftKey(){return this.target?'@web/'+this.target.slug:this.p.currentNote?.path;}
  async select(file){
@@ -320,15 +343,16 @@ class PublisherView extends ItemView {
  async connection(){if(this.busy)throw Error('正在更新网站，请稍候。');this.setBusy(true);this.status.setText('正在检查 GitHub 连接…');try{await core.checkConnection(this.options());this.status.setText('GitHub 连接成功 · '+(this.p.settings.gitProxy?'使用插件设置的 Git 代理':'沿用本机 Git 网络配置'));}catch(error){this.status.setText(error.message);throw error;}finally{this.setBusy(false);}}
  async preview(){if(this.busy)throw Error('正在更新网站，请稍候。');this.setBusy(true);this.status.setText('正在生成预览…');try{this.plan=await this.prepare();await this.saveDraft(false);this.status.setText(this.plan.warnings.length?`有 ${this.plan.warnings.length} 项需要处理，请查看预览。`:'预览已生成，在预览窗口中确认发布并推送。');this.previewModal=new Preview(this,this.plan,this.p.currentNote?.path);this.previewModal.open();return this.previewModal;}catch(error){this.plan=null;this.status.setText(error.message);throw error;}finally{this.setBusy(false);}}
  async build(root){await fs.access(path.join(root,'node_modules/astro/bin/astro.mjs'));await core.run(this.p.settings.nodePath,[path.join(root,'node_modules/astro/bin/astro.mjs'),'build'],root,{env:{SITE_URL:this.p.settings.siteURL,BASE_PATH:'/',PUBLIC_ACTIVITY_API:this.p.settings.activityAPI,PATH:path.dirname(this.p.settings.nodePath)+path.delimiter+(process.env.PATH||'')}});}
- options(){return {repo:this.p.settings.repoPath,git:this.p.settings.gitPath,gitProxy:this.p.settings.gitProxy,build:root=>this.build(root),onProgress:message=>{this.status?.setText(message+'…');this.progressElement?.setText(message+'…');}};}
+ options(){return {repo:this.p.settings.repoPath,git:this.p.settings.gitPath,gitProxy:this.p.settings.gitProxy,pushTimeoutSeconds:this.p.settings.pushTimeoutSeconds,build:root=>this.build(root),onProgress:message=>{this.status?.setText(message+'…');this.progressElement?.setText(message+'…');}};}
  setBusy(value){this.busy=value;for(const control of this.contentEl.querySelectorAll('input,textarea,select,button'))control.disabled=value;for(const toggle of this.toggles||[])toggle.setDisabled(value);if(!value&&this.target)this.contentEl.querySelector('#lp-slug')?.setAttribute('disabled','');}
- async record(commit,action){this.p.settings.pendingCommit=commit;this.p.settings.lastCommit=commit;this.p.settings.pendingAction=action;if(action.type==='publish'&&action.source)this.p.settings.publications[action.source]={...action.meta,state:'pending-push',commit};await this.p.save();}
+ async record(commit,action){this.p.settings.pendingCommit=commit;this.p.settings.lastCommit=commit;this.p.settings.pendingAction=action;this.p.settings.lastAction=action;if(action.type==='publish'&&action.source)this.p.settings.publications[action.source]={...action.meta,state:'pending-push',commit};await this.p.save();this.refreshPublicationLinks();}
+ refreshPublicationLinks(){if(!this.publicationLinks)return;this.publicationLinks.empty();const record=this.p.settings.publications[this.p.currentNote?.path],action=this.p.settings.pendingAction||this.p.settings.lastAction,slug=this.target?.slug||record?.slug||(action?.type==='publish'?action.slug:null);if(slug)button(this.publicationLinks,'查看文章',()=>this.p.openURL(`/blog/${slug}/`));button(this.publicationLinks,'查看部署记录',()=>require('electron').shell.openExternal('https://github.com/aurorasgod/aurorasgod.github.io/actions'));}
  async complete(result,action){
-  if(result.status==='pending-push'){this.status?.setText('已提交，推送失败。请点击“重试推送”，无需重复操作。\n'+result.error);new Notice(result.error,10000);return;}
+  if(result.status==='pending-push'){this.status?.setText('文章已保存在本地提交中，推送结果尚未确认。可“同步发布状态”或“重试推送”，无需再次发布。\n'+result.error);new Notice(result.error,10000);return;}
   if(result.status==='pushed'){this.p.settings.pendingCommit='';this.p.settings.pendingAction=null;this.p.settings.lastCommit=result.commit;
    if(action.type==='delete'){for(const [key,record] of Object.entries(this.p.settings.publications))if(record.slug===action.slug)delete this.p.settings.publications[key];}
-   else if(action.source&&this.p.settings.publications[action.source])this.p.settings.publications[action.source].state='pushed';
-   await this.p.save();this.status?.setText('已推送。GitHub Pages 正在部署，可点击“检查部署”。');new Notice('网站更新已推送。');
+   else for(const record of Object.values(this.p.settings.publications))if(record.commit===result.commit)record.state='pushed';
+   this.p.settings.lastAction=action;await this.p.save();this.refreshPublicationLinks();this.status?.setText(result.alreadyPushed?'已确认远程包含此提交，发布状态已同步。点击“检查部署”查看上线结果。':'已推送。GitHub Pages 将自动部署，部署完成后文章才会上线。点击“检查部署”查看结果。');new Notice(result.alreadyPushed?'发布状态已同步。':'网站更新已推送。');
   }else this.status?.setText('内容没有变化，无需提交。');
  }
  async publish(original){
@@ -344,7 +368,8 @@ class PublisherView extends ItemView {
   catch(e){this.status?.setText(e.message);throw e;}finally{this.setBusy(false);}
  }
  async retry(){if(this.busy)throw Error('正在更新网站。');if(!this.p.settings.pendingCommit)throw Error('没有待重试的提交。');this.setBusy(true);try{const action=this.p.settings.pendingAction||{type:'publish'},result=await core.retryPush({...this.options(),commit:this.p.settings.pendingCommit});for(const r of Object.values(this.p.settings.publications))if(r.commit===result.commit)r.state='pushed';await this.complete(result,action);await this.refreshList();}finally{this.setBusy(false);}}
- async deployment(){const commit=this.p.settings.lastCommit||this.p.settings.pendingCommit;if(!commit)throw Error('暂无本插件的部署记录。');const response=await requestUrl({url:`https://api.github.com/repos/aurorasgod/aurorasgod.github.io/actions/runs?head_sha=${encodeURIComponent(commit)}&per_page=10`,headers:{Accept:'application/vnd.github+json'}});const run=response.json.workflow_runs?.find(r=>r.name==='Publish personal site');this.status.setText(!run?'尚未创建部署任务，稍后再检查。':run.status==='completed'?(run.conclusion==='success'?'部署成功，网站已更新。':`部署失败：${run.conclusion}，请查看 GitHub Actions。`):'GitHub 正在构建并部署网站。');}
+ async syncPending(){if(this.busy)throw Error('正在更新网站，请稍候。');const commit=this.p.settings.pendingCommit;if(!commit){this.status?.setText('没有待同步的推送。可“检查部署”查看上线结果。');return true;}this.setBusy(true);this.status?.setText('正在核对 GitHub 远程提交…');try{const action=this.p.settings.pendingAction||{type:'publish'},pushed=await core.pushedCommit({...this.options(),commit});if(commit!==this.p.settings.pendingCommit)return false;if(pushed){await this.complete({status:'pushed',commit,alreadyPushed:true},action);await this.refreshList();return true;}this.status?.setText('远程尚未包含此提交。文章已保存在本地，请“重试推送”。');return false;}finally{this.setBusy(false);}}
+ async deployment(){if(this.p.settings.pendingCommit&&!(await this.syncPending()))return;const commit=this.p.settings.lastCommit;if(!commit)throw Error('暂无本插件的部署记录。');this.status.setText('正在查询 GitHub Pages 部署…');try{const response=await requestUrl({url:`https://api.github.com/repos/aurorasgod/aurorasgod.github.io/actions/runs?head_sha=${encodeURIComponent(commit)}&per_page=10`,headers:{Accept:'application/vnd.github+json'}});const run=response.json.workflow_runs?.find(r=>r.name==='Publish personal site');this.status.setText(!run?'已推送，尚未找到部署任务。稍后检查，或打开“查看部署记录”。':run.status==='completed'?(run.conclusion==='success'?(this.p.settings.lastAction?.type==='delete'?'删除已部署，文章已下线。已打开的网页请刷新。':'部署成功，网站已更新。点击“查看文章”；已打开的网页请刷新。'):`已推送，但部署未成功：${run.conclusion}。请打开“查看部署记录”。`):'已推送，GitHub 正在构建并部署。完成后点击“查看文章”，或刷新网页。');}catch(error){this.status.setText('已推送；部署状态查询失败，可打开“查看部署记录”。\n'+error.message);throw error;}}
  async refreshList(){
   if(!this.articleList)return;this.articleList.empty();
   try{const records=this.listMode==='trash'?await core.listDeleted(this.p.settings.repoPath,this.p.settings.gitPath):await core.listArticles(this.p.settings.repoPath,parseYaml);const filtered=records.filter(r=>(r.meta?.title||r.title||r.slug).toLowerCase().includes(this.filter.toLowerCase())||r.slug.includes(this.filter.toLowerCase()));
@@ -364,7 +389,7 @@ class PublisherView extends ItemView {
   for(const [id,label] of [['articles','文章'],['trash','恢复列表']]){const b=button(tabs,label,async()=>{if(this.busy)return;this.listMode=id;for(const el of tabs.querySelectorAll('button'))el.classList.toggle('is-active',el===b);await this.refreshList();});if(id===this.listMode)b.addClass('is-active');}
   const search=sidebar.createEl('input',{cls:'search-input',attr:{type:'search',placeholder:'搜索文章','aria-label':'搜索文章'}});search.value=this.filter;search.oninput=()=>{this.filter=search.value;this.refreshList();};
   const listHeader=sidebar.createDiv({cls:'lp-list-header'});this.listCount=listHeader.createSpan({cls:'lp-muted'});button(listHeader,'刷新',()=>this.refreshList());this.articleList=sidebar.createDiv({cls:'lp-article-list'});
-  const editor=layout.createDiv({cls:'lp-editor'});this.status=editor.createEl('p',{cls:'lp-status',text:this.p.settings.pendingCommit?'有提交等待推送，请先重试推送。':'目标：aurorasgod.github.io',attr:{role:'status','aria-live':'polite'}});
+  const editor=layout.createDiv({cls:'lp-editor'});this.status=editor.createEl('p',{cls:'lp-status',text:this.p.settings.pendingCommit?'有本地提交需要核对推送结果，可“同步发布状态”或“重试推送”。':'目标：aurorasgod.github.io',attr:{role:'status','aria-live':'polite'}});this.publicationLinks=editor.createDiv({cls:'lp-actions'});this.refreshPublicationLinks();
   if(this.p.currentNote&&!this.draft)return this.select(this.p.currentNote);
   if(this.draft){
    const head=editor.createDiv({cls:'lp-editor-heading'});head.createEl('h3',{text:this.target?(this.target.restoring?'恢复文章':'编辑文章'):'新建文章'});
@@ -379,7 +404,7 @@ class PublisherView extends ItemView {
    const actions=editor.createDiv({cls:'lp-actions'});button(actions,'保存编辑稿',()=>this.saveDraft());button(actions,'预览',()=>this.preview());button(actions,this.target?'重新读取网页稿':'重新读取原笔记',async()=>{if(this.target){delete this.p.settings.drafts[this.draftKey()];await this.p.save();this.draft=null;await this.editArticle(this.target.slug);}else{this.draft.body=core.stripFrontmatter(await this.app.vault.read(this.p.currentNote)).trim();this.plan=null;await this.render();}});
    const publishRow=editor.createDiv({cls:'lp-actions'});this.publishButton=button(publishRow,this.target?'发布修改':'发布文章',()=>this.preview(),true);publishRow.createSpan({cls:'lp-muted',text:'点击后预览；确认后写入仓库并推送 GitHub。'});
   }else{this.publishButton=null;editor.createEl('h3',{text:'管理博客文章'});editor.createEl('p',{cls:'lp-muted',text:'在左侧选择文章进行修改或删除，或从 Obsidian 笔记创建新文章。'});button(editor,'使用当前笔记',async()=>{if(!this.p.lastNote)throw Error('请先打开一篇 Markdown 笔记。');await this.select(this.p.lastNote);});}
-  const footer=editor.createDiv({cls:'lp-actions lp-footer'});button(footer,'检查环境',()=>this.inspect());button(footer,'检查 GitHub 连接',()=>this.connection());button(footer,'重试推送',()=>this.retry());button(footer,'检查部署',()=>this.deployment());
+  const footer=editor.createDiv({cls:'lp-actions lp-footer'});button(footer,'检查环境',()=>this.inspect());button(footer,'检查 GitHub 连接',()=>this.connection());button(footer,'同步发布状态',()=>this.syncPending());button(footer,'重试推送',()=>this.retry());button(footer,'检查部署',()=>this.deployment());
   await this.refreshList();
  }
 }
@@ -388,6 +413,7 @@ class Settings extends PluginSettingTab {
  display(){const e=this.containerEl;e.empty();e.createEl('h2',{text:'网站管理'});e.createEl('p',{text:'管理 aurorasgod.github.io 的文章。Git 登录沿用本机配置，删除文章保留本地恢复副本。'});
   for(const [key,name,description] of [['repoPath','博客仓库目录','GitHub 克隆目录的绝对路径。'],['gitPath','Git 路径','macOS 通常为 /usr/bin/git。'],['nodePath','Node.js 路径','发布前用于构建验证。']])new Setting(e).setName(name).setDesc(description).addText(input=>input.setValue(this.p.settings[key]).onChange(async value=>{this.p.settings[key]=value.trim();await this.p.save();}));
   new Setting(e).setName('Git 代理').setDesc('仅用于本插件的 GitHub 连接，不修改系统或 Git 全局设置。留空沿用本机配置，例如 http://127.0.0.1:7897；使用时需保持代理软件运行。').addText(input=>input.setPlaceholder('http://127.0.0.1:7897').setValue(this.p.settings.gitProxy).onChange(async value=>{this.p.settings.gitProxy=value.trim();await this.p.save();}));
+  new Setting(e).setName('推送最长等待').setDesc('带 PDF 或图片的首次上传可能较慢，默认 10 分钟。上传停滞时 Git 会提前报错；超时后会核对远程结果。').addDropdown(input=>{for(const minutes of [1,3,5,10,15,30])input.addOption(String(minutes*60),minutes+' 分钟');input.setValue(String(this.p.settings.pushTimeoutSeconds)).onChange(async value=>{this.p.settings.pushTimeoutSeconds=Number(value);await this.p.save();});});
   new Setting(e).setName('默认分类').addDropdown(input=>{for(const [id,name] of Object.entries(NAMES))input.addOption(id,name);input.setValue(this.p.settings.defaultCategory).onChange(async value=>{this.p.settings.defaultCategory=value;await this.p.save();});});
  }
 }

@@ -106,13 +106,13 @@ async function run(binary,args,cwd,options={}){
   const timeout=options.timeout??120000,env={...process.env,GIT_TERMINAL_PROMPT:'0',...options.env};
   // Finder-launched macOS apps normally omit Homebrew/Node from PATH.
   env.PATH=[path.dirname(binary),env.PATH,'/opt/homebrew/bin','/usr/local/bin','/usr/bin','/bin','/usr/sbin','/sbin'].filter(Boolean).join(path.delimiter);
-  try{return (await execute(binary,args,{cwd,timeout,maxBuffer:2*1024*1024,env})).stdout.trim();}
+  try{const task=execute(binary,args,{cwd,timeout,maxBuffer:2*1024*1024,env});if(options.onOutput)task.child.stderr.on('data',chunk=>{try{options.onOutput(String(chunk));}catch{}});return (await task).stdout.trim();}
   catch(error){
     const redact=text=>String(text).replace(/(https?:\/\/)[^\s/@]+:[^\s/@]+@/g,'$1[redacted]@').replace(/\b(?:gh[pousr]_[A-Za-z0-9_]+|github_pat_[A-Za-z0-9_]+)\b/g,'[redacted]');
     const label=path.basename(binary)+(path.basename(binary).includes('git')?' '+redact(args.filter((arg,i)=>arg!=='-c'&&args[i-1]!=='-c').join(' ')):'');
     const detail=redact(error.stderr||error.stdout||(!error.killed&&error.code!=='ENOENT'?error.message:'')||'').trim().slice(-2500);
     const reason=error.killed?`命令超时（${Math.round(timeout/1000)} 秒）`:error.code==='ENOENT'?'找不到可执行文件':`命令失败（${error.code??error.signal??'未知错误'}）`;
-    throw Error(`${reason}：${label}${detail?'\n'+detail:''}${error.killed?'\n请检查 GitHub 网络连接或插件的 Git 代理设置。':''}`);
+    const failure=Error(`${reason}：${label}${detail?'\n'+detail:''}${error.killed?'\n请检查 GitHub 网络连接或插件的 Git 代理设置。':''}`);failure.code=error.code;failure.killed=error.killed;throw failure;
   }
 }
 function normalizeProxy(value){
@@ -121,9 +121,32 @@ function normalizeProxy(value){
   if(!['http:','https:','socks5:','socks5h:'].includes(url.protocol)||!url.hostname||url.username||url.password||url.search||url.hash||!['','/'].includes(url.pathname))throw Error('Git 代理只填写 HTTP/HTTPS/SOCKS5 地址和端口，不包含密码或路径。');
   return proxy;
 }
-async function gitNetwork(git,args,root,{gitProxy='',networkTimeout=60000}={}){
+async function gitNetwork(git,args,root,{gitProxy='',networkTimeout=60000,onOutput}={}){
   const proxy=normalizeProxy(gitProxy);
-  return run(git,['-c','http.lowSpeedLimit=1','-c','http.lowSpeedTime=20',...(proxy?['-c','http.proxy='+proxy]:[]),...args],root,{timeout:networkTimeout});
+  return run(git,['-c','http.lowSpeedLimit=1','-c','http.lowSpeedTime=20',...(proxy?['-c','http.proxy='+proxy]:[]),...args],root,{timeout:networkTimeout,onOutput});
+}
+function pushWait(value=600){const seconds=Number(value);if(!Number.isInteger(seconds)||seconds<60||seconds>1800)throw Error('推送等待时间应为 60–1800 秒。');return seconds*1000;}
+async function pushedCommit({repo,commit,git='git',requiredRemote,gitProxy=''}){
+  if(!/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(commit||''))throw Error('待推送提交无效，请检查仓库。');
+  const state=await repoState(repo,git,requiredRemote);
+  const remote=await gitNetwork(git,['ls-remote','origin','refs/heads/main'],state.root,{gitProxy});
+  const head=remote.match(/^([a-f0-9]{40,64})\s+refs\/heads\/main$/m)?.[1];
+  if(!head)throw Error('远程仓库没有 main 分支。');
+  if(head===commit)return true;
+  await gitNetwork(git,['fetch','origin','main'],state.root,{gitProxy});
+  try{await run(git,['merge-base','--is-ancestor',commit,'origin/main'],state.root);return true;}catch(error){if(error.code===1)return false;throw error;}
+}
+async function pushCommit({repo,commit,git='git',requiredRemote,gitProxy='',pushTimeoutSeconds=600,onProgress=()=>{}}){
+  const timeout=pushWait(pushTimeoutSeconds);onProgress('推送到 GitHub');
+  try{await gitNetwork(git,['push','--progress','origin','main'],repo,{gitProxy,networkTimeout:timeout,onOutput:chunk=>{
+    const lines=chunk.split(/[\r\n]/).filter(line=>/^(?:Writing objects|Enumerating objects|Counting objects|Compressing objects):/.test(line));
+    if(lines.length){const line=lines.at(-1).trim();onProgress(line.replace(/^Writing objects:/,'上传对象：').replace(/^Enumerating objects:/,'统计对象：').replace(/^Counting objects:/,'整理对象：').replace(/^Compressing objects:/,'压缩对象：'));}
+  }});return {status:'pushed',commit};}
+  catch(error){
+    onProgress('推送未正常结束，正在核对远程结果');
+    try{if(await pushedCommit({repo,commit,git,requiredRemote,gitProxy}))return {status:'pushed',commit,alreadyPushed:true};}catch{}
+    return {status:'pending-push',commit,error:error.message};
+  }
 }
 async function checkConnection({repo,git='git',requiredRemote,gitProxy=''}){
   const state=await repoState(repo,git,requiredRemote);
@@ -151,7 +174,8 @@ async function safeTarget(root,relative) {
   return path.join(root,relative);
 }
 async function articleHash(repo,slug){try{return hash(await fs.readFile(await safeTarget(await fs.realpath(repo),`src/content/blog/${slug}.md`)));}catch(e){if(e.code==='ENOENT')return null;throw e;}}
-async function publishArticle({repo,plan,git='git',requiredRemote,gitProxy='',expectedArticleHash=null,build,onProgress=()=>{},onCommitted=async()=>{}}) {
+async function publishArticle({repo,plan,git='git',requiredRemote,gitProxy='',pushTimeoutSeconds=600,expectedArticleHash=null,build,onProgress=()=>{},onCommitted=async()=>{}}) {
+  pushWait(pushTimeoutSeconds);
   if(plan.warnings.length)throw Error('请先处理预览中的内部链接或附件问题。');
   const state=await repoState(repo,git,requiredRemote);
   if(state.status)throw Error('博客仓库还有未提交的修改，请先在 GitHub Desktop 处理。');
@@ -178,20 +202,19 @@ async function publishArticle({repo,plan,git='git',requiredRemote,gitProxy='',ex
     if(!(await run(git,['diff','--cached','--name-only'],state.root)))return {status:'unchanged',commit:state.head};
     onProgress('提交文章');await run(git,['commit','-m',`${plan.operation==='delete'?'Delete':'Publish'}: ${plan.meta.title.slice(0,100)}`,'--',...paths],state.root);
     committed=true;const commit=await run(git,['rev-parse','HEAD'],state.root);await onCommitted(commit);
-    onProgress('推送到 GitHub');
-    try{await gitNetwork(git,['push','origin','main'],state.root,{gitProxy});return {status:'pushed',commit};}
-    catch(error){return {status:'pending-push',commit,error:error.message};}
+    return await pushCommit({repo:state.root,commit,git,requiredRemote,gitProxy,pushTimeoutSeconds,onProgress});
   } catch(error) {
     if(!committed){const paths=plan.files.map(f=>f.filePath);await run(git,['reset','--',...paths],state.root).catch(()=>{});for(const {target,previous,writtenHash} of backups){let current=null;try{current=await fs.readFile(target);}catch(e){if(e.code!=='ENOENT')throw e;}if((current===null?null:hash(current))!==writtenHash)continue;if(previous===null)await fs.unlink(target).catch(()=>{});else await fs.writeFile(target,previous);}}
     throw error;
   } finally {await fs.rmdir(lock);}
 }
-async function retryPush({repo,commit,git='git',requiredRemote,gitProxy=''}) {
+async function retryPush({repo,commit,git='git',requiredRemote,gitProxy='',pushTimeoutSeconds=600,onProgress=()=>{}}) {
+  if(await pushedCommit({repo,commit,git,requiredRemote,gitProxy}))return {status:'pushed',commit,alreadyPushed:true};
   const state=await repoState(repo,git,requiredRemote);
   if(state.status||state.head!==commit)throw Error('仓库已发生其他修改，请在 GitHub Desktop 处理推送。');
   await gitNetwork(git,['fetch','origin','main'],state.root,{gitProxy});
   if(Number(await run(git,['rev-list','--count','HEAD..origin/main'],state.root)))throw Error('远程已更新，请在 GitHub Desktop 合并后推送。');
-  await gitNetwork(git,['push','origin','main'],state.root,{gitProxy});return {status:'pushed',commit};
+  const result=await pushCommit({repo:state.root,commit,git,requiredRemote,gitProxy,pushTimeoutSeconds,onProgress});if(result.status!=='pushed')throw Error(result.error);return result;
 }
 function parseArticle(markdown,slug,parseYaml){
   const match=markdown.match(/^\uFEFF?---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
@@ -222,4 +245,4 @@ async function deleteArticle({slug,parseYaml,...options}){
   const result=await publishArticle({...options,plan,onCommitted:async commit=>{record.commit=commit;await fs.writeFile(backup,JSON.stringify(record,null,2));await options.onCommitted?.(commit);}});
   return {...result,backupId:id};
 }
-module.exports={CATEGORIES,hash,today,stripFrontmatter,suggestSlug,validateMetadata,prepareArticle,repoState,articleHash,publishArticle,retryPush,run,normalizeProxy,gitNetwork,checkConnection,parseArticle,readArticle,listArticles,listDeleted,deleteArticle,safeTarget};
+module.exports={CATEGORIES,hash,today,stripFrontmatter,suggestSlug,validateMetadata,prepareArticle,repoState,articleHash,publishArticle,retryPush,run,normalizeProxy,gitNetwork,checkConnection,pushWait,pushedCommit,parseArticle,readArticle,listArticles,listDeleted,deleteArticle,safeTarget};

@@ -1,7 +1,7 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
 const fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os');
-const {prepareArticle,repoState,publishArticle,retryPush,articleHash,run,today}=require('../integrations/obsidian/laplace-blog-publisher/core.cjs');
+const {prepareArticle,repoState,publishArticle,retryPush,articleHash,run,today,pushWait,pushedCommit}=require('../integrations/obsidian/laplace-blog-publisher/core.cjs');
 const meta={title:'我的文章',description:'自己的学习记录。',slug:'my-post',category:'personal',tags:['记录'],pubDate:today()};
 const file=reference=>reference==='图.png'?{path:'附件/图.png',resourceURL:'app://image',read:async()=>Buffer.from('image bytes')}:reference==='私密笔记'?{path:'私密笔记.md',read:async()=>{throw Error('Private contents must not be read');}}:null;
 const prepare=(text='## 正文\n自己的记录。',options={})=>prepareArticle({text,meta,notePath:'博客/我的文章.md',resolveFile:async r=>file(r),resolvePublished:async()=>null,...options});
@@ -18,6 +18,10 @@ test('Git network proxy is validated and passed per command without changing Git
  for(const p of ['file:///private','http://user:secret@localhost:7897','localhost:7897','http://localhost/path'])assert.throws(()=>normalizeProxy(p),/Git 代理/);
  const dir=await fs.mkdtemp(path.join(os.tmpdir(),'laplace-git-network-'));t.after(()=>fs.rm(dir,{recursive:true,force:true}));const fake=path.join(dir,'git');await fs.writeFile(fake,'#!'+process.execPath+'\nprocess.stdout.write(JSON.stringify(process.argv.slice(2)));\n',{mode:0o755});
  const args=JSON.parse(await gitNetwork(fake,['fetch','origin','main'],dir,{gitProxy:'http://127.0.0.1:7897'}));assert.deepEqual(args,['-c','http.lowSpeedLimit=1','-c','http.lowSpeedTime=20','-c','http.proxy=http://127.0.0.1:7897','fetch','origin','main']);
+});
+test('Push has a configurable ten-minute default and child-process progress is streamed',async()=>{
+ assert.equal(pushWait(),600000);assert.equal(pushWait(1800),1800000);for(const v of [0,59,1801,'invalid'])assert.throws(()=>pushWait(v),/60–1800/);
+ const progress=[];await run(process.execPath,['-e',"process.stderr.write('Writing objects: 50%\\r');process.stdout.write('done')"],os.tmpdir(),{onOutput:chunk=>progress.push(chunk)});assert.match(progress.join(''),/Writing objects: 50%/);
 });
 test('Metadata validates before filesystem paths; generated identifiers are stable for Chinese note names',async()=>{
  const {suggestSlug,validateMetadata}=require('../integrations/obsidian/laplace-blog-publisher/core.cjs');
@@ -72,7 +76,20 @@ test('Fetch failures show the actual error, write no article, release the lock, 
 test('Rejected push leaves one recoverable commit; retry pushes the same commit and cannot push another HEAD',async t=>{
  const {repo,remote,options}=await fixture(t);const hook=path.join(remote,'hooks/pre-receive');await fs.writeFile(hook,'#!/bin/sh\nexit 1\n',{mode:0o755});const plan=await prepare();let recorded;
  const result=await publishArticle({...options,plan,onCommitted:async value=>recorded=value});assert.equal(result.status,'pending-push');assert.equal(recorded,result.commit);await fs.unlink(hook);
- const retry=await retryPush({...options,commit:result.commit});assert.equal(retry.status,'pushed');assert.equal(await run('git',['rev-parse','HEAD'],repo),result.commit);await assert.rejects(retryPush({...options,commit:'old-commit'}),/其他修改/);
+ await run('git',['commit','--allow-empty','-m','Another local commit'],repo);await assert.rejects(retryPush({...options,commit:result.commit}),/其他修改/);
+ await run('git',['reset','--soft',result.commit],repo);const retry=await retryPush({...options,commit:result.commit});assert.equal(retry.status,'pushed');assert.equal(await run('git',['rev-parse','HEAD'],repo),result.commit);await assert.rejects(retryPush({...options,commit:'old-commit'}),/提交无效/);
+});
+test('A client failure after the remote accepted a push is reconciled as success',async t=>{
+ const {repo,remote,options}=await fixture(t),wrapper=path.join(path.dirname(repo),'git-client-failure');
+ await fs.writeFile(wrapper,'#!'+process.execPath+'\nconst args=process.argv.slice(2);const result=require("node:child_process").spawnSync("/usr/bin/git",args,{stdio:"inherit"});if(result.status===0&&args.includes("push")){process.stderr.write("client lost response after push");process.exit(128);}process.exit(result.status);\n',{mode:0o755});
+ const result=await publishArticle({...options,plan:await prepare(),git:wrapper});assert.equal(result.status,'pushed');assert.equal(result.alreadyPushed,true);assert.equal(await run('git',['--git-dir',remote,'rev-parse','main'],repo),result.commit);
+});
+test('Manual push is detected even after newer commits; retry does not push unrelated local changes',async t=>{
+ const {repo,remote,options}=await fixture(t),hook=path.join(remote,'hooks/pre-receive');await fs.writeFile(hook,'#!/bin/sh\nexit 1\n',{mode:0o755});
+ const result=await publishArticle({...options,plan:await prepare()});assert.equal(result.status,'pending-push');assert.equal(await pushedCommit({...options,commit:result.commit}),false);await fs.unlink(hook);await run('git',['push'],repo);
+ await run('git',['commit','--allow-empty','-m','Later deployed change'],repo);await run('git',['push'],repo);const remoteHead=await run('git',['--git-dir',remote,'rev-parse','main'],repo);
+ await run('git',['commit','--allow-empty','-m','Unrelated local work'],repo);assert.equal(await pushedCommit({...options,commit:result.commit}),true);
+ const reconciled=await retryPush({...options,commit:result.commit});assert.equal(reconciled.status,'pushed');assert.equal(reconciled.alreadyPushed,true);assert.equal(await run('git',['--git-dir',remote,'rev-parse','main'],repo),remoteHead);
 });
 test('Preview conflict and symlinked output folders refuse writes',async t=>{
  const {repo,options}=await fixture(t);const plan=await prepare();await fs.writeFile(path.join(repo,'src/content/blog/my-post.md'),'existing');await run('git',['add','.'],repo);await run('git',['commit','-m','User change'],repo);await run('git',['push'],repo);
