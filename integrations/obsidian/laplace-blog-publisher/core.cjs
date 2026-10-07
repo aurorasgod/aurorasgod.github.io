@@ -27,7 +27,7 @@ function protectedMarkdown(text) {
   const masked=output.join('\n').replace(/(`+)[^`\n]*?\1/g,m=>token(m));
   return {masked,restore:value=>value.replace(/\uE000(\d+)\uE001/g,(_,i)=>saved[Number(i)])};
 }
-async function prepareArticle({text,meta,notePath,resolveFile,resolvePublished,plainLinks=false}) {
+async function prepareArticle({text,meta,notePath,resolveFile,resolvePublished,resolvePublicAsset,plainLinks=false}) {
   const title=String(meta.title||'').trim(), description=String(meta.description||'').trim();
   if(!title||!description)throw Error('请填写文章标题和摘要。');
   if(!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(meta.slug||'') || meta.slug.length>80)throw Error('文章地址使用小写英文、数字和短横线，最多 80 个字符。');
@@ -72,7 +72,12 @@ async function prepareArticle({text,meta,notePath,resolveFile,resolvePublished,p
   body=await replaceAsync(body,/(!?)\[([^\]\n]*)\]\((<[^>]+>|[^)\s]+)(\s+(?:"[^"]*"|'[^']*'))?\)/g,async(original,embed,label,destination)=>{
     let reference=destination.replace(/^<|>$/g,'');try{reference=decodeURIComponent(reference);}catch{}
     if(external(reference))return original;
-    if(reference.startsWith(base))return original; // Already converted above.
+    if(reference.startsWith('/images/posts/')){
+      if(!/^\/images\/posts\/[a-z0-9-]+\/[a-f0-9]{16}\.[a-z0-9]+$/.test(reference)){warnings.push('无效的公开附件路径：'+reference);return original;}
+      if(assets.has(reference))return original;
+      if(resolvePublicAsset&&!await resolvePublicAsset(reference))warnings.push('公开附件不存在：'+reference);
+      return original;
+    }
     if(reference.startsWith('/blog/'))return original;
     if(embed)return asset(reference,true,label,original);
     return link(reference,label,original);
@@ -125,8 +130,8 @@ async function publishArticle({repo,plan,git='git',requiredRemote,expectedArticl
     if(behind)throw Error('远程仓库有新提交，请先在 GitHub Desktop 拉取更新。');
     if(ahead)throw Error('仓库有尚未推送的提交，请先在 GitHub Desktop 处理，或使用插件的重试推送。');
     if(await articleHash(state.root,plan.meta.slug)!==expectedArticleHash)throw Error('文章已在预览后被修改，请重新预览。');
-    onProgress('导出文章与附件');
-    for(const file of plan.files){const target=await safeTarget(state.root,file.filePath);let previous=null;try{previous=await fs.readFile(target);}catch(e){if(e.code!=='ENOENT')throw e;}backups.push({target,previous,writtenHash:hash(file.data)});await fs.mkdir(path.dirname(target),{recursive:true});await fs.writeFile(target,file.data);}
+    onProgress(plan.operation==='delete'?'移除网页文章':'导出文章与附件');
+    for(const file of plan.files){const target=await safeTarget(state.root,file.filePath);let previous=null;try{previous=await fs.readFile(target);}catch(e){if(e.code!=='ENOENT')throw e;}backups.push({target,previous,writtenHash:file.data===null?null:hash(file.data)});await fs.mkdir(path.dirname(target),{recursive:true});if(file.data===null)await fs.unlink(target);else await fs.writeFile(target,file.data);}
     onProgress('检查网站构建');if(build)await build(state.root);
     const paths=plan.files.map(f=>f.filePath);
     // A build hook or external editor must not sneak unrelated changes into this publish.
@@ -134,16 +139,16 @@ async function publishArticle({repo,plan,git='git',requiredRemote,expectedArticl
     const untracked=await run(git,['ls-files','--others','--exclude-standard'],state.root);
     if((unstaged+'\n'+untracked).split('\n').filter(Boolean).some(p=>!paths.includes(p)))throw Error('构建期间仓库出现了其他修改，请检查后重新发布。');
     if(await run(git,['rev-parse','HEAD'],state.root)!==state.head || await run(git,['diff','--cached','--name-only'],state.root))throw Error('构建期间 Git 仓库被其他操作修改，请检查后重新发布。');
-    for(const file of plan.files)if(hash(await fs.readFile(await safeTarget(state.root,file.filePath)))!==hash(file.data))throw Error('构建期间发布稿或附件被其他操作修改，请重新预览。');
+    for(const file of plan.files){let current=null;try{current=await fs.readFile(await safeTarget(state.root,file.filePath));}catch(e){if(e.code!=='ENOENT')throw e;}if((current===null?null:hash(current))!==(file.data===null?null:hash(file.data)))throw Error('构建期间发布稿或附件被其他操作修改，请重新预览。');}
     await run(git,['add','--',...paths],state.root);
     if(!(await run(git,['diff','--cached','--name-only'],state.root)))return {status:'unchanged',commit:state.head};
-    onProgress('提交文章');await run(git,['commit','-m',`Publish: ${plan.meta.title.slice(0,100)}`,'--',...paths],state.root);
+    onProgress('提交文章');await run(git,['commit','-m',`${plan.operation==='delete'?'Delete':'Publish'}: ${plan.meta.title.slice(0,100)}`,'--',...paths],state.root);
     committed=true;const commit=await run(git,['rev-parse','HEAD'],state.root);await onCommitted(commit);
     onProgress('推送到 GitHub');
     try{await run(git,['push','origin','main'],state.root);return {status:'pushed',commit};}
     catch(error){return {status:'pending-push',commit,error:error.message};}
   } catch(error) {
-    if(!committed){const paths=plan.files.map(f=>f.filePath);await run(git,['reset','--',...paths],state.root).catch(()=>{});for(const {target,previous,writtenHash} of backups){let current;try{current=await fs.readFile(target);}catch(e){if(e.code==='ENOENT')continue;throw e;}if(hash(current)!==writtenHash)continue;if(previous===null)await fs.unlink(target).catch(()=>{});else await fs.writeFile(target,previous);}}
+    if(!committed){const paths=plan.files.map(f=>f.filePath);await run(git,['reset','--',...paths],state.root).catch(()=>{});for(const {target,previous,writtenHash} of backups){let current=null;try{current=await fs.readFile(target);}catch(e){if(e.code!=='ENOENT')throw e;}if((current===null?null:hash(current))!==writtenHash)continue;if(previous===null)await fs.unlink(target).catch(()=>{});else await fs.writeFile(target,previous);}}
     throw error;
   } finally {await fs.rmdir(lock);}
 }
@@ -154,4 +159,33 @@ async function retryPush({repo,commit,git='git',requiredRemote}) {
   if(Number(await run(git,['rev-list','--count','HEAD..origin/main'],state.root)))throw Error('远程已更新，请在 GitHub Desktop 合并后推送。');
   await run(git,['push','origin','main'],state.root);return {status:'pushed',commit};
 }
-module.exports={CATEGORIES,hash,today,stripFrontmatter,prepareArticle,repoState,articleHash,publishArticle,retryPush,run};
+function parseArticle(markdown,slug,parseYaml){
+  const match=markdown.match(/^\uFEFF?---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
+  if(!match)throw Error('文章缺少 YAML 属性。');
+  const meta=parseYaml(match[1]);if(!meta||typeof meta!=='object'||Array.isArray(meta))throw Error('文章属性格式无效。');
+  const date=value=>value instanceof Date?value.toISOString().slice(0,10):String(value||'').slice(0,10);
+  return {slug,markdown,hash:hash(markdown),body:stripFrontmatter(markdown).trim(),meta:{title:String(meta.title||slug),description:String(meta.description||''),slug,category:meta.category,tags:Array.isArray(meta.tags)?meta.tags:[],pubDate:date(meta.pubDate),updatedDate:date(meta.updatedDate),featured:!!meta.featured},public:meta.publish===true&&meta.draft!==true};
+}
+async function readArticle(repo,slug,parseYaml){const root=await fs.realpath(repo),target=await safeTarget(root,`src/content/blog/${slug}.md`);return parseArticle(await fs.readFile(target,'utf8'),slug,parseYaml);}
+async function listArticles(repo,parseYaml){
+  const root=await fs.realpath(repo),names=await fs.readdir(path.join(root,'src/content/blog')),result=[];
+  for(const name of names.filter(n=>/^[a-z0-9]+(?:-[a-z0-9]+)*\.md$/.test(n))){const slug=name.slice(0,-3);try{result.push(await readArticle(root,slug,parseYaml));}catch(error){result.push({slug,error:error.message,meta:{title:slug},public:false});}}
+  return result.sort((a,b)=>String(b.meta.pubDate||'').localeCompare(String(a.meta.pubDate||''))||a.slug.localeCompare(b.slug));
+}
+async function trashDirectory(repo,git='git'){const root=await fs.realpath(repo),gitdir=path.resolve(root,await run(git,['rev-parse','--git-dir'],root));const target=path.join(gitdir,'laplace-blog-trash');await fs.mkdir(target,{recursive:true});if((await fs.lstat(target)).isSymbolicLink())throw Error('恢复目录不能是符号链接。');return target;}
+async function listDeleted(repo,git='git'){
+  const dir=await trashDirectory(repo,git),items=[];
+  for(const name of await fs.readdir(dir)){if(!/^[a-z0-9-]+\.json$/.test(name))continue;try{const file=path.join(dir,name);if((await fs.lstat(file)).isSymbolicLink())continue;const item=JSON.parse(await fs.readFile(file,'utf8'));if(item.commit&&typeof item.markdown==='string')items.push(item);}catch{}}
+  return items.sort((a,b)=>b.deletedAt.localeCompare(a.deletedAt));
+}
+async function deleteArticle({slug,parseYaml,...options}){
+  const article=await readArticle(options.repo,slug,parseYaml);
+  if(article.hash!==options.expectedArticleHash)throw Error('文章已修改，请刷新列表后再删除。');
+  const dir=await trashDirectory(options.repo,options.git),id=`${slug}-${Date.now()}-${article.hash.slice(0,8)}`,backup=path.join(dir,id+'.json');
+  const record={id,slug,title:article.meta.title,markdown:article.markdown,deletedAt:new Date().toISOString(),commit:''};
+  await fs.writeFile(backup,JSON.stringify(record,null,2),{flag:'wx'});
+  const plan={operation:'delete',meta:article.meta,warnings:[],files:[{filePath:`src/content/blog/${slug}.md`,data:null}]};
+  const result=await publishArticle({...options,plan,onCommitted:async commit=>{record.commit=commit;await fs.writeFile(backup,JSON.stringify(record,null,2));await options.onCommitted?.(commit);}});
+  return {...result,backupId:id};
+}
+module.exports={CATEGORIES,hash,today,stripFrontmatter,prepareArticle,repoState,articleHash,publishArticle,retryPush,run,parseArticle,readArticle,listArticles,listDeleted,deleteArticle,safeTarget};

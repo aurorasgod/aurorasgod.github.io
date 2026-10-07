@@ -59,3 +59,35 @@ test('Concurrent editor changes during build refuse commit and preserve the new 
  await assert.rejects(publishArticle({...options,plan,build:async()=>fs.writeFile(target,'User edit during build')}),/其他操作修改/);
  assert.equal(await fs.readFile(target,'utf8'),'User edit during build');assert.equal(await run('git',['diff','--cached','--name-only'],repo),'');
 });
+
+const {readArticle,listArticles,listDeleted,deleteArticle,parseArticle}=require('../integrations/obsidian/laplace-blog-publisher/core.cjs');
+const parseYaml=require('yaml').parse;
+test('Article list reads repository contents independently of vault publication records, including malformed metadata',async t=>{
+ const {repo}=await fixture(t);const plan=await prepare();await fs.writeFile(path.join(repo,'src/content/blog/my-post.md'),plan.markdown);await fs.writeFile(path.join(repo,'src/content/blog/broken.md'),'not frontmatter');
+ const items=await listArticles(repo,parseYaml);assert.equal(items.length,2);assert.equal(items.find(a=>a.slug==='my-post').meta.title,meta.title);assert.equal(items.find(a=>a.slug==='my-post').public,true);assert.match(items.find(a=>a.slug==='broken').error,/YAML/);
+ await assert.rejects(readArticle(repo,'../../private',parseYaml),/路径/);
+});
+test('Editing an existing public page preserves its images, supports Markdown revision, and validates missing public assets',async t=>{
+ const {repo,options}=await fixture(t);const original=await prepare('原文 ![[图.png]]');await publishArticle({...options,plan:original});const article=await readArticle(repo,'my-post',parseYaml);
+ const edited=await prepare(article.body+'\n\n新增记录',{meta:{...article.meta,title:'修改标题',updatedDate:today()},resolvePublicAsset:async url=>{try{await fs.access(path.join(repo,'public'+url));return true;}catch{return false;}}});
+ assert.equal(edited.warnings.length,0);assert.equal(edited.assets.length,0);assert.equal(edited.files.length,1);
+ await publishArticle({...options,plan:edited,expectedArticleHash:article.hash});const updated=await readArticle(repo,'my-post',parseYaml);assert.equal(updated.meta.title,'修改标题');assert.ok(updated.body.includes('新增记录'));assert.ok(updated.body.includes('/images/posts/my-post/'));
+ const missing=await prepare(article.body,{resolvePublicAsset:async()=>false});assert.match(missing.warnings[0],/不存在/);
+});
+test('Delete commits only the article, preserves attachments and source notes, and creates a recoverable local backup',async t=>{
+ const {repo,options}=await fixture(t);const original=await prepare('原文 ![[图.png]]');await publishArticle({...options,plan:original});await fs.writeFile(path.join(repo,'source-note.md'),'my source');await run('git',['add','source-note.md'],repo);await run('git',['commit','-m','Note'],repo);await run('git',['push'],repo);
+ const article=await readArticle(repo,'my-post',parseYaml);const result=await deleteArticle({...options,slug:'my-post',parseYaml,expectedArticleHash:article.hash,build:async()=>{await assert.rejects(fs.access(path.join(repo,'src/content/blog/my-post.md')));}});
+ assert.equal(result.status,'pushed');assert.equal(await fs.readFile(path.join(repo,'source-note.md'),'utf8'),'my source');await fs.access(path.join(repo,original.assets[0].filePath));assert.equal(await articleHash(repo,'my-post'),null);
+ assert.equal(await run('git',['show','--pretty=','--name-only','HEAD'],repo),'src/content/blog/my-post.md');const trash=await listDeleted(repo);assert.equal(trash.length,1);assert.equal(trash[0].markdown,article.markdown);assert.equal(trash[0].id,result.backupId);assert.ok(!(await run('git',['ls-files'],repo)).includes('trash'));
+ const restored=parseArticle(trash[0].markdown,trash[0].slug,parseYaml);const plan=await prepare(restored.body,{meta:restored.meta});await publishArticle({...options,plan});assert.equal((await readArticle(repo,'my-post',parseYaml)).body,article.body);
+});
+test('Failed deletion build restores the article; stale deletion previews cannot remove newer revisions',async t=>{
+ const {repo,options}=await fixture(t);const plan=await prepare();await publishArticle({...options,plan});const article=await readArticle(repo,'my-post',parseYaml);
+ await assert.rejects(deleteArticle({...options,slug:'my-post',parseYaml,expectedArticleHash:article.hash,build:async()=>{throw Error('broken build');}}),/broken build/);
+ assert.equal((await readArticle(repo,'my-post',parseYaml)).hash,article.hash);assert.equal((await listDeleted(repo)).length,0);assert.equal(await run('git',['status','--porcelain'],repo),'');
+ await assert.rejects(deleteArticle({...options,slug:'my-post',parseYaml,expectedArticleHash:'old-hash'}),/已修改/);
+});
+test('Failed deletion push is recoverable with the same commit and no duplicate deletion',async t=>{
+ const {repo,remote,options}=await fixture(t);await publishArticle({...options,plan:await prepare()});const article=await readArticle(repo,'my-post',parseYaml);const hook=path.join(remote,'hooks/pre-receive');await fs.writeFile(hook,'#!/bin/sh\nexit 1\n',{mode:0o755});let commit;
+ const result=await deleteArticle({...options,slug:'my-post',parseYaml,expectedArticleHash:article.hash,onCommitted:async c=>commit=c});assert.equal(result.status,'pending-push');assert.equal(commit,result.commit);assert.equal((await listDeleted(repo)).length,1);await fs.unlink(hook);await retryPush({...options,commit});assert.equal(await articleHash(repo,'my-post'),null);
+});

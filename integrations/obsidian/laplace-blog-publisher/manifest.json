@@ -1,9 +1,9 @@
 {
   "id": "laplace-blog-publisher",
-  "name": "Laplace Blog Publisher",
-  "version": "1.0.0",
+  "name": "Laplace Blog Manager",
+  "version": "1.1.0",
   "minAppVersion": "1.5.0",
-  "description": "预览选定笔记及附件，发布到个人 GitHub Pages 博客，并联动研究主页。",
+  "description": "在 Obsidian 中创建、编辑、删除和恢复博客文章，联动研究主页。",
   "author": "Laplace",
   "isDesktopOnly": true
 }

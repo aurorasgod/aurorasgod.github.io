@@ -6,7 +6,7 @@ Laplace / Qimai Yan 的个人博客，分类为 **具身智能 / 电力电子 / 
 
 ## 从 Obsidian 发布
 
-Robotics 与 PowerElectronics 已安装 **Laplace Blog Publisher**，两个主页都提供 **发布文章** 入口。使用界面选择笔记，填写标题、摘要、英文文章地址、分类和日期，编辑独立发布稿，预览正文与附件，再确认公开并发布。
+Robotics 与 PowerElectronics 已安装 **Laplace Blog Manager**，两个主页都提供 **发布文章** 入口。使用界面选择笔记，填写标题、摘要、英文文章地址、分类和日期，编辑独立发布稿，预览正文与附件，再确认公开并发布。
 
 插件会转换内部图片引用、检查未公开笔记链接、本地构建、提交选中文章及其附件，并推送至 GitHub。随后 **检查部署** 查看 GitHub Pages 的发布结果。原笔记不修改；整个笔记库不会被上传。
 
