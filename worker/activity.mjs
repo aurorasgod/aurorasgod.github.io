@@ -20,7 +20,9 @@ export async function activityAPI(request, env, allowedPaths, now = new Date()) 
     if(Number(request.headers.get('Content-Length')||0)>1024)return reply({error:'body_too_large'},413);
     let data;
     try{const text=await request.text();if(text.length>1024)return reply({error:'body_too_large'},413);data=JSON.parse(text);}catch{return reply({error:'invalid_json'},400);}
-    if(!/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(data.eventId||'') || !allowedPaths.has(data.path))return reply({error:'invalid_visit'},400);
+    // GitHub can publish new articles independently of this Worker deployment.
+    const githubArticle=origin==='https://aurorasgod.github.io' && /^\/blog\/[a-z0-9]+(?:-[a-z0-9]+)*\/$/.test(data.path||'') && data.path.length<=88;
+    if(!/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(data.eventId||'') || (!allowedPaths.has(data.path)&&!githubArticle))return reply({error:'invalid_visit'},400);
     const timestamp=now.getTime(), day=dayKey(now);
     // A transactional batch makes retries idempotent and concurrent increments atomic.
     const results=await env.DB.batch([

@@ -11,3 +11,6 @@ dist/
 .wrangler/
 
 .github-static-check/
+
+# Local Obsidian vault settings and publishing drafts
+**/.obsidian/

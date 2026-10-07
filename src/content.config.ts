@@ -9,11 +9,10 @@ const blog = defineCollection({
     description: z.string(),
     pubDate: z.coerce.date(),
     updatedDate: z.coerce.date().optional(),
-    category: z.enum(['embodied-ai', 'world-model', 'power-electronics', 'tools']),
+    category: z.enum(['embodied-ai', 'power-electronics', 'personal']),
     tags: z.array(z.string()).default([]),
     publish: z.boolean().default(false),
     draft: z.boolean().default(false),
-    example: z.boolean().default(false),
     featured: z.boolean().default(false),
   }),
 });

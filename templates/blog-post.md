@@ -6,7 +6,6 @@ category: embodied-ai
 tags: [VLA, 阅读笔记]
 publish: false
 draft: true
-example: false
 featured: false
 ---
 

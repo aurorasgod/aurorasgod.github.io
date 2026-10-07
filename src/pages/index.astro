@@ -18,16 +18,16 @@ const latest = [featured, ...posts.filter(p=>p.id!==featured?.id)].filter(Boolea
       <div class="intro-overview"><div class="intro-main"><div class="intro-identity"><img src={url('avatar.jpg')} alt="Laplace 的头像" width="48" height="48"/><div><span class="identity-name">{site.author}</span><span class="identity-full-name">{site.fullName}</span></div></div>
       <h1>Laplace’s <em>Notes</em><span class="title-dot">.</span></h1>
       </div><ActivityHeatmap posts={posts}/></div>
-      <div class="intro-bottom"><p>人生海海，山山而川</p><div class="intro-links"><a href={url('about/')}>关于我 <Icon name="arrow" size={15}/></a><a href={site.github} target="_blank" rel="noopener noreferrer">GitHub <Icon name="arrow" size={15}/></a><a href={url('rss.xml')}>RSS <Icon name="rss" size={15}/></a></div></div>
+      <div class="intro-bottom"><div class="intro-description"><p class="intro-role">ZJU电力电子硕士在读</p><p class="intro-motto">「人生海海，山山而川」</p></div><div class="intro-links"><a href={url('about/')}>关于我 <Icon name="arrow" size={15}/></a><a href={site.github} target="_blank" rel="noopener noreferrer">GitHub <Icon name="arrow" size={15}/></a><a href={url('rss.xml')}>RSS <Icon name="rss" size={15}/></a></div></div>
     </header>
     <div class="notebook-columns">
       <section class="notebook-feed" aria-labelledby="latest-heading">
-        <div class="section-heading"><h2 id="latest-heading">最新笔记<span class="section-en">Writing</span></h2><a class="text-link" href={url('articles/')}>全部文章 <Icon name="arrow" size={15}/></a></div>
-        <nav class="home-topic-tabs" aria-label="主页文章分类"><a class="active" href={url('articles/')}>全部笔记</a>{categories.map(c=><a href={url(`articles/?category=${c.id}`)}>{c.name}</a>)}</nav>
-        <div class="home-posts">{latest.length?latest.map(post=>post&&<PostRow post={post} pinned={post.id===featured?.id}/>):<p class="empty-state">笔记整理中。</p>}</div>
+        <div class="section-heading"><h2 id="latest-heading">文章<span class="section-en">Writing</span></h2><a class="text-link" href={url('articles/')}>全部文章 <Icon name="arrow" size={15}/></a></div>
+        <nav class="home-topic-tabs" aria-label="主页文章分类"><a class="active" href={url('articles/')}>全部</a>{categories.map(c=><a href={url(`articles/?category=${c.id}`)}>{c.name}</a>)}</nav>
+        <div class="home-posts">{latest.length?latest.map(post=>post&&<PostRow post={post} pinned={post.id===featured?.id}/>):<div class="writing-empty"><span class="writing-empty-line" aria-hidden="true"></span><h3>文章整理中<span class="title-dot">.</span></h3><p>这里将收录研究笔记与个人经历。</p></div>}</div>
       </section>
-      <Sidebar posts={posts} projects={projects}/>
+      <Sidebar posts={posts}/>
     </div>
-    <div class="notebook-end"><span>按主题浏览笔记，也可以搜索正文。</span><button class="text-link" data-open-search>搜索笔记 <Icon name="search" size={15}/></button></div>
+    <section class="home-projects" aria-labelledby="projects-heading"><div class="section-heading"><h2 id="projects-heading">项目<span class="section-en">Projects</span></h2><a class="text-link" href={url('projects/')}>全部项目 <Icon name="arrow" size={15}/></a></div><div class="home-project-grid">{projects.map(project=><a href={url(`projects/${project.id}/`)}><span class="project-topic">{project.data.tags[0]}</span><h3>{project.data.title}<Icon name="arrow" size={16}/></h3><p>{project.data.tags.slice(1,3).join(' / ')}</p></a>)}</div></section>
   </div>
 </Base>

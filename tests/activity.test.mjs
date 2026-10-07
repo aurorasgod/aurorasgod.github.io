@@ -40,6 +40,9 @@ test('Reject other origins and unknown pages; permit configured GitHub Pages ori
   assert.equal((await activityAPI(visit(undefined,'/','https://evil.test'),env,paths)).status,403);
   assert.equal((await activityAPI(visit(undefined,'/not-a-page/'),env,paths)).status,400);
   assert.equal((await activityAPI(visit(undefined,'/','https://aurorasgod.github.io'),env,paths)).status,200);
+  assert.equal((await activityAPI(visit(undefined,'/blog/my-new-post/','https://aurorasgod.github.io'),env,paths)).status,200);
+  assert.equal((await activityAPI(visit(undefined,'/blog/my-new-post/'),env,paths)).status,400);
+  assert.equal((await activityAPI(visit(undefined,'/blog/../private/','https://aurorasgod.github.io'),env,paths)).status,400);
   const response=await activityAPI(new Request(`${origin}/api/visit`,{method:'POST',headers:{Origin:origin,'Content-Type':'application/json'},body:'{'}),env,paths);
   assert.equal(response.status,400);
 });

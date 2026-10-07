@@ -25,12 +25,12 @@ const nav = [{id:'home',title:'首页',path:''},{id:'articles',title:'文章',pa
 <body data-base={import.meta.env.BASE_URL}>
   <a class="skip-link" href="#main">跳到正文</a>
   <header class="site-header">
-    <a class="site-brand" href={url()} aria-label={`${site.title} 首页`}><span>laplace<span class="title-dot">.</span></span><span class="brand-sub">个人笔记</span></a>
+    <a class="site-brand" href={url()} aria-label={`${site.title} 首页`}><span>laplace<span class="title-dot">.</span></span><span class="brand-sub">Personal Blog</span></a>
     <nav id="main-navigation" class="main-navigation" aria-label="主导航">{nav.map(item=><a href={url(item.path)} class:list={{active:active===item.id}} aria-current={active===item.id?'page':undefined}>{item.title}</a>)}</nav>
     <div class="header-tools"><a class="icon-button search-trigger" href={url('articles/')} data-open-search aria-label="搜索文章"><Icon name="search" size={19}/><kbd>⌘ K</kbd></a><span class="tool-separator"></span><button class="icon-button theme-button" data-theme-toggle aria-label="切换主题" title="切换主题"><span class="theme-moon"><Icon name="moon" size={18}/></span><span class="theme-sun"><Icon name="sun" size={18}/></span></button><button class="icon-button mobile-menu" data-menu-toggle aria-controls="main-navigation" aria-expanded="false" aria-label="展开导航"><Icon name="menu"/></button></div>
   </header>
   <main id="main"><slot/></main>
-  <footer class="site-footer"><div><span class="footer-brand">Laplace<span>·</span></span><span class="footer-caption">© {new Date().getFullYear()} {site.fullName}</span></div><div class="footer-links"><a href={url('rss.xml')}>订阅 RSS <Icon name="rss" size={14}/></a><a href={url('about/')}>关于</a><span>Built with Astro</span></div></footer>
+  <footer class="site-footer"><div><span class="footer-brand">Laplace<span>·</span></span><span class="footer-caption">© {new Date().getFullYear()} {site.fullName}</span></div><div class="footer-links"><a href={url('rss.xml')}>RSS <Icon name="rss" size={14}/></a><a href={url('about/')}>关于</a></div></footer>
   <dialog id="search-dialog" class="search-dialog" aria-labelledby="search-title">
     <div class="search-dialog-top"><h2 id="search-title">搜索笔记</h2><button class="icon-button" data-close-search aria-label="关闭搜索"><Icon name="close"/></button></div>
     <label class="dialog-search-input"><Icon name="search"/><span class="sr-only">关键词</span><input id="global-search" type="search" placeholder="搜索标题、内容或标签…" autocomplete="off"/></label>
