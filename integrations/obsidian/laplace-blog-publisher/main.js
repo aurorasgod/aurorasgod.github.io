@@ -39,6 +39,7 @@ class PublisherView extends ItemView {
  async onOpen(){await this.render();}
  async select(file){
   if(this.busy)return;
+  if(!(file instanceof TFile)||file.extension!=='md')throw Error('请选择 Markdown 笔记；PDF 可作为正文中明确引用的附件。');
   this.p.currentNote=file;const cached=this.p.settings.drafts[file.path],published=this.p.settings.publications[file.path];
   const fm=this.app.metadataCache.getFileCache(file)?.frontmatter||{};
   const source=await this.app.vault.read(file);
@@ -139,7 +140,7 @@ class Settings extends PluginSettingTab {
  }
 }
 class Publisher extends Plugin {
- async onload(){this.settings={...DEFAULT,...await this.loadData()};this.currentNote=null;this.lastNote=this.app.workspace.getActiveFile();this.registerView(VIEW,leaf=>new PublisherView(leaf,this));
+ async onload(){this.settings={...DEFAULT,...await this.loadData()};this.currentNote=null;const active=this.app.workspace.getActiveFile();this.lastNote=active?.extension==='md'?active:null;this.registerView(VIEW,leaf=>new PublisherView(leaf,this));
   this.addRibbonIcon('send','博客发布',()=>this.open());this.addCommand({id:'open',name:'打开博客发布',callback:()=>this.open()});this.addCommand({id:'publish-current',name:'编辑当前笔记的发布稿',callback:()=>this.open(this.lastNote)});this.addSettingTab(new Settings(this.app,this));
   this.registerEvent(this.app.workspace.on('file-open',file=>{if(file?.extension==='md')this.lastNote=file;}));
   this.registerEvent(this.app.vault.on('rename',async(file,old)=>{for(const key of ['drafts','publications'])if(this.settings[key][old]){this.settings[key][file.path]=this.settings[key][old];delete this.settings[key][old];}await this.save();}));
