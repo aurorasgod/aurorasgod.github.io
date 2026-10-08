@@ -11,6 +11,7 @@ if (section) {
   let timer: ReturnType<typeof setTimeout> | undefined;
   let started = false;
   let lastTheme = '';
+  let serviceFailed = false;
 
   function themeUrl() {
     const mode = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
@@ -30,6 +31,7 @@ if (section) {
     retry.hidden = true;
   }
   function fail(message: string) {
+    serviceFailed = true;
     clearTimeout(timer);
     section!.dataset.state = 'error';
     statusText.textContent = message;
@@ -40,13 +42,27 @@ if (section) {
   function load() {
     started = true;
     lastTheme = '';
+    serviceFailed = false;
     clearTimeout(timer);
-    mount.replaceChildren();
     mount.hidden = false;
     status.hidden = false;
     retry.hidden = true;
     statusText.textContent = '正在加载评论…';
     section!.dataset.state = 'loading';
+    timer = setTimeout(() => {
+      section!.dataset.state = 'slow';
+      statusText.textContent = '评论加载较慢，可以重试或在 GitHub 中查看。';
+      status.hidden = false;
+      retry.hidden = false;
+      // Keep the frame alive: a slow network must not hide a later successful load.
+    }, 20000);
+    const existingFrame = mount.querySelector<HTMLIFrameElement>('iframe.giscus-frame');
+    if (existingFrame) {
+      existingFrame.classList.add('giscus-frame--loading');
+      existingFrame.src = existingFrame.src;
+      return;
+    }
+    mount.replaceChildren();
     const script = document.createElement('script');
     script.src = `${comments.origin}/client.js`;
     script.async = true;
@@ -60,7 +76,6 @@ if (section) {
     };
     for (const [key, value] of Object.entries(config)) script.setAttribute(`data-${key}`, value);
     script.addEventListener('error', () => fail('评论暂时无法加载，可以重试或在 GitHub 中查看。'));
-    timer = setTimeout(() => fail('评论加载较慢，可以重试或在 GitHub 中查看。'), 20000);
     mount.append(script);
   }
   retry.addEventListener('click', load);
@@ -76,7 +91,7 @@ if (section) {
         : '评论暂时无法加载，可以重试或在 GitHub 中查看。');
       return;
     }
-    if (typeof message.resizeHeight === 'number' && message.resizeHeight > 0 && section!.dataset.state !== 'error') {
+    if (typeof message.resizeHeight === 'number' && message.resizeHeight > 0 && !serviceFailed) {
       ready();
       syncTheme();
     }
@@ -94,10 +109,15 @@ if (section) {
     const frame = mount.querySelector<HTMLIFrameElement>('iframe.giscus-frame');
     if (frame && !frame.dataset.themeBound) {
       frame.dataset.themeBound = 'true';
-      frame.addEventListener('load', () => { lastTheme = ''; syncTheme(); });
+      frame.addEventListener('load', () => {
+        lastTheme = '';
+        syncTheme();
+        if (!serviceFailed) ready();
+      });
       frame.title = '文章评论';
     }
-  }).observe(mount, { childList: true, subtree: true });
+    if (frame && !serviceFailed && !frame.classList.contains('giscus-frame--loading') && parseFloat(frame.style.height) > 0) ready();
+  }).observe(mount, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style'] });
   if ('IntersectionObserver' in window) {
     const observer = new IntersectionObserver(entries => {
       if (entries.some(entry => entry.isIntersecting) && !started) { observer.disconnect(); load(); }
