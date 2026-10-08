@@ -1,0 +1,8 @@
+{
+  "origins": [
+    "https://aurorasgod.github.io",
+    "https://field-notes-research.gptplus6267.chatgpt.site"
+  ],
+  "originsRegex": ["^http://(localhost|127\\.0\\.0\\.1):[0-9]+$"],
+  "defaultCommentOrder": "oldest"
+}

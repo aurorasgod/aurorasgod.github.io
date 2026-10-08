@@ -65,6 +65,16 @@ node --test tests/activity.test.mjs tests/publisher.test.cjs
 
 GitHub 静态版使用 `npm run build:static`；工作流自动注入 GitHub 地址与统计 API 地址。Sites 使用 Worker 构建，由相应发布流程管理，两个网址分别部署。
 
+## 文章评论
+
+每篇公开文章末尾使用 [giscus](https://giscus.app/zh-CN) 评论，数据保存在本仓库的 [GitHub Discussions](https://github.com/aurorasgod/aurorasgod.github.io/discussions)。访客无需登录即可阅读，登录 GitHub 后可留言、回复、编辑自己的评论，支持 Markdown。维护者可在 GitHub 中管理、锁定讨论或处理不合适的留言。留言后直接更新，不需要 Push 或重新部署网站。
+
+仓库需要开启 Discussions，并从 [giscus 官方安装页](https://github.com/apps/giscus/installations/new) 将应用安装到 **aurorasgod.github.io 这一个仓库**。所需权限仅为仓库元数据读取与 Discussions 读写，不需要源码写入权限。仓库和 Announcements 分类的公开 ID 已写入 `src/lib/comments.ts`；不在前端保存 GitHub Token。
+
+评论以文章标识 `/blog/<slug>/` 关联，并严格匹配。修改标题、正文、域名或通过 Obsidian 重新发布同一标识的文章，原评论保留；改变网页标识则会使用另一条讨论。新文章会在首条评论时自动创建对应讨论。删除网页不会自动删除 GitHub 中的评论。
+
+评论标题、正文、输入框使用网站已有字体，白色/深灰底色与绿色按钮随网站主题切换；接近文章末尾才加载评论，不阻塞正文。网络失败时可重新加载，或从“GitHub 讨论”打开仓库。`src/pages/comments/[theme].css.ts` 输出自托管评论主题；`giscus.json` 限定正式网址与本地预览来源，更换域名时同步更新该文件。
+
 ## 修改网站
 
 - `src/site.ts`：身份、简介和分类。

@@ -1,0 +1,28 @@
+/* Loaded inside the giscus iframe; page styles cannot cross that boundary. */
+html, body { background: transparent; }
+main {
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--blog-fg);
+}
+.gsc-main { gap: 24px; }
+.gsc-comment-box, .gsc-comment { border-radius: 5px; box-shadow: none; }
+.gsc-comment-box-tabs { border-color: var(--blog-line); }
+.gsc-comment-box-textarea { background: var(--blog-bg); font-size: 15px; line-height: 1.9; min-height: 130px; }
+.gsc-comment-content, .gsc-reply-content, .gsc-comment-box-textarea, .gsc-comment-box-preview {
+  font-family: 'Newsreader Local', 'Noto Serif SC Local', 'Songti SC', Georgia, serif;
+}
+.gsc-comment-content, .gsc-reply-content { font-size: 16px; line-height: 1.9; }
+.gsc-comment-content :is(h1,h2,h3,h4), .gsc-reply-content :is(h1,h2,h3,h4) {
+  font-family: 'Fraunces Local', 'Noto Serif SC Local', 'Songti SC', Georgia, serif;
+}
+.gsc-comment-content pre, .gsc-reply-content pre { font-size: 12px; }
+.gsc-comment-author-avatar, .gsc-reply-author-avatar { border-radius: 6px; }
+.gsc-comment-box-buttons button, .gsc-reply-box button { border-radius: 4px; box-shadow: none; }
+.gsc-comment-box-textarea:focus { border-color: var(--blog-accent); box-shadow: 0 0 0 1px var(--blog-accent); }
+.gsc-comment-box-bottom { border-color: var(--blog-line); }
+.gsc-comment-header { background: var(--blog-bg); }
+.gsc-comment-footer { border-color: var(--blog-line); }
+a { text-underline-offset: 3px; }
+@media(max-width:700px) { .gsc-comment-content, .gsc-reply-content { font-size: 15px; } }

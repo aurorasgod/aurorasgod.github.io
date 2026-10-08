@@ -20,7 +20,22 @@ const home=await readFile(join(root,'index.html'),'utf8');
 assert.ok(home.includes('Personal Blog')&&home.includes('ZJU电力电子硕士在读'),'missing personal identity');
 for(const category of ['具身智能','电力电子','个人经历'])assert.ok(home.includes(category),'missing category '+category);
 assert.ok(!home.includes('学习工具')&&!home.includes('world-model')&&!home.includes('个人笔记'),'outdated home labels');
-for(const entry of search){const article=await readFile(join(root,entry.url.slice(prefix.length),'index.html'),'utf8');assert.ok(article.includes('mobile-toc'),'missing article TOC');}
+for(const entry of search){
+  const article=await readFile(join(root,entry.url.slice(prefix.length),'index.html'),'utf8');
+  assert.ok(article.includes('mobile-toc'),'missing article TOC');
+  assert.equal((article.match(/id="comments"/g)||[]).length,1,'missing or duplicate article comments');
+  const term=entry.url.replace(prefix,'/');
+  assert.ok(article.includes(`data-term="${term}"`),'comments not linked to stable article slug');
+  assert.ok(article.includes('name="giscus:backlink"'),'comments missing canonical backlink');
+}
+for(const theme of ['light','dark']){
+  const css=await readFile(join(root,'comments',`${theme}.css`),'utf8');
+  assert.ok(css.includes(theme==='dark'?'--blog-bg:#181818':'--blog-bg:#ffffff'),'comment theme background differs from site');
+  assert.ok(css.includes(theme==='dark'?'--color-accent-fg:#a2cfb0':'--color-accent-fg:#267052'),'comment theme accent differs from site');
+  const fonts=[...css.matchAll(/url\(["']?(https?:[^)"']+\.woff2)["']?\)/g)].map(m=>new URL(m[1]));
+  assert.ok(fonts.length>0,'comment fonts were not emitted');
+  for(const font of fonts) await stat(join(root,font.pathname.slice(prefix.length)));
+}
 for(const file of all){if(/\.(html|json|xml|txt)$/.test(file)){const text=await readFile(file,'utf8');assert.ok(!text.includes('PRIVATE_PUBLICATION_TEST_MARKER'),'draft leaked to build output');}}
 assert.deepEqual(errors,[]);
 console.log(`PASS: ${htmlFiles.length} pages, ${search.length} articles, internal links/assets, RSS, identity/categories, publication filtering.`);

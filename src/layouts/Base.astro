@@ -16,6 +16,7 @@ const nav = [{id:'home',title:'首页',path:''},{id:'articles',title:'文章',pa
   <meta name="description" content={description}/><meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)"/><meta name="theme-color" content="#181818" media="(prefers-color-scheme: dark)"/>
   <link rel="icon" href={url('favicon.svg')} type="image/svg+xml"/>
   <link rel="canonical" href={canonical}/><link rel="alternate" type="application/rss+xml" title={site.title} href={url('rss.xml')}/>
+  {article && <meta name="giscus:backlink" content={canonical.href}/>}
   <meta property="og:title" content={pageTitle}/><meta property="og:description" content={description}/><meta property="og:type" content={article?'article':'website'}/><meta property="og:url" content={canonical}/><meta property="og:image" content={new URL(url('social.svg'),Astro.site)}/>
   <title>{pageTitle}</title>
   <script is:inline>

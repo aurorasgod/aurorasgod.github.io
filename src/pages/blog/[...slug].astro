@@ -2,6 +2,7 @@
 import { render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import Icon from '../../components/Icon.astro';
+import Comments from '../../components/Comments.astro';
 import { publicPosts, dateLabel, dateISO, readingMinutes } from '../../lib/content';
 import { categoryName, url } from '../../site';
 export async function getStaticPaths(){return (await publicPosts()).map(post=>({params:{slug:post.id},props:{post}}));}
@@ -14,9 +15,10 @@ const related = (await publicPosts()).filter(p=>p.id!==post.id).sort((a,b)=>Numb
   <div class="article-layout"><article class="reading-article">
     <a class="article-back text-link" href={url('articles/')}><Icon name="back" size={17}/>所有文章</a>
     <header class="article-header"><div class="article-kicker"><a class="topic-chip" href={url(`articles/?category=${post.data.category}`)}>{categoryName(post.data.category)}</a></div><h1>{post.data.title}</h1><p class="article-description">{post.data.description}</p><div class="article-metadata"><time datetime={dateISO(post.data.pubDate)}>{dateLabel(post.data.pubDate)}</time><span class="metadata-dot"></span><span>{readingMinutes(post.body)} 分钟阅读</span>{post.data.updatedDate&&<span>更新于 {dateLabel(post.data.updatedDate)}</span>}</div></header>
-    <details class="mobile-toc"><summary>文章目录</summary><nav>{toc.map(h=><a href={`#${h.slug}`} class:list={{nested:h.depth===3}}>{h.text}</a>)}</nav></details>
+    <details class="mobile-toc"><summary>文章目录</summary><nav>{toc.map(h=><a href={`#${h.slug}`} class:list={{nested:h.depth===3}}>{h.text}</a>)}<a href="#comments">评论</a></nav></details>
     <div class="prose"><Content/></div>
     <footer class="article-end"><div class="tags">{post.data.tags.map(tag=><a href={url(`articles/?tag=${encodeURIComponent(tag)}`)} aria-label={`查看标签 ${tag} 的文章`}>#{tag}</a>)}</div><button class="copy-article-link text-link" data-copy-link><Icon name="copy" size={16}/><span>复制文章链接</span></button></footer>
+    <Comments slug={post.id}/>
     {related.length>0&&<section class="related-posts"><span class="eyebrow">继续阅读</span><div>{related.map(p=><a href={url(`blog/${p.id}/`)}><span>{categoryName(p.data.category)}</span><h2>{p.data.title}</h2><Icon name="arrow" size={18}/></a>)}</div></section>}
-  </article><aside class="article-toc" aria-label="文章目录"><span class="eyebrow">本页目录</span><nav>{toc.map(h=><a href={`#${h.slug}`} data-toc-link class:list={{nested:h.depth===3}}>{h.text}</a>)}</nav><a class="toc-top" href="#main">回到顶部 ↑</a></aside></div>
+  </article><aside class="article-toc" aria-label="文章目录"><span class="eyebrow">本页目录</span><nav>{toc.map(h=><a href={`#${h.slug}`} data-toc-link class:list={{nested:h.depth===3}}>{h.text}</a>)}<a href="#comments">评论</a></nav><a class="toc-top" href="#main">回到顶部 ↑</a></aside></div>
 </Base>
