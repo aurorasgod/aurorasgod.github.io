@@ -7,6 +7,8 @@ html, body { background: var(--blog-bg); }
   color: var(--blog-fg);
 }
 #__next .gsc-main { gap: 24px; }
+/* Provider attribution is documented in README instead of the article UI. */
+#__next .gsc-left-header > em { display: none; }
 #__next .gsc-comment-box, #__next .gsc-comment { border-radius: 5px; box-shadow: none; }
 /* Stable surfaces: focus and tab changes never change border width or padding. */
 #__next .gsc-comment-box { --editor-height: 170px; }
