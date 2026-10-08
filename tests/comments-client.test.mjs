@@ -11,7 +11,7 @@ function client() {
     setAttribute() {}, replaceChildren() {}, append() {} });
   const mount = node(), status = node(), text = node(), retry = node(), count = node(), link = node();
   const section = node(), root = node();
-  section.dataset = { term: '/blog/post-c9749194/', themeBase: '/comments/' };
+  section.dataset = { term: '/blog/post-c9749194/', themeBase: '/comments/', themeVersion: 'test' };
   root.dataset.theme = 'light';
   const elements = { '[data-comments-mount]': mount, '[data-comments-status]': status,
     '[data-comments-status-text]': text, '[data-comments-retry]': retry,
@@ -62,7 +62,7 @@ test('theme updates preserve the iframe; foreign messages cannot change discussi
   const ui = client(), frame = ui.attachFrame();
   frame.listeners.load();
   ui.changeTheme('dark');
-  assert.equal(ui.messages.at(-1).data.giscus.setConfig.theme, 'https://aurorasgod.github.io/comments/dark.css');
+  assert.equal(ui.messages.at(-1).data.giscus.setConfig.theme, 'https://aurorasgod.github.io/comments/dark.css?v=test');
   assert.equal(ui.messages.at(-1).origin, 'https://giscus.app');
   const metadata = { discussion: { url: `https://github.com/${config.comments.repo}/discussions/3`, totalCommentCount: 1, totalReplyCount: 2 } };
   for (const event of [

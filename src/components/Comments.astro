@@ -2,11 +2,15 @@
 import Icon from './Icon.astro';
 import { comments, commentTerm } from '../lib/comments';
 import { url } from '../site';
+import { createHash } from 'node:crypto';
+import frameStyles from '../styles/comments-frame.css?raw';
+import themeSource from '../pages/comments/[theme].css.ts?raw';
 interface Props { slug: string; }
 const { slug } = Astro.props;
+const themeVersion = createHash('sha256').update(frameStyles).update(themeSource).digest('hex').slice(0, 12);
 ---
 <section id="comments" class="article-comments" aria-labelledby="comments-heading"
-  data-comments data-term={commentTerm(slug)} data-theme-base={url('comments/')} data-state="idle">
+  data-comments data-term={commentTerm(slug)} data-theme-base={url('comments/')} data-theme-version={themeVersion} data-state="idle">
   <header class="comments-header">
     <h2 id="comments-heading">评论<span class="section-en">Discussion</span><span class="comments-count" data-comments-count hidden></span></h2>
     <a class="text-link comments-external" href={comments.discussionUrl} target="_blank" rel="noopener noreferrer" data-discussion-link>GitHub 讨论<Icon name="arrow" size={15}/></a>

@@ -15,7 +15,9 @@ if (section) {
 
   function themeUrl() {
     const mode = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
-    return new URL(`${section!.dataset.themeBase}${mode}.css`, location.origin).href;
+    const address = new URL(`${section!.dataset.themeBase}${mode}.css`, location.origin);
+    address.searchParams.set('v', section!.dataset.themeVersion || '1');
+    return address.href;
   }
   function syncTheme() {
     const frame = mount.querySelector<HTMLIFrameElement>('iframe.giscus-frame');
