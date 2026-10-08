@@ -1,5 +1,5 @@
 /* Loaded inside the giscus iframe; page styles cannot cross that boundary. */
-html, body { background: transparent; }
+html, body { background: var(--blog-bg); }
 main {
   font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
   font-size: 13px;

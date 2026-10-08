@@ -16,7 +16,7 @@ export const GET: APIRoute = ({ params, site, url }) => {
   const fontCss = fonts.replace(/url\((['"]?)(\/[^)'"\s]+)\1\)/g, (_, _quote, path) => `url("${new URL(path, origin).href}")`);
   const css = `@import url("https://giscus.app/themes/${dark ? 'dark' : 'light'}.css");
 ${fontCss}
-html { color-scheme: ${dark ? 'dark' : 'light'}; }
+html { color-scheme: ${dark ? 'dark' : 'light'}; --blog-bg:${colors.bg}; }
 main {
   --blog-bg:${colors.bg}; --blog-surface:${colors.surface}; --blog-fg:${colors.fg};
   --blog-muted:${colors.muted}; --blog-line:${colors.line}; --blog-accent:${colors.accent};
