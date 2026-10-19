@@ -71,6 +71,8 @@ html[data-letter-motion='off'] .letter-motion-dot {background:var(--lab-muted)}
 .letter-page-track {height:2px;position:fixed;top:76px;left:0;right:0;z-index:49;pointer-events:none}
 .letter-page-track>span {height:100%;display:block;width:0;background:var(--lab-accent);opacity:.65}
 html[data-lab-clean='true'] .letter-page-track {top:0}
+/* The overview captures all four frames without scrolling each one into view. */
+html[data-lab-clean='true'] .lab-letter [data-letter-reveal] {opacity:1!important;transform:none!important}
 html[data-letter-motion='on'] .lab-letter [data-letter-reveal] {opacity:0;transform:translateY(13px);transition:opacity .65s ease,transform .65s cubic-bezier(.2,.65,.3,1)}
 html[data-letter-motion='on'] .lab-letter [data-letter-reveal].is-revealed {opacity:1;transform:translateY(0)}
 .lab-letter .lab-project {transition:color .15s,transform .25s}
