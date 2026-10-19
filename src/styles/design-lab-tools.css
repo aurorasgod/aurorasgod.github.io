@@ -1,0 +1,770 @@
+/* Shared utilities for the design previews. Native dialogs stay hidden until opened. */
+.lab-dialog {
+  width: min(600px, calc(100vw - 40px));
+  max-width: none;
+  max-height: calc(100dvh - 64px);
+  margin: auto;
+  padding: 24px;
+  overflow: auto;
+  color: var(--lab-fg);
+  background: var(--lab-bg);
+  border: 1px solid var(--lab-line);
+  border-radius: 8px;
+  box-shadow: 0 20px 70px rgb(0 0 0 / 16%);
+  font-family: var(--lab-ui);
+  font-size: 14px;
+  line-height: 1.5;
+  color-scheme: inherit;
+}
+
+.lab-dialog::backdrop {
+  background: rgb(0 0 0 / 38%);
+}
+
+.lab-dialog :where(button, input, select, a) {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.lab-dialog :where(button, input, select, a):focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--lab-fg) 48%, transparent);
+  outline-offset: 3px;
+}
+
+.lab-dialog :where(button, a):focus:not(:focus-visible) {
+  outline: none;
+}
+
+.lab-dialog :where(button, a) {
+  touch-action: manipulation;
+}
+
+.lab-dialog-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 22px;
+}
+
+.lab-dialog-head h2 {
+  margin: 0;
+  font-family: var(--lab-display);
+  font-size: 25px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+}
+
+.lab-dialog-head p {
+  max-width: 46ch;
+  margin: 7px 0 0;
+  color: var(--lab-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.lab-dialog .lab-icon {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+}
+
+.lab-dialog .lab-icon svg {
+  width: 17px;
+  height: 17px;
+}
+
+.lab-search-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 0 13px;
+  color: var(--lab-muted);
+  background: var(--lab-bg);
+  border: 1px solid var(--lab-line);
+  border-radius: 5px;
+  transition: border-color 140ms ease;
+}
+
+.lab-search-field:focus-within {
+  border-color: color-mix(in srgb, var(--lab-fg) 52%, var(--lab-bg));
+}
+
+.lab-search-field svg {
+  flex: 0 0 auto;
+  width: 17px;
+  height: 17px;
+}
+
+.lab-search-field input {
+  width: 100%;
+  min-width: 0;
+  height: 46px;
+  padding: 0;
+  color: var(--lab-fg);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  font: inherit;
+  appearance: none;
+}
+
+.lab-search-field input:focus-visible {
+  outline: none;
+}
+
+.lab-dialog input::placeholder {
+  color: var(--lab-muted);
+  opacity: 0.8;
+}
+
+.lab-dialog :where([data-lab-search-results], [data-lab-saved-results]) {
+  max-height: min(440px, 48dvh);
+  margin-top: 14px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--lab-line) transparent;
+}
+
+.lab-search-result {
+  display: grid;
+  gap: 5px;
+  position: relative;
+  margin: 0;
+  padding: 15px 12px;
+  color: var(--lab-fg);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--lab-line);
+  border-radius: 4px;
+  text-decoration: none;
+  transition: background-color 140ms ease;
+}
+
+.lab-search-result:last-child {
+  border-bottom-color: transparent;
+}
+
+.lab-search-result:where(a):hover,
+.lab-search-result.is-selected {
+  background: var(--lab-hover);
+}
+
+.lab-search-result.is-selected::before {
+  position: absolute;
+  top: 16px;
+  bottom: 16px;
+  left: 0;
+  width: 2px;
+  background: var(--lab-accent);
+  border-radius: 1px;
+  content: "";
+}
+
+.lab-result-type {
+  color: var(--lab-accent);
+  font-family: var(--lab-mono);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0.06em;
+}
+
+.lab-result-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 550;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.lab-result-description {
+  margin: 0;
+  color: var(--lab-muted);
+  font-size: 12px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.lab-result-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px 10px;
+  margin-top: 3px;
+  color: var(--lab-muted);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.lab-result-tags :where(a, span) {
+  color: inherit;
+  text-decoration: none;
+}
+
+.lab-result-tags a:hover {
+  color: var(--lab-accent);
+}
+
+.lab-empty-state {
+  padding: 36px 16px;
+  color: var(--lab-muted);
+  font-size: 13px;
+  line-height: 1.8;
+  text-align: center;
+}
+
+.lab-empty-state :where(h3, p) {
+  margin: 0;
+}
+
+.lab-empty-state h3 {
+  margin-bottom: 6px;
+  color: var(--lab-fg);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.lab-dialog-note {
+  margin: 18px 0 0;
+  padding-top: 12px;
+  color: var(--lab-muted);
+  border-top: 1px solid var(--lab-line);
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.lab-dialog-note kbd {
+  padding: 1px 4px;
+  color: var(--lab-muted);
+  border: 1px solid var(--lab-line);
+  border-radius: 3px;
+  font-family: var(--lab-mono);
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.lab-unit-form {
+  display: grid;
+  gap: 18px;
+}
+
+.lab-unit-form > label {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.lab-unit-form > label > span {
+  color: var(--lab-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.lab-unit-form :where(input, select) {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  margin: 0;
+  padding: 8px 11px;
+  color: var(--lab-fg);
+  background: var(--lab-bg);
+  border: 1px solid var(--lab-line);
+  border-radius: 4px;
+  box-shadow: none;
+  font: inherit;
+  line-height: 1.5;
+  transition: border-color 140ms ease;
+}
+
+.lab-unit-form :where(input, select):focus {
+  border-color: color-mix(in srgb, var(--lab-fg) 52%, var(--lab-bg));
+}
+
+.lab-unit-form input {
+  font-family: var(--lab-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.lab-unit-input {
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+}
+
+.lab-unit-input input {
+  flex: 1 1 auto;
+}
+
+.lab-unit-input select {
+  flex: 0 0 105px;
+  width: 105px;
+}
+
+.lab-unit-result {
+  display: grid;
+  gap: 9px;
+  min-height: 106px;
+  margin-top: 22px;
+  padding: 18px;
+  background: var(--lab-soft);
+  border: 1px solid var(--lab-line);
+  border-radius: 5px;
+}
+
+.lab-unit-result output {
+  align-self: center;
+  color: var(--lab-accent);
+  font-family: var(--lab-mono);
+  font-size: clamp(23px, 5vw, 32px);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.3;
+  letter-spacing: -0.035em;
+  overflow-wrap: anywhere;
+}
+
+.lab-unit-result code {
+  color: var(--lab-muted);
+  background: transparent;
+  font-family: var(--lab-mono);
+  font-size: 11px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.lab-dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.lab-dialog-actions .lab-btn {
+  min-height: 36px;
+  padding: 7px 13px;
+  border-radius: 4px;
+  font-family: var(--lab-ui);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.lab-dialog button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* A reader is a document surface, with controls kept outside its scroll area. */
+.lab-dialog.lab-reading {
+  width: min(920px, calc(100vw - 48px));
+  max-height: min(90dvh, 1100px);
+  padding: 0;
+  overflow: hidden;
+}
+
+.lab-reading[open] {
+  display: flex;
+  flex-direction: column;
+  height: min(90dvh, 1100px);
+}
+
+.lab-reader-bar {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 15px 22px;
+  border-bottom: 1px solid var(--lab-line);
+}
+
+.lab-reader-bar > :first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.lab-reader-bar :where(h2, h3, [data-reader-title]) {
+  display: block;
+  margin: 0;
+  overflow: hidden;
+  font-family: var(--lab-ui);
+  font-size: 14px;
+  font-weight: 550;
+  line-height: 1.6;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lab-reader-bar :where(p, [data-reader-meta]) {
+  display: block;
+  margin: 3px 0 0;
+  color: var(--lab-muted);
+  font-family: var(--lab-ui);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.lab-reader-bar .lab-btn {
+  flex: 0 0 auto;
+  min-height: 32px;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-family: var(--lab-ui);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.lab-reader-actions { display: flex; align-items: center; gap: 10px; }
+.lab-reader-actions [data-reader-progress-label] { font: 10px var(--lab-mono); color: var(--lab-muted); }
+.lab-saved-row { position: relative; padding-bottom: 8px; }
+.lab-saved-row > button { font-size: 11px; color: var(--lab-muted); padding: 7px 12px; }
+.lab-saved-row > button:hover { color: var(--lab-accent); }
+
+.lab-reader-bar .lab-btn[aria-pressed="true"] {
+  color: var(--lab-accent);
+  background: var(--lab-soft);
+  border-color: var(--lab-line);
+}
+
+.lab-reader-progress {
+  flex: 0 0 auto;
+  height: 2px;
+  margin-top: -1px;
+  overflow: hidden;
+  background: var(--lab-line);
+}
+
+.lab-reader-progress [data-reader-progress] {
+  width: 0;
+  height: 100%;
+  background: var(--lab-accent);
+}
+
+.lab-reading [data-reader-scroll] {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--lab-line) transparent;
+  scroll-padding-top: 30px;
+}
+
+.lab-reader-prose {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 752px;
+  margin: 0 auto;
+  padding: 42px 42px 64px;
+  color: var(--lab-fg);
+  font-family: var(--lab-body);
+  font-size: 17px;
+  line-height: 1.9;
+  overflow-wrap: break-word;
+}
+
+.lab-reader-prose > :first-child {
+  margin-top: 0;
+}
+
+.lab-reader-prose :where(h1, h2, h3, h4, h5, h6) {
+  margin: 2em 0 0.8em;
+  color: var(--lab-fg);
+  font-family: var(--lab-display);
+  font-weight: 600;
+  line-height: 1.45;
+  letter-spacing: -0.02em;
+  scroll-margin-top: 28px;
+}
+
+.lab-reader-prose h1 {
+  margin-bottom: 1em;
+  font-size: 2.1em;
+  line-height: 1.3;
+}
+
+.lab-reader-prose h2 {
+  font-size: 1.5em;
+}
+
+.lab-reader-prose h3 {
+  font-size: 1.22em;
+}
+
+.lab-reader-prose :where(h4, h5, h6) {
+  font-size: 1em;
+}
+
+.lab-reader-prose :where(p, ul, ol, blockquote, pre, table, figure) {
+  margin: 1.25em 0;
+}
+
+.lab-reader-prose :where(ul, ol) {
+  padding-left: 1.45em;
+}
+
+.lab-reader-prose li {
+  padding-left: 0.15em;
+}
+
+.lab-reader-prose li + li {
+  margin-top: 0.3em;
+}
+
+.lab-reader-prose li :where(ul, ol) {
+  margin: 0.45em 0;
+}
+
+.lab-reader-prose a {
+  color: var(--lab-accent);
+  text-decoration-color: color-mix(in srgb, var(--lab-accent) 45%, transparent);
+  text-underline-offset: 0.22em;
+}
+
+.lab-reader-prose a:hover {
+  text-decoration-color: currentcolor;
+}
+
+.lab-reader-prose blockquote {
+  margin-right: 0;
+  margin-left: 0;
+  padding: 1px 0 1px 20px;
+  color: var(--lab-muted);
+  border-left: 2px solid var(--lab-line);
+}
+
+.lab-reader-prose blockquote > :first-child {
+  margin-top: 0.5em;
+}
+
+.lab-reader-prose blockquote > :last-child {
+  margin-bottom: 0.5em;
+}
+
+.lab-reader-prose :not(pre) > code {
+  padding: 0.15em 0.35em;
+  background: var(--lab-soft);
+  border-radius: 3px;
+  font-family: var(--lab-mono);
+  font-size: 0.82em;
+  overflow-wrap: anywhere;
+}
+
+.lab-reader-prose pre {
+  padding: 18px 20px;
+  overflow-x: auto;
+  background: var(--lab-soft);
+  border: 1px solid var(--lab-line);
+  border-radius: 5px;
+  font-family: var(--lab-mono);
+  font-size: 13px;
+  line-height: 1.8;
+  scrollbar-width: thin;
+}
+
+.lab-reader-prose pre code {
+  padding: 0;
+  background: transparent;
+  border: 0;
+  font: inherit;
+}
+
+.lab-reader-prose :where(img, video, svg) {
+  max-width: 100%;
+  height: auto;
+}
+
+.lab-reader-prose img {
+  display: block;
+  margin: 1.6em auto;
+  border-radius: 3px;
+}
+
+.lab-reader-prose figcaption {
+  margin-top: 9px;
+  color: var(--lab-muted);
+  font-family: var(--lab-ui);
+  font-size: 12px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.lab-reader-prose hr {
+  margin: 2.2em 0;
+  border: 0;
+  border-top: 1px solid var(--lab-line);
+}
+
+.lab-reader-prose table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 0.9em;
+  line-height: 1.65;
+}
+
+.lab-reader-prose :where(th, td) {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--lab-line);
+  text-align: left;
+}
+
+.lab-reader-prose th {
+  font-weight: 600;
+}
+
+.lab-reader-prose .katex-display {
+  max-width: 100%;
+  padding: 4px 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.lab-reading.comfortable .lab-reader-prose,
+.lab-reader-prose.comfortable {
+  max-width: 704px;
+  font-size: 19px;
+  line-height: 2.05;
+}
+
+.lab-toast {
+  position: fixed;
+  z-index: 1000;
+  bottom: 26px;
+  left: 50%;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  padding: 11px 17px;
+  color: var(--lab-fg);
+  background: var(--lab-bg);
+  border: 1px solid var(--lab-line);
+  border-radius: 5px;
+  box-shadow: 0 6px 24px rgb(0 0 0 / 10%);
+  font-family: var(--lab-ui);
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.lab-toast[hidden] {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .lab-dialog {
+    width: calc(100vw - 24px);
+    max-height: calc(100dvh - 40px);
+    padding: 19px;
+    border-radius: 6px;
+  }
+
+  .lab-dialog-head {
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .lab-dialog-head h2 {
+    font-size: 23px;
+  }
+
+  .lab-dialog-head p {
+    font-size: 12px;
+  }
+
+  .lab-search-field input,
+  .lab-unit-form :where(input, select) {
+    font-size: 16px;
+  }
+
+  .lab-dialog :where([data-lab-search-results], [data-lab-saved-results]) {
+    max-height: 48dvh;
+  }
+
+  .lab-search-result {
+    padding: 13px 9px;
+  }
+
+  .lab-result-title {
+    font-size: 14px;
+  }
+
+  .lab-dialog-note {
+    font-size: 10px;
+  }
+
+  .lab-dialog.lab-reading {
+    width: calc(100vw - 16px);
+    max-height: calc(100dvh - 24px);
+    border-radius: 6px;
+  }
+
+  .lab-reading[open] {
+    height: calc(100dvh - 24px);
+  }
+
+  .lab-reader-bar {
+    gap: 7px;
+    padding: 12px 13px;
+  }
+
+  .lab-reader-bar :where(h2, h3, [data-reader-title]) {
+    font-size: 12px;
+  }
+
+  .lab-reader-bar :where(p, [data-reader-meta]) {
+    font-size: 10px;
+  }
+
+  .lab-reader-bar .lab-btn {
+    padding-right: 7px;
+    padding-left: 7px;
+    font-size: 10px;
+  }
+
+  .lab-reader-prose {
+    padding: 28px 20px 45px;
+    font-size: 16px;
+    line-height: 1.9;
+  }
+
+  .lab-reader-prose h1 {
+    font-size: 1.8em;
+  }
+
+  .lab-reader-prose pre {
+    padding: 13px;
+    font-size: 12px;
+  }
+
+  .lab-reading.comfortable .lab-reader-prose,
+  .lab-reader-prose.comfortable {
+    padding-right: 23px;
+    padding-left: 23px;
+    font-size: 17px;
+    line-height: 2.05;
+  }
+
+  .lab-toast {
+    bottom: max(18px, env(safe-area-inset-bottom));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lab-dialog *,
+  .lab-dialog *::before,
+  .lab-dialog *::after,
+  .lab-toast {
+    animation: none !important;
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}

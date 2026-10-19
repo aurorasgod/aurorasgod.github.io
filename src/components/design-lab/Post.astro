@@ -1,0 +1,20 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { dateLabel, readingMinutes } from '../../lib/content';
+import { categoryName } from '../../site';
+import Glyph from './Glyph.astro';
+interface Props { post: CollectionEntry<'blog'>; index?: number; readable?: boolean }
+const { post, index = 0, readable = true } = Astro.props;
+const excerpt = (post.body || '').split(/\n\s*\n/).find(p=>p.trim() && !/^[#>\-]/.test(p.trim()))?.replace(/^[\s　]+/,'').slice(0,148) || post.data.description;
+---
+<article class="lab-post" data-lab-post data-category={post.data.category}>
+  <div class="lab-post-top"><span class="lab-post-number">{String(index+1).padStart(2,'0')}</span><span class="lab-post-category">{categoryName(post.data.category)}</span><time datetime={post.data.pubDate.toISOString()}>{dateLabel(post.data.pubDate)}</time><span>{readingMinutes(post.body)} 分钟阅读</span></div>
+  <h2>{readable ? <button type="button" data-lab-action="read" data-post-id={post.id}>{post.data.title}<Glyph name="external" size={23}/></button> : <a href={`/blog/${post.id}/`}>{post.data.title}<Glyph name="external" size={23}/></a>}</h2>
+  <p class="lab-post-description">{post.data.description}</p>
+  <p class="lab-post-excerpt">{excerpt}{excerpt.length>=148?'…':''}</p>
+  <div class="lab-post-bottom"><div class="lab-tags">{post.data.tags.map(tag=><button type="button" data-lab-action="search" data-lab-tag={tag}>#{tag}</button>)}</div><div class="lab-post-actions">
+    {readable && <button type="button" class="lab-text-button lab-read-button" data-lab-action="read" data-post-id={post.id}>阅读预览 <Glyph name="arrow" size={15}/></button>}
+    <button type="button" class="lab-icon" data-lab-action="bookmark" data-post-id={post.id} aria-label={`收藏《${post.data.title}》`} aria-pressed="false" title="收藏到本机"><Glyph name="bookmark" size={17}/></button>
+    <button type="button" class="lab-icon lab-copy-button" data-lab-action="copy" data-post-id={post.id} aria-label={`复制《${post.data.title}》链接`} title="复制链接"><Glyph name="copy" size={16}/></button>
+  </div></div>
+</article>

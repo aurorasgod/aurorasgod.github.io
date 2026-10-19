@@ -1,0 +1,20 @@
+---
+import { activityWindow, contentActivity, dayKey } from '../../lib/activity.mjs';
+import type { CollectionEntry } from 'astro:content';
+interface Props { posts: CollectionEntry<'blog'>[] }
+const { posts } = Astro.props;
+const counts = contentActivity(posts);
+const days = activityWindow().slice(-84);
+const total = days.reduce((n,d)=>n+(counts[d.date]||0),0);
+---
+<section class="lab-activity" aria-label="文章更新日历">
+  <div class="lab-small-heading"><span>更新日历</span><span>近 12 周</span></div>
+  <div class="lab-activity-grid">{days.map(day=>{
+    const post = posts.find(p=>dayKey(p.data.pubDate)===day.date || (p.data.updatedDate && dayKey(p.data.updatedDate)===day.date));
+    const label = `${day.date} · ${counts[day.date] || 0} 次更新`;
+    return post && !day.future
+      ? <button type="button" class="lab-cell has-update" data-lab-action="read" data-post-id={post.id} title={label} aria-label={`阅读 ${label}`} data-lab-day={label}/>
+      : <span class="lab-cell" data-future={day.future || undefined} title={label} data-lab-day={label}/>;
+  })}</div>
+  <p class="lab-activity-detail" data-lab-day-detail>{total} 次文章更新 · 点击有色日期阅读</p>
+</section>

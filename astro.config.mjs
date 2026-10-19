@@ -9,7 +9,7 @@ export default defineConfig({
   base: process.env.BASE_PATH || '/',
   output: 'static',
   devToolbar: { enabled: false },
-  integrations: [sitemap()],
+  integrations: [sitemap({ filter: page => !new URL(page).pathname.includes('/design-lab/') })],
   markdown: {
     processor: unified({ remarkPlugins: [remarkMath], rehypePlugins: [rehypeKatex] }),
     shikiConfig: { themes: { light: 'github-light', dark: 'github-dark' } },

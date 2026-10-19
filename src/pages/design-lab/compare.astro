@@ -1,0 +1,41 @@
+---
+import '../../styles/design-lab.css';
+import { url } from '../../site';
+const concepts = [
+  {id:'editorial',key:'A',name:'书刊',en:'Editorial',theme:'light',copy:'大标题、非对称留白、细线分栏。',detail:'适合：文字与个人表达。'},
+  {id:'index',key:'B',name:'档案',en:'Index',theme:'light',copy:'左侧导航、编号索引、紧凑目录。',detail:'适合：积累更多笔记与分类。'},
+  {id:'letter',key:'C',name:'信笺',en:'Letter',theme:'light',copy:'单栏、轻衬线、文集式阅读。',detail:'适合：随笔、经历与长文章。'},
+  {id:'workbench',key:'D',name:'研究桌',en:'Workbench',theme:'dark',copy:'身份侧栏、项目图示、快捷工具。',detail:'适合：研究记录与日常查阅。'},
+];
+---
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="robots" content="noindex,nofollow"/><title>四种风格对比 · Laplace’s Notes</title><link rel="icon" href={url('favicon.svg')}/></head><body>
+<header class="overview-header"><div><span class="overview-kicker">LAPLACE’S NOTES / DESIGN STUDIES</span><h1>四种风格，同一份内容<span>.</span></h1><p>先挑整体气质，再组合你喜欢的细节。每套都有浅色和深色版本。</p></div><a href={url('design-lab/')} class="lab-btn">进入交互预览 ↗</a></header>
+<main class="overview-grid">{concepts.map(c=><section class="overview-card"><header><div><span class="overview-letter">{c.key}</span><h2>{c.name}<em>{c.en}</em></h2></div><a href={url(`design-lab/?style=${c.id}&theme=${c.theme}`)}>打开此方案 ↗</a></header><a class="overview-window" href={url(`design-lab/?style=${c.id}&theme=${c.theme}`)} aria-label={`打开${c.name}方案交互预览`}><iframe title={`${c.name}方案画面`} src={url(`design-lab/?style=${c.id}&theme=${c.theme}&clean=1`)} loading="eager" tabindex="-1"></iframe></a><footer><p>{c.copy}</p><span>{c.detail}</span></footer></section>)}</main>
+<footer class="overview-footer">四套均使用真实公开文章与项目。原站首页保持不变。</footer>
+<script>
+  document.querySelectorAll<HTMLElement>('.overview-window').forEach(window=>{
+    const frame=window.querySelector('iframe');
+    if(!frame) return;
+    const resize=()=>{ const scale=window.clientWidth/1280; frame.style.transform=`scale(${scale})`; window.style.height=`${1050*scale}px`; };
+    resize(); new ResizeObserver(resize).observe(window);
+  });
+</script>
+<style>
+  .overview-header,.overview-grid,.overview-footer{max-width:1390px;margin:auto;padding-left:40px;padding-right:40px}
+  .overview-header{display:flex;justify-content:space-between;align-items:end;gap:25px;padding-top:46px;padding-bottom:32px}
+  .overview-kicker{font:10px var(--lab-mono);letter-spacing:.12em;color:var(--lab-accent)}
+  .overview-header h1{font:500 32px/1.6 var(--lab-display);margin:12px 0 7px;letter-spacing:.03em}.overview-header h1 span{color:var(--lab-accent)}
+  .overview-header p{font:12px var(--lab-ui);color:var(--lab-muted)}.overview-header>a{margin-bottom:6px;white-space:nowrap}
+  .overview-grid{display:grid;grid-template-columns:1fr 1fr;gap:30px}
+  .overview-card{min-width:0;border:1px solid var(--lab-line);border-radius:5px;overflow:hidden}
+  .overview-card>header{display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid var(--lab-line);gap:12px}
+  .overview-card>header>div{display:flex;align-items:center;gap:12px}.overview-letter{font:17px var(--lab-body);color:var(--lab-accent)}
+  .overview-card h2{font:500 13px var(--lab-ui)}.overview-card h2 em{font:italic 13px var(--lab-body);color:var(--lab-muted);margin-left:10px}
+  .overview-card>header>a{font:10px var(--lab-ui);color:var(--lab-accent);white-space:nowrap}
+  .overview-window{display:block;overflow:hidden;position:relative;background:var(--lab-bg);height:500px}
+  .overview-window:focus-visible{outline-offset:-3px}.overview-window iframe{position:absolute;top:0;left:0;width:1280px;height:1050px;border:0;transform-origin:top left;transform:scale(.45);pointer-events:none}
+  .overview-card>footer{padding:15px 18px;border-top:1px solid var(--lab-line);font-size:11px}.overview-card>footer>span{display:block;color:var(--lab-muted);font-size:10px;margin-top:5px}
+  .overview-footer{padding-top:28px;padding-bottom:35px;font-size:10px;color:var(--lab-muted)}
+  @media(max-width:700px){.overview-header,.overview-grid,.overview-footer{padding-left:20px;padding-right:20px}.overview-header{padding-top:30px;align-items:start;flex-direction:column;gap:17px}.overview-header h1{font-size:26px}.overview-header p{font-size:11px;line-height:1.8}.overview-grid{grid-template-columns:1fr;gap:22px}.overview-card>header{padding:14px 16px}}
+</style>
+</body></html>

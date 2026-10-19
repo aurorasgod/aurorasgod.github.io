@@ -1,0 +1,15 @@
+---
+import Glyph from './Glyph.astro';
+import { url } from '../../site';
+import type { CollectionEntry } from 'astro:content';
+interface Props { projects: CollectionEntry<'projects'>[] }
+const { projects } = Astro.props;
+---
+<div class="lab-project-list">{projects.map((project,i)=><a class="lab-project" href={url(`projects/${project.id}/`)}>
+  <div class="lab-project-sketch" aria-hidden="true">
+    <svg viewBox="0 0 240 90" fill="none" stroke="currentColor" stroke-width="1.2">
+      {i===0 ? <><rect x="38" y="15" width="164" height="64" rx="3"/><path d="M38 30h164M87 30v49M48 22h2m5 0h2m5 0h2M49 41h26M49 50h19M49 59h22M99 42h66M99 50h88M99 58h75M99 66h46"/></> : i===1 ? <><circle cx="120" cy="45" r="16"/><circle cx="48" cy="26" r="8"/><circle cx="50" cy="69" r="8"/><circle cx="191" cy="22" r="8"/><circle cx="194" cy="68" r="8"/><path d="m56 28 49 13M58 66l46-16m31-12 48-14m-48 28 50 14M120 29v-17m-5 0h10M120 61v17m-5 0h10"/></> : <><path d="M21 45h32v-17h26v34H53V45m26 0h26q0-20 10-20t10 20q0-20 10-20t10 20h24m0-17v34m8-34v34m0-17h44M21 45v30h200V45"/><path d="M22 12h45m-5-4 5 4-5 4M200 12h20"/></>}
+    </svg>
+  </div>
+  <div class="lab-project-text"><span class="lab-project-index">0{i+1} / {project.data.tags[0]}</span><h3>{project.data.title}<Glyph name="external" size={16}/></h3><p>{project.data.description}</p></div>
+</a>)}</div>

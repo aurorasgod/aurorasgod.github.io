@@ -1,0 +1,124 @@
+---
+import { getCollection, render } from 'astro:content';
+import { publicPosts, readingMinutes, dateLabel } from '../../lib/content';
+import { site, categories, url } from '../../site';
+import Glyph from '../../components/design-lab/Glyph.astro';
+import Activity from '../../components/design-lab/Activity.astro';
+import Post from '../../components/design-lab/Post.astro';
+import Projects from '../../components/design-lab/Projects.astro';
+import '../../styles/design-lab.css';
+import '../../styles/letter-dynamic.css';
+const posts = await publicPosts();
+const projects = (await getCollection('projects')).sort((a,b)=>a.data.order-b.data.order);
+const first = posts[0];
+const rendered = first ? await render(first) : null;
+const Content = rendered?.Content;
+const designs = [
+  { id:'editorial', key:'A', name:'书刊', en:'Editorial', note:'大字、细线、非对称留白。让文章成为首屏的主角。' },
+  { id:'index', key:'B', name:'档案', en:'Index', note:'侧边目录与编号索引。文章、主题和项目一目了然。' },
+  { id:'letter', key:'C', name:'信笺', en:'Letter', note:'宽松单栏与轻盈衬线。更接近一本私人文集。' },
+  { id:'workbench', key:'D', name:'研究桌', en:'Workbench', note:'身份侧区、项目图示与快捷工具。适合常来翻阅。' },
+];
+const data = {
+  posts: posts.map(p=>({id:p.id,title:p.data.title,description:p.data.description,url:new URL(url(`blog/${p.id}/`),Astro.site).href,date:dateLabel(p.data.pubDate),tags:p.data.tags,text:p.body || '',category:categories.find(c=>c.id===p.data.category)?.name || p.data.category})),
+  projects: projects.map(p=>({id:p.id,title:p.data.title,description:p.data.description,url:new URL(url(`projects/${p.id}/`),Astro.site).href,tags:p.data.tags,text:p.body || ''})),
+};
+const excerpt = first?.body?.split(/\n\s*\n/).filter(p=>p.trim()&&!/^[#>\-]/.test(p.trim())).slice(0,2).join('\n') || '';
+---
+<!doctype html>
+<html lang="zh-CN" data-lab-theme="light" data-lab-design="letter">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta name="robots" content="noindex,nofollow"/>
+  <meta name="description" content="Laplace’s Notes 的四种设计方向。切换书刊、档案、信笺与研究桌，体验搜索、收藏和阅读工具。"/>
+  <link rel="icon" href={url('favicon.svg')}/><title>四种风格 · Laplace’s Notes</title>
+  <script is:inline>
+    try { const p=new URLSearchParams(location.search); if(p.get('clean')==='1') document.documentElement.dataset.labClean='true'; const d=p.get('style')||'letter'; document.documentElement.dataset.labDesign=['editorial','index','letter','workbench'].includes(d)?d:'letter'; document.documentElement.dataset.labTheme=p.get('theme')==='dark'?'dark':'light'; } catch {}
+  </script>
+</head>
+<body>
+<a class="lab-skip" href="#lab-stage">跳到设计预览</a>
+<header class="lab-reviewbar">
+  <div class="lab-review-identity"><span class="lab-review-symbol" aria-hidden="true">l<span>.</span></span><div><strong>风格预览</strong><small>Laplace’s Notes</small></div></div>
+  <nav class="lab-design-switch" aria-label="选择设计方案">{designs.map(d=><button type="button" data-design-switch={d.id} aria-pressed={d.id==='letter'}><span>{d.key}</span>{d.name}</button>)}</nav>
+  <div class="lab-review-actions"><button type="button" class="lab-icon" data-lab-theme-toggle aria-label="切换深浅主题" title="切换深浅主题"><Glyph name="sun"/></button><button type="button" class="lab-icon" data-lab-share aria-label="复制当前方案链接" title="复制当前方案链接"><Glyph name="link"/></button><a href={url('design-lab/compare/')} class="lab-overview-link">四图对比</a><a href={url()} class="lab-original-link">原站 <Glyph name="external" size={14}/></a></div>
+</header>
+<main id="lab-stage" class="lab-stage">
+  {designs.map(design=><div class:list={['lab-canvas',`lab-${design.id}`]} data-lab-scheme={design.id}>
+    <header class="lab-site-nav">
+      <a class="lab-brand" href={url()}>laplace<span>.</span><small>Personal Blog</small></a>
+      <nav aria-label={`${design.name}方案导航`}><a href={`#${design.id}-writing`} class="active">文章</a><a href={`#${design.id}-projects`}>项目</a><a href={url('about/')}>关于</a></nav>
+      <button class="lab-search-trigger" type="button" data-lab-action="search" aria-label="搜索文章与项目"><Glyph name="search" size={17}/><span>搜索</span><kbd>⌘ K</kbd></button>
+    </header>
+
+    <aside class="lab-profile">
+      <div class="lab-profile-top"><img src={url('avatar.jpg')} alt="Laplace 的头像" width="48" height="48"/><div><strong>Laplace</strong><span>Qimai Yan</span></div></div>
+      <p class="lab-profile-role">ZJU电力电子硕士在读</p>
+      <nav class="lab-profile-nav" aria-label="快捷入口"><a href={`#${design.id}-writing`}><Glyph name="book" size={16}/>文章<span>{String(posts.length).padStart(2,'0')}</span></a><a href={`#${design.id}-projects`}><Glyph name="grid" size={16}/>项目<span>{String(projects.length).padStart(2,'0')}</span></a><button type="button" data-lab-action="saved"><Glyph name="bookmark" size={16}/>我的收藏<span data-lab-saved-count>0</span></button><button type="button" data-lab-action="tools"><Glyph name="tools" size={16}/>计算小工具<Glyph name="external" size={13}/></button></nav>
+      <div class="lab-profile-bottom"><a href={site.github} target="_blank" rel="noopener noreferrer">GitHub <Glyph name="external" size={13}/></a><a href={url('rss.xml')}>RSS <Glyph name="rss" size={13}/></a></div>
+      <Activity posts={posts}/>
+    </aside>
+
+    {design.id==='letter' && <>
+      <div class="letter-page-track" aria-hidden="true"><span data-letter-page-progress></span></div>
+      <aside class="letter-left" aria-label="页边目录与工具">
+        <div class="letter-margin-heading"><span>页边目录</span><small>CONTENTS</small></div>
+        <nav class="letter-section-nav" aria-label="信笺页内目录"><a href="#letter-writing" data-letter-section-link aria-current="location"><span>01</span>文章<i></i></a><a href="#letter-projects" data-letter-section-link><span>02</span>项目<i></i></a></nav>
+        <div class="letter-margin-block"><div class="letter-margin-heading"><span>手边工具</span><Glyph name="tools" size={14}/></div><button type="button" data-lab-action="search"><Glyph name="search" size={15}/>搜索<kbd>⌘ K</kbd></button><button type="button" data-lab-action="saved"><Glyph name="bookmark" size={15}/>我的收藏<span data-lab-saved-count>0</span></button><button type="button" data-lab-action="tools"><Glyph name="tools" size={15}/>频率 / dB 换算<Glyph name="external" size={12}/></button></div>
+        <div class="letter-margin-block letter-now"><span>北京时间</span><time data-letter-clock>--:--:--</time><button type="button" data-letter-motion aria-pressed="true"><span class="letter-motion-dot"></span><span data-letter-motion-label>关闭动态效果</span></button></div>
+        <a class="letter-back-top" href="#lab-stage">回到页首 ↑</a>
+      </aside>
+      <aside class="letter-right" aria-label="更新记录与阅读位置">
+        <div class="letter-landscape" data-letter-landscape aria-hidden="true"><svg viewBox="0 0 200 138" fill="none"><path class="letter-mountain far" d="M-5 87 27 54 44 68 75 30 101 63 119 47 152 75 177 53 205 82"/><path class="letter-mountain" d="m-5 106 36-29 19 12 28-33 28 38 22-24 28 26 22-11 29 23"/><path class="letter-river-bank" d="M84 81q39 13 4 25t12 27"/><path class="letter-river" d="M89 81q38 13 4 25t12 27"/><circle class="letter-river-dot" r="2.2"/><path class="letter-horizon" d="M0 123h55m91 0h54"/></svg><div><span>山山而川</span><small>FIELD NOTES</small></div></div>
+        <Activity posts={posts}/>
+        {first && <div class="letter-resume"><div class="letter-margin-heading"><span>接着读</span><Glyph name="book" size={14}/></div><button type="button" data-lab-action="read" data-post-id={first.id}><strong data-lab-resume-title>{first.data.title}</strong><Glyph name="arrow" size={15}/><span data-lab-resume-label>从头开始</span></button><div class="letter-resume-track"><span data-lab-resume-progress></span></div><small>阅读位置仅保存在本机</small></div>}
+      </aside>
+    </>}
+    <section class="lab-hero" data-letter-reveal={design.id==='letter'?'':undefined}>
+      <div class="lab-hero-kicker"><span class="lab-status-dot"></span><span>Qimai Yan / Personal Blog</span><span class="lab-hero-edition">Vol. 01</span></div>
+      <div class="lab-hero-identity"><img src={url('avatar.jpg')} alt="" width="38" height="38"/><span>Laplace <small>Qimai Yan</small></span></div>
+      <h1>{design.id==='index' ? <>Notes<span class="lab-title-dot"> & </span><em>Records</em><span class="lab-title-dot">.</span></> : <>Laplace’s <em>Notes</em><span class="lab-title-dot">.</span></>}</h1>
+      <div class="lab-hero-bottom"><div><p class="lab-role">ZJU电力电子硕士在读</p><p class="lab-motto">「人生海海，山山而川」</p></div><div class="lab-hero-links"><a href={site.github} target="_blank" rel="noopener noreferrer">GitHub <Glyph name="external" size={14}/></a><a href={url('rss.xml')}>RSS <Glyph name="rss" size={14}/></a></div></div>
+      {design.id==='editorial' && <div class="lab-editorial-mark" aria-hidden="true"><span>随记</span><i></i><small>WRITING<br/>& EXPLORING</small></div>}
+      {design.id==='letter' && <div class="lab-letter-rule" aria-hidden="true"><span>✳</span></div>}
+    </section>
+
+    <section class="lab-writing" id={`${design.id}-writing`} aria-label="文章" data-letter-reveal={design.id==='letter'?'':undefined}>
+      <div class="lab-section-title"><h2>{design.id==='index'?'文章索引':'文章'}<em>Writing</em></h2><span>{String(posts.length).padStart(2,'0')} 篇</span></div>
+      <nav class="lab-filter" aria-label="筛选文章分类"><button type="button" data-lab-filter="all" aria-pressed="true">全部</button>{categories.map(c=><button type="button" data-lab-filter={c.id} aria-pressed="false">{c.name}</button>)}<button type="button" class="lab-filter-saved" data-lab-action="saved"><Glyph name="bookmark" size={14}/>收藏</button></nav>
+      {design.id==='index' && <div class="lab-index-year"><strong>{first?.data.pubDate.getFullYear() || new Date().getFullYear()}</strong><span>{posts.length} 篇文章</span><i></i></div>}
+      <div class="lab-posts">{posts.map((post,i)=><Post post={post} index={i} readable={post.id===first?.id}/>)}</div>
+      <p class="lab-filter-empty" data-lab-filter-empty hidden>这个分类暂时还没有公开文章。<button type="button" data-lab-filter="all">查看全部</button></p>
+      {design.id==='letter' && first && <div class="lab-letter-excerpt"><p>{excerpt.slice(0,370)}{excerpt.length>370?'…':''}</p><button type="button" class="lab-text-button" data-lab-action="read" data-post-id={first.id}>展开阅读 <Glyph name="arrow" size={15}/></button></div>}
+      <a class="lab-all-writing" href={url('articles/')}>浏览全部文章 <Glyph name="arrow" size={15}/></a>
+    </section>
+
+    <aside class="lab-margin">
+      <div class="lab-section-title"><h2>主题<em>Topics</em></h2></div>
+      <nav class="lab-topic-list" aria-label="文章主题">{categories.map((c,i)=><a href={url(`articles/?category=${c.id}`)}><span class="lab-topic-index">0{i+1}</span><div><strong>{c.name}</strong><small>{c.en}</small></div><Glyph name="external" size={14}/></a>)}</nav>
+      <Activity posts={posts}/>
+      <div class="lab-quick-tools"><div class="lab-small-heading"><span>阅读工具</span><Glyph name="tools" size={14}/></div><button type="button" data-lab-action="saved">我的收藏 <span data-lab-saved-count>0</span></button>{first && <button type="button" data-lab-action="read" data-post-id={first.id}>接着读 <Glyph name="arrow" size={14}/></button>}<button type="button" data-lab-action="tools">频率 / dB 换算 <Glyph name="external" size={14}/></button></div>
+    </aside>
+
+    <section class="lab-projects" id={`${design.id}-projects`} aria-label="项目" data-letter-reveal={design.id==='letter'?'':undefined}>
+      <div class="lab-section-title"><h2>项目<em>Projects</em></h2><a href={url('projects/')}>查看全部 <Glyph name="external" size={14}/></a></div>
+      <Projects projects={projects}/>
+    </section>
+
+    <section class="lab-workbench-tools" aria-label="小工具"><span class="lab-workbench-label">TOOLBOX</span><button type="button" data-lab-action="search"><Glyph name="search"/>全文搜索 <kbd>⌘ K</kbd></button><button type="button" data-lab-action="saved"><Glyph name="bookmark"/>我的收藏 <span data-lab-saved-count>0</span></button><button type="button" data-lab-action="tools"><Glyph name="tools"/>频率 / dB 换算 <Glyph name="external" size={14}/></button></section>
+
+    <footer class="lab-footer"><span>© {new Date().getFullYear()} Qimai Yan</span><p>「人生海海，山山而川」</p><a href={url('rss.xml')}>RSS <Glyph name="rss" size={13}/></a></footer>
+  </div>)}
+</main>
+<footer class="lab-review-note"><span class="lab-review-letter" data-design-key>A</span><div><strong data-design-name>书刊 · Editorial</strong><p data-design-note>{designs[0].note}</p></div><span class="lab-preview-label">独立预览 · 未替换首页</span></footer>
+
+<dialog id="lab-search-dialog" class="lab-dialog" aria-labelledby="lab-search-heading"><div class="lab-dialog-head"><div><h2 id="lab-search-heading">搜索</h2><p>文章、项目与 #标签</p></div><button class="lab-icon" type="button" data-lab-action="close" aria-label="关闭搜索"><Glyph name="close"/></button></div><label class="lab-search-field"><Glyph name="search"/><input type="search" data-lab-search placeholder="输入标题、关键词或 #标签" aria-label="搜索文章和项目" autocomplete="off"/></label><div data-lab-search-results></div><p class="lab-dialog-note">↑ ↓ 选择　Enter 打开　Esc 关闭</p></dialog>
+<dialog id="lab-saved-dialog" class="lab-dialog" aria-labelledby="lab-saved-heading"><div class="lab-dialog-head"><div><h2 id="lab-saved-heading">我的收藏</h2><p>保存在当前浏览器，方便下次翻阅。</p></div><button class="lab-icon" type="button" data-lab-action="close" aria-label="关闭收藏"><Glyph name="close"/></button></div><div data-lab-saved-results></div></dialog>
+<dialog id="lab-tools-dialog" class="lab-dialog" aria-labelledby="lab-tools-heading"><div class="lab-dialog-head"><div><h2 id="lab-tools-heading">计算小工具</h2><p>电力电子学习时的两项常用换算。</p></div><button class="lab-icon" type="button" data-lab-action="close" aria-label="关闭小工具"><Glyph name="close"/></button></div><div class="lab-unit-form"><label><span>换算类型</span><select data-unit-mode aria-label="换算类型"><option value="frequency">频率 → 周期 / 角频率</option><option value="db">dB → 幅值倍率</option></select></label><label><span>输入数值</span><div class="lab-unit-input"><input data-unit-value type="number" value="10" step="any" aria-label="输入数值"/><select data-unit-scale aria-label="频率单位"><option value="1">Hz</option><option value="1000" selected>kHz</option><option value="1000000">MHz</option></select></div></label></div><div class="lab-unit-result"><output data-unit-output aria-live="polite"></output><code data-unit-formula></code></div><p class="lab-dialog-note">dB 使用幅值关系 20 log₁₀(A₂/A₁)，不是功率倍率。</p></dialog>
+<dialog id="lab-reading-dialog" class="lab-dialog lab-reading" aria-labelledby="lab-reader-heading"><div class="lab-reader-bar"><div><h2 id="lab-reader-heading" data-reader-title>{first?.data.title}</h2><p data-reader-meta>{first && `${dateLabel(first.data.pubDate)} · ${readingMinutes(first.body)} 分钟阅读`}</p></div><div class="lab-reader-actions"><span data-reader-progress-label>0%</span><button class="lab-btn" type="button" data-reader-comfort aria-pressed="false">宽松排版</button><button class="lab-icon" type="button" data-lab-action="close" aria-label="关闭阅读预览"><Glyph name="close"/></button></div></div><div class="lab-reader-progress"><div data-reader-progress role="progressbar" aria-label="阅读进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div><div data-reader-scroll><article class="lab-reader-prose" data-reader-content data-reader-post={first?.id}><h1>{first?.data.title}</h1>{Content && <Content/>}</article></div></dialog>
+<div class="lab-toast" data-lab-toast role="status" aria-live="polite" hidden></div>
+<script id="lab-content-data" type="application/json" set:html={JSON.stringify(data).replace(/</g,'\\u003c')}/>
+<script id="lab-design-data" type="application/json" set:html={JSON.stringify(designs)}/>
+<script>import '../../scripts/design-lab';</script>
+</body>
+</html>
