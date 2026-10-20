@@ -38,9 +38,9 @@
 
 入口：项目 → 具身智能研究&思考 → 论文资料。资料页位于 `/projects/robotics-notebook/library/`，首页没有直接入口；该页不进入站点地图，并标记 `noindex`。
 
-`src/data/papers.json` 存储从 Robotics 云端“附件/论文”目录解析的 18 份 PDF 引用，只保留文件信息与 OneDrive `webUrl`。不包含 Markdown 笔记、同步凭据或会过期的预授权下载地址。
+`src/data/papers.json` 存储 Robotics 云端“附件/论文”目录中明确公开的 18 份 PDF 引用，只保留文件信息与 OneDrive `1drv.ms` 分享链接。不包含 Markdown 笔记、同步凭据或会过期的预授权下载地址。
 
-链接沿用 OneDrive 原有权限，访问者可能需要登录获授权的账号。深层路由本身不提供访问控制。没有新建匿名分享链接，也没有运行会改动文件的双向同步。
+这 18 份 PDF 已逐文件设为“任何人持链接可查看”，无需登录，不能修改云端原件；没有共享上级文件夹或整个 Obsidian 库。分享链接可被转发，深层路由本身不提供访问控制。需要撤回时，在 OneDrive 中对相应 PDF 打开“管理访问权限”，删除对应的“任何人可查看”链接，并移除网站引用。
 
 更新引用：
 
@@ -48,7 +48,7 @@
 node scripts/onedrive-papers.mjs "<本地 Robotics 库路径>" src/data/papers.json
 ```
 
-此脚本从本机 Remotely Save 配置读取连接信息，仅调用 Graph 的读取接口。授权过期时需先在插件中恢复连接；脚本不会把令牌写到文件或日志。
+此脚本从本机 Remotely Save 配置读取连接信息，仅调用 Graph 的读取接口。目标清单为 `anonymous-view` 时，只更新已经列出的文件并保留分享链接，不自动加入或公开新文件。授权过期时需先在插件中恢复连接；脚本不会把令牌写到文件或日志。
 
 ## 检查与发布
 

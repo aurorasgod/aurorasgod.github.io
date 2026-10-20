@@ -3,6 +3,12 @@ import { basename, dirname, resolve } from 'node:path';
 
 const [vaultPath, outputPath = 'output/cloud/papers.json'] = process.argv.slice(2);
 if (!vaultPath) throw new Error('Usage: node scripts/onedrive-papers.mjs <Obsidian vault> [output.json]');
+const destination = resolve(outputPath);
+let existing;
+try { existing = JSON.parse(await readFile(destination, 'utf8')); }
+catch (error) { if (error.code !== 'ENOENT') throw error; }
+const sharedOnly = existing?.access === 'anonymous-view';
+const sharedLinks = new Map((sharedOnly ? existing.papers : []).map(paper => [paper.id, paper.url]));
 const raw = JSON.parse(await readFile(resolve(vaultPath, '.obsidian/plugins/remotely-save/data.json'), 'utf8'));
 const settings = raw.d ? JSON.parse(Buffer.from([...raw.d].reverse().join(''), 'base64url').toString('utf8')) : raw;
 if (settings.serviceType !== 'onedrive' || !settings.onedrive?.accessToken) throw new Error('This vault has no connected OneDrive account.');
@@ -42,7 +48,9 @@ async function walk(id, relative = '') {
   for (const item of await children(id)) {
     if (item.folder) await walk(item.id, `${relative}${item.name}/`);
     else if (item.file && /\.pdf$/i.test(item.name)) {
-      const link = new URL(item.webUrl);
+      // Preserve the approved file list and permanent view links; never broaden sharing on refresh.
+      if (sharedOnly && !sharedLinks.has(item.id)) continue;
+      const link = new URL(sharedLinks.get(item.id) || item.webUrl);
       if (link.protocol !== 'https:') throw new Error('Unexpected file link protocol.');
       papers.push({ id: item.id, title: item.name.replace(/\.pdf$/i, '').replaceAll('_', ' '), fileName: item.name, folder: relative.replace(/\/$/, ''), vault: vaultName, url: link.href, bytes: item.size });
     }
@@ -50,7 +58,6 @@ async function walk(id, relative = '') {
 }
 await walk(folder.id);
 papers.sort((a, b) => a.title.localeCompare(b.title, 'zh-CN'));
-const destination = resolve(outputPath);
 await mkdir(dirname(destination), { recursive: true });
-await writeFile(destination, JSON.stringify({ provider: 'OneDrive', access: 'existing-permissions', papers }, null, 2) + '\n');
+await writeFile(destination, JSON.stringify({ provider: 'OneDrive', access: sharedOnly ? 'anonymous-view' : 'existing-permissions', papers }, null, 2) + '\n');
 console.log(`Resolved ${papers.length} PDF references from ${vaultName}. No sharing permissions were changed.`);
