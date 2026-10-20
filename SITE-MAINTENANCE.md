@@ -1,6 +1,6 @@
 # 网站维护
 
-首页已经采用夜航设计。运行 `npm run dev` 后访问终端给出的根地址；旧 `/designs/nocturne/` 跳转到首页，其余提案页面已移除。
+首页已经采用夜航设计。运行 `npm run dev` 后访问终端给出的根地址；旧 `/designs/nocturne/`、`/design-lab/` 和 `/design-lab/compare/` 跳转到首页，其余提案页面已移除。
 
 ## 首页
 
