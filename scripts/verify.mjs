@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readdir, readFile, stat } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
+import { soundtracks } from '../src/data/home.ts';
 
 const root=resolve(process.env.STATIC_DIR || 'dist/client');
 const prefix=(process.env.BASE_PATH||'/').replace(/\/?$/,'/');
@@ -8,6 +9,8 @@ async function files(dir){const entries=await readdir(dir,{withFileTypes:true});
 const all=await files(root);
 const htmlFiles=all.filter(p=>p.endsWith('.html'));
 const errors=[];
+assert.equal(new Set(soundtracks.map(track=>track.id)).size,soundtracks.length,'duplicate music track identifiers');
+for(const track of soundtracks){assert.ok(track.title&&track.src.startsWith('audio/'),'invalid music track');assert.ok((await stat(join(root,track.src))).size>0,`missing music file: ${track.src}`);}
 for(const file of htmlFiles){const html=await readFile(file,'utf8');if(/http-equiv="refresh"/i.test(html)){assert.ok(html.includes('url='),'missing redirect target');continue;}assert.ok(html.includes('lang="zh-CN"'),`missing language: ${file}`);assert.ok(/<h1[\s>]/.test(html),`missing page heading: ${file}`);for(const match of html.matchAll(/(?:href|src)="([^"#]+)"/g)){const target=match[1].replaceAll('&amp;','&');if(!target.startsWith('/'))continue;const path=decodeURIComponent(target.split(/[?#]/)[0]);if(!path.startsWith(prefix)){errors.push(`${file}: wrong base path ${path}`);continue;}let local=join(root,path.slice(prefix.length));try{const s=await stat(local);if(s.isDirectory())local=join(local,'index.html');await stat(local);}catch{errors.push(`${file}: missing ${path}`);}}}
 const search=JSON.parse(await readFile(join(root,'search-index.json'),'utf8'));
 assert.ok(Array.isArray(search),'invalid search index');

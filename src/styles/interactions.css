@@ -16,7 +16,7 @@
 .motion-toggle:not(:has(input:checked)) > svg { opacity: .55; }
 .music-trigger[aria-expanded=true] { border-color: color-mix(in srgb,var(--accent) 40%,transparent); background: color-mix(in srgb,var(--accent) 10%,transparent); }
 .music-widget [data-music-repeat] > svg { transition: transform .35s; }
-.music-widget [data-music-repeat][aria-pressed=true] > svg { transform: rotate(180deg); }
+.music-widget [data-music-repeat][aria-pressed=true] > svg { transform: scale(1.06); }
 .music-popover input[type=range]::-webkit-slider-thumb { transition: transform .15s, box-shadow .15s; }
 .music-popover input[type=range]:focus-visible::-webkit-slider-thumb, .music-popover input[type=range]:active::-webkit-slider-thumb { transform: scale(1.25); box-shadow: 0 0 0 4px color-mix(in srgb,var(--music-accent) 14%,transparent); }
 @media(hover:hover) and (pointer:fine) {

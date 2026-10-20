@@ -18,13 +18,13 @@
 
 ## 音乐台
 
-当前曲目由作者提供：`public/audio/beneath-the-mask-rain.mp3`。曲目路径在 `src/data/home.ts`，播放器在 `src/components/MusicStation.astro` 与 `src/scripts/music.ts`。
+播放列表在 `src/data/home.ts` 的 `soundtracks` 数组，播放器在 `src/components/MusicStation.astro` 与 `src/scripts/music.ts`。原有 Beneath the Mask 雨天版由站点作者提供，保留在第一首。
 
 所有页面顶部共用音乐图标和弹出播放器；支持原生 Popover 时使用原生行为，旧浏览器使用手动开关与焦点管理。面板默认隐藏，页面滚动后仍可访问。面板外点击、Esc 或关闭按钮均可收起，关闭面板不暂停播放。样式独立位于 `src/styles/music.css`。
 
-支持播放、暂停、拖动进度、音量、静音、循环和音量记忆。初次访问不自动播放；首次打开面板才加载时长。站内翻页保存当前曲目进度和静音状态，近期正在播放时尝试继续，浏览器阻止时显示“点击继续播放”。页面仍采用普通导航，切换时可能有短暂停顿。音频内容不会传给外部音乐平台。
+支持上一曲、下一曲、曲目列表、播放、暂停、拖动进度、音量、静音和音量记忆。默认列表循环，支持切换单曲循环；手动切歌保留播放或暂停状态，点击列表曲目开始播放。初次访问不自动播放；只加载选中曲目。站内翻页按稳定曲目 ID 保存选择、进度和静音状态，近期正在播放时尝试继续，浏览器阻止时显示“点击继续播放”。兼容旧版单曲进度记录，并提供系统媒体面板的播放、暂停与切歌操作。页面仍采用普通导航，切换时可能有短暂停顿。
 
-可考虑的后续曲目：Beneath the Mask -instrumental version-、Layer Cake、Tokyo Daylight。只在取得可使用的文件或官方嵌入来源后加入；未从第三方曲库下载其他商业原声。
+新增 Night on the Docks - Sax、George Street Shuffle、Airport Lounge，均从 Kevin MacLeod 官方曲库下载并按 CC BY 4.0 署名。播放时显示作者与授权链接，完整来源见 `public/audio/CREDITS.txt`。没有从 KHInsider 下载或转载商业游戏原声。
 
 ## 云端论文 PDF
 

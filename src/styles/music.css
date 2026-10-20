@@ -20,7 +20,7 @@
 .record-grooves span { width: 23px; height: 23px; display: grid; place-items: center; border-radius: 50%; background: #d5b69c; color: #203129; font: italic 15px 'Fraunces Local', Georgia, serif; }
 .music-widget[data-playing=true] .record-grooves { animation-play-state: running; }
 .track-copy { min-width: 0; }
-.track-copy h3 { margin: 0; font: 500 20px/1.4 'Fraunces Local', Georgia, serif; overflow-wrap: anywhere; }
+.track-copy h3 { margin: 0; min-height: 2.8em; font: 500 18px/1.4 'Fraunces Local', Georgia, serif; overflow-wrap: anywhere; }
 .track-copy p { margin: 4px 0 0; font-size: 11px; color: var(--music-muted); }
 .track-timeline { margin-top: 22px; }
 .music-popover input[type=range] { --progress: 0%; appearance: none; width: 100%; height: 20px; background: transparent; cursor: pointer; display: block; margin: 0; padding: 0; }
@@ -32,7 +32,7 @@
 .music-popover input:focus-visible { outline: 2px solid var(--music-accent); outline-offset: 2px; }
 .music-popover button:disabled, .music-popover input:disabled { opacity: .4; cursor: default; }
 .track-time { display: flex; justify-content: space-between; font: 10px/1.7 Consolas, monospace; color: var(--music-muted); font-variant-numeric: tabular-nums; }
-.transport { display: flex; align-items: center; gap: 9px; margin-top: 15px; }
+.transport { display: flex; align-items: center; justify-content: space-between; gap: 9px; margin-top: 15px; }
 .music-play { display: grid; place-items: center; width: 40px; height: 40px; padding: 0; flex: none; border-radius: 50%; background: var(--music-button); color: var(--music-button-fg); border: 0; cursor: pointer; }
 .music-play:hover { filter: brightness(1.12); }
 .music-widget .pause-symbol, .music-widget .mute-symbol { display: none; }
@@ -40,7 +40,23 @@
 .music-widget[data-playing=true] .play-symbol, .music-widget[data-muted=true] .volume-symbol { display: none; }
 .music-widget [data-music-repeat] { color: var(--music-muted); }
 .music-widget [data-music-repeat][aria-pressed=true] { color: var(--music-accent); }
-.volume-control { display: flex; align-items: center; gap: 4px; margin-left: auto; width: 130px; }
+.volume-control { display: flex; align-items: center; gap: 9px; margin-top: 12px; width: 100%; }
+.volume-control input { flex: 1; min-width: 0; }
+.track-position { flex: none; min-width: 36px; text-align: right; font: 10px/1.6 Consolas, monospace; color: var(--music-muted); font-variant-numeric: tabular-nums; }
+.single-repeat-symbol { display: none; }
+[data-music-repeat][aria-pressed=true] .single-repeat-symbol { display: block; }
+[data-music-repeat][aria-pressed=true] .list-repeat-symbol { display: none; }
+.music-widget [data-music-list][aria-expanded=true] { color: var(--music-accent); background: #7e96821c; }
+.music-playlist { list-style: none; padding: 10px 0 0; margin: 13px 0 0; border-top: 1px solid var(--music-line); max-height: 240px; overflow: auto; }
+.music-playlist button { display: flex; align-items: baseline; gap: 12px; width: 100%; padding: 10px 8px; border: 0; border-radius: 4px; color: var(--music-muted); background: transparent; text-align: left; }
+.music-playlist button:hover { background: #7e968214; }
+.music-playlist button[aria-current=true] { color: var(--music-accent); background: #7e96821c; }
+.playlist-number { flex: none; font: 10px Consolas, monospace; }
+.music-playlist strong { display: block; font-size: 12px; font-weight: 500; overflow-wrap: anywhere; }
+.music-playlist small { display: block; margin-top: 2px; font-size: 10px; color: var(--music-muted); }
+.music-credit { margin: 10px 0 0; font-size: 10px; color: var(--music-muted); }
+.music-credit a { color: inherit; text-underline-offset: 3px; }
+.music-credit a:hover { color: var(--music-accent); text-decoration: underline; }
 @keyframes record-spin { to { transform: rotate(360deg); } }
 @keyframes music-open { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: none; } }
 @media(max-width:700px) { .music-trigger { width: 33px; height: 36px; } .music-popover { padding: 16px 18px 18px; } }
