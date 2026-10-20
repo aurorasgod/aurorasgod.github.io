@@ -53,6 +53,20 @@ async function refresh() {
   render();
 }
 if(map) {
+  const fitCalendar = () => {
+    const style = getComputedStyle(map);
+    const labelWidth = parseFloat(style.getPropertyValue('--activity-label-width')) + parseFloat(style.getPropertyValue('--activity-label-gap'));
+    const ratio = Math.round((window.devicePixelRatio || 1) * 10_000) / 10_000;
+    // Snap both cell size and pitch to physical pixels instead of distributing fractional tracks.
+    const gap = Math.round(2 * ratio) / ratio;
+    const available = (map.getBoundingClientRect().width - labelWidth - 25 * gap) / 26;
+    const size = Math.max(1, Math.floor(Math.floor(Math.min(12, available)) * ratio)) / ratio;
+    map.style.setProperty('--activity-cell', `${size}px`);
+    map.style.setProperty('--activity-gap', `${gap}px`);
+  };
+  fitCalendar();
+  new ResizeObserver(fitCalendar).observe(map);
+  window.addEventListener('resize', fitCalendar);
   render();
   const detail=map.querySelector('.activity-detail')!;
   const show=(target:EventTarget|null)=>{
