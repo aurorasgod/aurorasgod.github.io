@@ -8,6 +8,7 @@
 - 身份和曲目信息：`src/data/home.ts`；头像：`public/avatar.jpg`。
 - 科研成果：`src/data/research.ts`，由首页与 `/research/` 共用。目前为空，仅预留科研成果，不收录竞赛经历。
 - 交互：`src/scripts/home.ts`。开场由 `src/components/HomeIntro.astro` 与 `src/styles/intro.css` 实现，山景分片、错峰字标与 Three.js 卡牌展开共同入场。每个标签页会话播放一次，可跳过；页脚旋转箭头可重播，减少动态效果时停用。近况、文章、项目使用支持键盘操作的标签页。
+- 开场关闭与初始动态状态由 HTML 内联脚本先行设置，不依赖首页模块下载完成。正文默认可见，滚动进入动画只在观察到元素后执行。头像和背景图优先加载；手机画布限制像素预算，玻璃折射使用半分辨率缓冲。
 - 近况区恢复原有 `ActivityHeatmap.astro`：近 26 周的文章更新和访问量，支持悬停与方向键。继续使用原统计 API；本地无 API 配置时只显示真实文章更新，并标注访问量暂不可用。
 - 月份标签由 `activityMonths()` 计算，每个标签预留三周宽度，省略过短的首月标签并避让末月；统计、图例和日期详情独立排版。日期格本身不省略。
 - 中文界面使用自托管 Noto Sans SC Variable；标题和诗句保留现有衬线字体。字体随构建打包，访问不依赖 Google Fonts 网络。
@@ -19,7 +20,7 @@
 
 当前曲目由作者提供：`public/audio/beneath-the-mask-rain.mp3`。曲目路径在 `src/data/home.ts`，播放器在 `src/components/MusicStation.astro` 与 `src/scripts/music.ts`。
 
-所有页面顶部共用音乐图标和原生 Popover 弹出播放器；页面滚动后仍可访问。面板外点击、Esc 或关闭按钮均可收起，关闭面板不暂停播放。样式独立位于 `src/styles/music.css`。
+所有页面顶部共用音乐图标和弹出播放器；支持原生 Popover 时使用原生行为，旧浏览器使用手动开关与焦点管理。面板默认隐藏，页面滚动后仍可访问。面板外点击、Esc 或关闭按钮均可收起，关闭面板不暂停播放。样式独立位于 `src/styles/music.css`。
 
 支持播放、暂停、拖动进度、音量、静音、循环和音量记忆。初次访问不自动播放；首次打开面板才加载时长。站内翻页保存当前曲目进度和静音状态，近期正在播放时尝试继续，浏览器阻止时显示“点击继续播放”。页面仍采用普通导航，切换时可能有短暂停顿。音频内容不会传给外部音乐平台。
 
@@ -27,7 +28,7 @@
 
 ## 云端论文 PDF
 
-入口：项目 → 具身智能阅读记录 → 论文资料。资料页位于 `/projects/robotics-notebook/library/`，首页没有直接入口；该页不进入站点地图，并标记 `noindex`。
+入口：项目 → 具身智能研究&思考 → 论文资料。资料页位于 `/projects/robotics-notebook/library/`，首页没有直接入口；该页不进入站点地图，并标记 `noindex`。
 
 `src/data/papers.json` 存储从 Robotics 云端“附件/论文”目录解析的 18 份 PDF 引用，只保留文件信息与 OneDrive `webUrl`。不包含 Markdown 笔记、同步凭据或会过期的预授权下载地址。
 

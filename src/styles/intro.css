@@ -1,7 +1,7 @@
 .intro-sequence, .intro-skip { display: none; }
 html:not([data-opening=on]) .intro-skip { display: none; }
 html[data-opening=on] .intro-sequence { display: block; position: fixed; inset: 0; z-index: 90; pointer-events: none; overflow: hidden; animation: intro-finish 2.65s both; }
-html[data-opening=on] .intro-skip { display: grid; position: fixed; top: 22px; right: 24px; z-index: 95; color: #e9ede4; background: #18251d9c; border: 1px solid #8fa78f42; }
+html[data-opening=on] .intro-skip { display: grid; position: fixed; top: 22px; right: 24px; z-index: 95; color: #e9ede4; background: #18251d9c; border: 1px solid #8fa78f42; animation: intro-finish 2.65s both; }
 .intro-shutters { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); width: 100%; height: 100%; }
 .intro-shutter { position: relative; overflow: hidden; background: #15261d; border-right: 1px solid #aac6ab20; animation: shutter-reveal .75s cubic-bezier(.76,0,.24,1) both; animation-delay: calc(1.05s + var(--i) * .055s); }
 .intro-shutter:nth-child(even) { background: #1a2e24; }

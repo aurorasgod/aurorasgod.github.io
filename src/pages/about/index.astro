@@ -1,6 +1,17 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { site, categories, url } from '../../site';
-import Icon from '../../components/Icon.astro';
 ---
-<Base title="关于" active="about"><div class="page-container about-page"><div class="about-heading"><span class="eyebrow">ABOUT</span><h1>关于<span class="title-dot">.</span></h1><p class="about-lead">我是 Laplace，Qimai Yan。<br/><em>「人生海海，山山而川」。</em></p></div><div class="about-layout"><div class="prose"><h2>这里记录什么</h2><p>ZJU电力电子硕士在读。一个闲得无聊的人。</p><h2>写作与整理</h2><p>日常使用 Obsidian 中自己开发的工作台阅读和整理笔记，另有插件将md文件编辑成独立文章。每篇文章可以从分类、标签和站内搜索找到。</p><h2>阅读说明</h2><p>文章修订时会注明更新时间。</p>{(site.github||site.email)&&<><h2>联系</h2>{site.github&&<p><a href={site.github} target="_blank" rel="noopener noreferrer">GitHub ↗</a></p>}{site.email&&<p><a href={`mailto:${site.email}`}>{site.email}</a></p>}</>}</div><aside class="about-directions"><span class="eyebrow">文章主题</span>{categories.slice(0,3).map((c,i)=><a href={url(`articles/?category=${c.id}`)}><span class="about-index">0{i+1}</span><h3>{c.name}</h3><p>{c.description}</p><Icon name="arrow" size={18}/></a>)}</aside></div></div></Base>
+<Base title="关于" active="about">
+  <article class="page-container about-page">
+    <header class="about-heading"><span class="eyebrow">ABOUT</span><h1>关于<span class="title-dot">.</span></h1></header>
+    <div class="prose about-biography">
+      <p>我是严淇迈，也叫 Laplace。浙江大学电子信息工程专业大四，已保研本院电力电子方向，现在在 RoboParty 做算法开发实习。</p>
+      <p>我对具身智能、电力电子控制和 Agent 应用感兴趣。此前做过机器人电控与方块摆放算法、DAB 变换器和 PFC 控制。最近在读 VLA、世界模型相关论文，也在开发自己的 Obsidian 研究工作台，用来阅读论文和整理笔记。</p>
+      <p>本博客在技术之外，也写一些个人经历。</p>
+    </div>
+  </article>
+</Base>
+<style>
+  .about-biography { max-width: 740px; padding-top: 32px; }
+  @media (max-width: 700px) { .about-biography { padding-top: 24px; } }
+</style>

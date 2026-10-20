@@ -1,5 +1,5 @@
 ---
-title: "具身智能阅读记录"
+title: "具身智能研究&思考"
 description: "整理 VLA、视觉表征和世界模型相关论文，让不同论文中的方法与问题能够互相参照。"
 category: RESEARCH / ROBOTICS
 status: ongoing

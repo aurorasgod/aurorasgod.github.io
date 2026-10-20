@@ -32,7 +32,7 @@ let openingTimeout = window.setTimeout(finishOpening, 3000);
 document.querySelector('[data-replay-intro]')?.addEventListener('click', () => {
   if (reducedMotion.matches) return;
   if (motion && !motion.checked) { motion.checked = true; applyMotion(); }
-  document.querySelector<HTMLElement>('[data-music-player] [popover]')?.hidePopover();
+  document.querySelector<HTMLButtonElement>('[data-music-close]')?.click();
   window.scrollTo({ top: 0, behavior: 'instant' });
   document.documentElement.dataset.opening = 'done';
   requestAnimationFrame(() => {

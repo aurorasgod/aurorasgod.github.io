@@ -1,5 +1,5 @@
 ---
-title: "电力电子学习笔记"
+title: "电力电子研究&思考"
 description: "建立独立的电力电子知识目录，逐步整理基础概念、拓扑和控制相关学习内容。"
 category: STUDY / ELECTRONICS
 status: ongoing

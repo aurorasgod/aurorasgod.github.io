@@ -30,19 +30,34 @@ const canonical = new URL(import.meta.env.BASE_URL, Astro.site);
     <meta property="og:url" content={canonical} /><meta property="og:type" content="website" />
     <meta property="og:image" content={new URL(url('social.svg'), Astro.site)} />
     <link rel="icon" href={url('favicon.svg')} type="image/svg+xml" />
+    <link rel="preload" href={url('avatar.jpg')} as="image" fetchpriority="high" />
+    <link rel="preload" href={url('images/designs/alpine-lake.jpg')} as="image" fetchpriority="high" />
     <link rel="alternate" type="application/rss+xml" title={site.title} href={url('rss.xml')} />
     <title>{site.title} · Personal Blog</title>
     <script is:inline>
+      const root = document.documentElement;
+      root.dataset.motion = matchMedia('(prefers-reduced-motion: reduce)').matches ? 'off' : 'on';
       try {
-        if (!matchMedia('(prefers-reduced-motion: reduce)').matches && localStorage.getItem('home-study-motion') !== 'off' && sessionStorage.getItem('laplace-intro-v2') !== 'seen') {
-          document.documentElement.dataset.opening = 'on';
-          document.documentElement.dataset.openingStarted = String(performance.now());
+        if (localStorage.getItem('home-study-motion') === 'off') root.dataset.motion = 'off';
+        if (root.dataset.motion === 'on' && sessionStorage.getItem('laplace-intro-v2') !== 'seen') {
+          root.dataset.opening = 'on';
+          root.dataset.openingStarted = String(performance.now());
         }
         if (!localStorage.getItem('field-notes-theme')) localStorage.setItem('field-notes-theme', 'dark');
       } catch {}
+      const dismissOpening = () => {
+        root.dataset.opening = 'done';
+        try { sessionStorage.setItem('laplace-intro-v2', 'seen'); } catch {}
+      };
+      // Finish even when the external homepage module is slow or unavailable.
+      setTimeout(dismissOpening, 3000);
+      document.addEventListener('click', event => {
+        if (event.target instanceof Element && event.target.closest('[data-skip-intro]')) dismissOpening();
+      });
     </script>
   </head>
   <body class="study study-nocturne" data-base={import.meta.env.BASE_URL}>
+    <script is:inline>document.body.dataset.motion = document.documentElement.dataset.motion || 'off';</script>
     <a class="study-skip" href="#main">跳到正文</a>
     <HomeIntro />
     <header class="study-header">

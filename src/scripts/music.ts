@@ -12,6 +12,8 @@ if (player) {
   const source = player.dataset.audioSrc;
   const popup = player.querySelector<HTMLElement>('#music-popover')!;
   const trigger = player.querySelector<HTMLButtonElement>('[data-music-trigger]')!;
+  const nativePopover = typeof popup.showPopover === 'function';
+  const isPopupOpen = () => nativePopover ? popup.matches(':popover-open') : popup.dataset.open === 'true';
   const resumeKey = 'laplace-music-session';
   let pendingTime = 0;
   let resumePlaying = false;
@@ -63,24 +65,47 @@ if (player) {
     popup.style.setProperty('--music-top', `${top}px`);
     popup.style.setProperty('--music-left', `${Math.max(12, Math.min(anchor.right - width, innerWidth - width - 12))}px`);
   }
-  popup.addEventListener('beforetoggle', event => {
-    const opening = (event as ToggleEvent).newState === 'open';
+  function preparePopup(opening: boolean) {
     trigger.setAttribute('aria-expanded', String(opening));
     if (opening) {
       positionPopup();
       if (source && audio.paused && audio.readyState === 0) { audio.preload = 'metadata'; audio.load(); }
     } else returnFocus = popup.contains(document.activeElement);
-  });
-  popup.addEventListener('toggle', event => {
-    if ((event as ToggleEvent).newState === 'open') play.focus({ preventScroll: true });
+  }
+  function focusPopup(opening: boolean) {
+    if (opening) play.focus({ preventScroll: true });
     else if (returnFocus && (document.activeElement === document.body || popup.contains(document.activeElement))) trigger.focus({ preventScroll: true });
-  });
+  }
+  function openPopup() {
+    if (nativePopover) { popup.showPopover(); return; }
+    preparePopup(true);
+    popup.dataset.open = 'true';
+    focusPopup(true);
+  }
+  function closePopup() {
+    if (!isPopupOpen()) return;
+    if (nativePopover) { popup.hidePopover(); return; }
+    preparePopup(false);
+    popup.dataset.open = 'false';
+    focusPopup(false);
+  }
+  if (nativePopover) {
+    popup.addEventListener('beforetoggle', event => preparePopup((event as ToggleEvent).newState === 'open'));
+    popup.addEventListener('toggle', event => focusPopup((event as ToggleEvent).newState === 'open'));
+  } else {
+    popup.removeAttribute('popover');
+    trigger.addEventListener('click', () => isPopupOpen() ? closePopup() : openPopup());
+    player.querySelector('[data-music-close]')?.addEventListener('click', closePopup);
+    document.addEventListener('keydown', event => { if (event.key === 'Escape') closePopup(); });
+  }
   window.addEventListener('resize', positionPopup);
-  window.addEventListener('scroll', () => { if (popup.matches(':popover-open')) positionPopup(); }, { passive: true });
+  window.addEventListener('scroll', () => { if (isPopupOpen()) positionPopup(); }, { passive: true });
   document.addEventListener('click', event => {
-    if (event.target instanceof Element && event.target.closest('[data-open-search],[data-study-search],[data-menu-toggle],[data-study-menu]')) popup.hidePopover();
+    if (!(event.target instanceof Element)) return;
+    if (event.target.closest('[data-open-search],[data-study-search],[data-menu-toggle],[data-study-menu]')
+      || (!nativePopover && !popup.contains(event.target) && !trigger.contains(event.target))) closePopup();
   });
-  if (location.hash === '#listening') { popup.showPopover(); history.replaceState(history.state, '', location.pathname + location.search); }
+  if (location.hash === '#listening') { openPopup(); history.replaceState(history.state, '', location.pathname + location.search); }
   play.addEventListener('click', async () => {
     if (!source) return;
     if (!audio.paused) { audio.pause(); return; }

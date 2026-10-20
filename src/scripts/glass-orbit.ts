@@ -335,9 +335,11 @@ export async function createGlassOrbit(host: HTMLElement) {
     camera.top = height / 2;
     camera.bottom = -height / 2;
     camera.updateProjectionMatrix();
-    const ratio = Math.max(1, Math.min(devicePixelRatio, 1.5, Math.sqrt(2_000_000 / (width * height))));
-    const renderWidth = Math.round(width * ratio);
-    const renderHeight = Math.round(height * ratio);
+    renderer.transmissionResolutionScale = compact ? .5 : 1;
+    const ratio = Math.max(1, Math.min(devicePixelRatio, compact ? 1.25 : 1.5, Math.sqrt((compact ? 800_000 : 2_000_000) / (width * height))));
+    const pixelStep = compact ? 2 : 1;
+    const renderWidth = Math.round(width * ratio / pixelStep) * pixelStep;
+    const renderHeight = Math.round(height * ratio / pixelStep) * pixelStep;
     // Keep all transmission buffers on integer pixels, including fractional OS scaling.
     if (canvas!.width !== renderWidth || canvas!.height !== renderHeight) renderer.setSize(renderWidth, renderHeight, false);
     drawBackdrop();
