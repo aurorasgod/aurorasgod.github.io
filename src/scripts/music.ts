@@ -36,6 +36,8 @@ if (player) {
   let lastSaved = 0;
   let leaving = false;
   let returnFocus = false;
+  let movingBetweenPages = false;
+  let continueAfterSwap = false;
   const track = () => tracks[index];
   const format = (seconds: number) => Number.isFinite(seconds) ? `${Math.floor(seconds / 60)}:${Math.floor(seconds % 60).toString().padStart(2, '0')}` : '--:--';
 
@@ -199,7 +201,21 @@ if (player) {
     if (event.target.closest('[data-open-search],[data-study-search],[data-menu-toggle],[data-study-menu]')
       || (!nativePopover && !popup.contains(event.target) && !trigger.contains(event.target))) closePopup();
   });
-  if (location.hash === '#listening') { openPopup(); history.replaceState(history.state, '', location.pathname + location.search); }
+  const followMusicLink = () => {
+    if (location.hash === '#listening') { openPopup(); history.replaceState(history.state, '', location.pathname + location.search); }
+  };
+  followMusicLink();
+  document.addEventListener('astro:before-swap', () => {
+    continueAfterSwap = wantsPlayback;
+    movingBetweenPages = true;
+    closePopup();
+  });
+  document.addEventListener('astro:after-swap', () => {
+    movingBetweenPages = false;
+    if (continueAfterSwap && audio.paused) void startPlayback('点击继续播放');
+    positionPopup();
+  });
+  document.addEventListener('astro:page-load', followMusicLink);
 
   play.addEventListener('click', () => { if (wantsPlayback || !audio.paused) pausePlayback(); else void startPlayback(); });
   previous.addEventListener('click', () => selectTrack(index - 1));
@@ -221,7 +237,7 @@ if (player) {
     savePlayback();
   });
   audio.addEventListener('pause', () => {
-    if (leaving || !audio.paused || (wantsPlayback && audio.readyState === 0)) return;
+    if (leaving || movingBetweenPages || !audio.paused || (wantsPlayback && audio.readyState === 0)) return;
     wantsPlayback = false;
     updatePlayback();
     status.textContent = audio.ended ? '播放结束' : '已暂停';

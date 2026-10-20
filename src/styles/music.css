@@ -5,7 +5,7 @@
 .music-indicator { display: none; position: absolute; right: 4px; bottom: 5px; width: 5px; height: 5px; background: var(--accent); border-radius: 50%; }
 .music-widget[data-playing=true] .music-indicator { display: block; }
 .music-popover { --music-bg: #f8fbf7f5; --music-fg: #26382d; --music-muted: #66766b; --music-line: #dce4dd; --music-accent: #396e4e; --music-button: #2c503b; --music-button-fg: #eff6ef; position: fixed; inset: auto; top: var(--music-top, 76px); left: var(--music-left, 16px); margin: 0; width: min(340px, calc(100vw - 24px)); max-height: calc(100dvh - var(--music-top, 76px) - 12px); overflow: auto; padding: 18px 20px 20px; border: 1px solid var(--music-line); border-radius: 8px; background: var(--music-bg); color: var(--music-fg); box-shadow: 0 18px 60px #081b2a33, inset 0 1px 0 #fff2; backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); font-family: 'Noto Sans SC Variable', 'PingFang SC', 'Microsoft YaHei', sans-serif; font-size: 13px; line-height: 1.6; letter-spacing: 0; }
-:root[data-theme=dark] .music-popover { --music-bg: #1d2923f2; --music-fg: #edf2e9; --music-muted: #a7b6aa; --music-line: #3f5246; --music-accent: #bdd3b4; --music-button: #cfddc4; --music-button-fg: #203129; color-scheme: dark; }
+html:root .music-popover { --music-bg: var(--glass); --music-fg: var(--text); --music-muted: var(--muted); --music-line: var(--line); --music-accent: var(--accent); --music-button: var(--accent); --music-button-fg: var(--bg); }
 .music-popover { display: none; }
 .music-popover:popover-open { display: block; animation: music-open .18s ease-out; }
 .music-popover[data-open=true] { display: block; z-index: 80; animation: music-open .18s ease-out; }

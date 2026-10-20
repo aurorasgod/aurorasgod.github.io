@@ -7,10 +7,13 @@ import '../styles/glass-orbit.css';
   <canvas class="glass-orbit-canvas"></canvas>
 </div>
 <script>
+  import { onPageLoad } from '../scripts/page-lifecycle';
+  onPageLoad(({ signal }) => {
   const host = document.querySelector<HTMLElement>('[data-glass-orbit]');
   if (host) {
-    import('../scripts/glass-orbit').then(({ createGlassOrbit }) => createGlassOrbit(host)).catch(() => {
+    import('../scripts/glass-orbit').then(({ createGlassOrbit }) => { if (!signal.aborted) return createGlassOrbit(host, signal); }).catch(() => {
       host.dataset.glassState = 'fallback';
     });
   }
+  });
 </script>

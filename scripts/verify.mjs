@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readdir, readFile, stat } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { soundtracks } from '../src/data/home.ts';
+import { palettes } from '../src/data/palette.ts';
 
 const root=resolve(process.env.STATIC_DIR || 'dist/client');
 const prefix=(process.env.BASE_PATH||'/').replace(/\/?$/,'/');
@@ -37,8 +38,8 @@ for(const entry of search){
 }
 for(const theme of ['light','dark']){
   const css=await readFile(join(root,'comments',`${theme}.css`),'utf8');
-  assert.ok(css.includes(theme==='dark'?'--blog-bg:#181818':'--blog-bg:#ffffff'),'comment theme background differs from site');
-  assert.ok(css.includes(theme==='dark'?'--color-accent-fg:#a2cfb0':'--color-accent-fg:#267052'),'comment theme accent differs from site');
+  assert.ok(css.includes(`--blog-bg:${palettes[theme].bg}`),'comment theme background differs from site');
+  assert.ok(css.includes(`--color-accent-fg:${palettes[theme].accent}`),'comment theme accent differs from site');
   const fonts=[...css.matchAll(/url\(["']?(https?:[^)"']+\.woff2)["']?\)/g)].map(m=>new URL(m[1]));
   assert.ok(fonts.length>0,'comment fonts were not emitted');
   for(const font of fonts) await stat(join(root,font.pathname.slice(prefix.length)));

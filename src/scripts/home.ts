@@ -1,3 +1,7 @@
+import { onPageLoad } from './page-lifecycle';
+
+onPageLoad(({ signal, cleanup }) => {
+if (!document.body.classList.contains('study')) return;
 const body = document.body;
 const motion = document.querySelector<HTMLInputElement>('[data-study-motion]');
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -17,7 +21,7 @@ if (motion) {
 reducedMotion.addEventListener('change', () => {
   if (motion && reducedMotion.matches) motion.checked = false;
   applyMotion();
-});
+}, { signal });
 applyMotion();
 
 function finishOpening() {
@@ -43,10 +47,10 @@ document.querySelector('[data-replay-intro]')?.addEventListener('click', () => {
   });
 });
 if (reducedMotion.matches || body.dataset.motion !== 'on') finishOpening();
-reducedMotion.addEventListener('change', () => { if (reducedMotion.matches) finishOpening(); });
+reducedMotion.addEventListener('change', () => { if (reducedMotion.matches) finishOpening(); }, { signal });
 const updateHeader = () => document.querySelector('.study-header')?.classList.toggle('is-scrolled', scrollY > 30);
 updateHeader();
-window.addEventListener('scroll', updateHeader, { passive: true });
+window.addEventListener('scroll', updateHeader, { passive: true, signal });
 
 const revealElements = document.querySelectorAll<HTMLElement>('.reveal');
 if ('IntersectionObserver' in window) {
@@ -56,6 +60,7 @@ if ('IntersectionObserver' in window) {
     });
   }, { threshold: .08 });
   revealElements.forEach(element => observer.observe(element));
+  cleanup(() => observer.disconnect());
 } else revealElements.forEach(element => element.classList.add('is-visible'));
 
 const tabs = [...document.querySelectorAll<HTMLButtonElement>('[data-now-tab]')];
@@ -76,6 +81,7 @@ function selectTab(tab: HTMLButtonElement) {
   updateTabIndicator();
 }
 const tabResize = new ResizeObserver(updateTabIndicator);
+cleanup(() => tabResize.disconnect());
 tabs.forEach(tab => tabResize.observe(tab));
 updateTabIndicator();
 tabs.forEach((tab, index) => {
@@ -99,7 +105,8 @@ function updateClock() {
   clock.dateTime = now.toISOString();
 }
 updateClock();
-setInterval(updateClock, 60_000);
+const clockInterval = setInterval(updateClock, 60_000);
+cleanup(() => { clearInterval(clockInterval); clearTimeout(openingTimeout); });
 
 const menu = document.querySelector<HTMLButtonElement>('[data-study-menu]');
 const nav = document.querySelector<HTMLElement>('#study-nav');
@@ -116,8 +123,8 @@ menu?.addEventListener('click', () => {
 });
 document.addEventListener('click', event => {
   if (event.target instanceof Node && !menu?.contains(event.target) && !nav?.contains(event.target)) closeMenu();
-});
-window.matchMedia('(min-width: 701px)').addEventListener('change', closeMenu);
+}, { signal });
+window.matchMedia('(min-width: 701px)').addEventListener('change', closeMenu, { signal });
 
 const dialog = document.querySelector<HTMLDialogElement>('.study-search');
 const input = document.querySelector<HTMLInputElement>('[data-study-query]');
@@ -136,7 +143,7 @@ document.addEventListener('keydown', event => {
   if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); openSearch(); }
   if (event.key === 'Escape' && dialog?.open) { event.preventDefault(); dialog.close(); }
   if (event.key === 'Escape' && menu?.getAttribute('aria-expanded') === 'true') { closeMenu(); menu.focus(); }
-});
+}, { signal });
 input?.addEventListener('input', () => {
   const terms = input.value.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);
   let count = 0;
@@ -148,4 +155,5 @@ input?.addEventListener('input', () => {
     if (matches) count++;
   }
   if (searchStatus) searchStatus.textContent = count ? `${count} 篇文章` : '没有找到相关笔记';
+});
 });

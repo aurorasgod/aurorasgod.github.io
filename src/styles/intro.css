@@ -11,9 +11,9 @@ html[data-opening=on] .intro-skip { display: grid; position: fixed; top: 22px; r
 .intro-kicker { font: 11px Consolas, monospace; color: #b8cbb8; animation: signature-arrive .65s ease .15s both; }
 .intro-wordmark { display: flex; align-items: baseline; font: 500 100px/1.05 'Fraunces Local', Georgia, serif; }
 .intro-wordmark > span { display: inline-block; transform-origin: center bottom; animation: letter-arrive .8s cubic-bezier(.17,.8,.25,1.12) both; animation-delay: calc(.12s + var(--i) * .055s); }
-.intro-wordmark > .intro-period { color: #dfbb94; }
+.intro-wordmark > .intro-period { color: var(--accent); }
 .intro-rule { display: flex; align-items: center; gap: 22px; color: #c3d1c0; font: 10px Consolas, monospace; }
-.intro-rule i { width: 65px; height: 1px; background: #d1bc9566; transform-origin: right; animation: rule-extend .65s ease .45s both; }
+.intro-rule i { width: 65px; height: 1px; background: var(--accent-line); transform-origin: right; animation: rule-extend .65s ease .45s both; }
 .intro-rule i:last-child { transform-origin: left; }
 .intro-rule span { animation: signature-arrive .6s ease .4s both; }
 .intro-signature p { margin: 0; font: 13px 'Noto Serif SC Local', serif; color: #acbcae; animation: signature-arrive .7s ease .5s both; }

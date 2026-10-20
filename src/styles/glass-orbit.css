@@ -1,5 +1,5 @@
 .glass-orbit { position: absolute; inset: 0; z-index: -2; pointer-events: none; }
-.glass-orbit-canvas { display: block; width: 100%; height: 100%; opacity: 0; transition: opacity .6s; }
+.glass-orbit-canvas { display: block; width: 100%; height: 100%; opacity: 0; }
 .glass-orbit[data-glass-state=ready] .glass-orbit-canvas { opacity: 1; }
 .glass-orbit[data-glass-state=ready] .glass-orbit-fallback { display: none; }
 .study-hero:has(.glass-orbit[data-glass-state=ready]) :is(.study-avatar, .portrait-mark) { opacity: 0; }
@@ -15,7 +15,7 @@
 .glass-orbit-fallback span:last-child { left: auto; right: calc(50% - 320px); top: 29%; transform: perspective(600px) rotateY(-23deg) rotate(14deg); }
 .study-nocturne[data-motion=on] .hero-scenery > img { animation: none; }
 .study.study-nocturne .portrait-link { width: 144px; }
-.study.study-nocturne .hero-bio { font-family: var(--serif); font-size: 17px; line-height: 1.9; color: #e1e6d9; max-width: 500px; }
+.study.study-nocturne .hero-bio { font-family: var(--serif); font-size: 17px; line-height: 1.9; color: var(--text); max-width: 500px; }
 @media (max-width: 700px) {
   .study.study-nocturne .portrait-link { width: 112px; }
   .study.study-nocturne .hero-bio { font-size: 14px; }

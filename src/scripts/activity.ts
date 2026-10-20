@@ -1,4 +1,6 @@
 import { activityWindow, activityMonths, activityLevel } from '../lib/activity.mjs';
+import { onPageLoad } from './page-lifecycle';
+onPageLoad(({ signal, cleanup }) => {
 const api = (import.meta.env.PUBLIC_ACTIVITY_API || '').replace(/\/$/, '');
 const localPreview = import.meta.env.DEV && !api;
 const map = document.querySelector<HTMLElement>('[data-activity-map]');
@@ -38,12 +40,13 @@ function render() {
   map.querySelector('.activity-summary')!.textContent = `${totalUpdates} 次更新 · ${available?`${totalVisits} 次访问`:(loaded?'访问量暂不可用':'正在加载访问量…')}`;
 }
 async function refresh() {
-  if(!map) return;
+  if(!map || signal.aborted) return;
   if(localPreview) { loaded=true; render(); return; }
   try {
     const response=await fetch(`${api}/api/activity`,{cache:'no-store',signal:AbortSignal.timeout(7000)});
     if(!response.ok) throw new Error('unavailable');
     const data=await response.json();
+    if (signal.aborted) return;
     visits=Object.fromEntries(data.days.map((d:{date:string;visits:number})=>[d.date,d.visits]));
     available=true;
     trackingSince=data.trackingSince||null;
@@ -65,8 +68,10 @@ if(map) {
     map.style.setProperty('--activity-gap', `${gap}px`);
   };
   fitCalendar();
-  new ResizeObserver(fitCalendar).observe(map);
-  window.addEventListener('resize', fitCalendar);
+  const resize = new ResizeObserver(fitCalendar);
+  resize.observe(map);
+  cleanup(() => resize.disconnect());
+  window.addEventListener('resize', fitCalendar, { signal });
   render();
   const detail=map.querySelector('.activity-detail')!;
   const show=(target:EventTarget|null)=>{
@@ -87,7 +92,7 @@ if(map) {
 // Browser storage only suppresses rapid reloads; all totals live in server D1.
 let sent=false;
 async function track() {
-  if(sent || document.visibilityState!=='visible') return;
+  if(sent || signal.aborted || document.visibilityState!=='visible') return;
   sent=true;
   if(localPreview) { await refresh(); return; }
   const key=`laplace-pageview:${location.pathname}`;
@@ -96,6 +101,7 @@ async function track() {
   const base=document.body.dataset.base||'/';
   const pagePath=location.pathname.startsWith(base)?`/${location.pathname.slice(base.length)}`:location.pathname;
   for(let attempt=0;attempt<2;attempt++){
+    if (signal.aborted) return;
     try {
       const response=await fetch(`${api}/api/visit`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({eventId,path:pagePath}),keepalive:true,signal:AbortSignal.timeout(7000)});
       if(!response.ok)throw new Error('unavailable');
@@ -106,4 +112,5 @@ async function track() {
   await refresh();
 }
 void track();
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){if(!sent)void track();else void refresh();}});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){if(!sent)void track();else void refresh();}}, { signal });
+});

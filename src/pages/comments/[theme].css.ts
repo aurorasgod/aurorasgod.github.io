@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import fonts from '../../styles/fonts.css?inline';
 import shared from '../../styles/comments-frame.css?inline';
+import { palettes } from '../../data/palette';
 
 export function getStaticPaths() {
   return [{ params: { theme: 'light' } }, { params: { theme: 'dark' } }];
@@ -8,9 +9,10 @@ export function getStaticPaths() {
 
 export const GET: APIRoute = ({ params, site, url }) => {
   const dark = params.theme === 'dark';
-  const colors = dark
-    ? { bg:'#181818', surface:'#202020', editor:'#1b1c1b', fg:'#ededed', muted:'#aeaeae', line:'#343434', focus:'#a2cfb0', accent:'#a2cfb0', soft:'#24312a', accentLine:'#3b5344', hover:'#272727', buttonFg:'#d7ecde', buttonBg:'#2b4636', buttonHover:'#35553f', buttonLine:'#466952' }
-    : { bg:'#ffffff', surface:'#ffffff', editor:'#ffffff', fg:'#252525', muted:'#6b6b6b', line:'#e8e8e8', focus:'#929292', accent:'#267052', soft:'#f1f8f3', accentLine:'#d6e8db', hover:'#f6f6f6', buttonFg:'#ffffff', buttonBg:'#267052', buttonHover:'#267052', buttonLine:'#267052' };
+  const palette = palettes[dark ? 'dark' : 'light'];
+  const colors = { ...palette, editor: palette.surface, fg: palette.text, focus: palette.accent,
+    soft: palette['accent-soft'], accentLine: palette['accent-line'], buttonFg: palette.bg,
+    buttonBg: palette.accent, buttonHover: palette.accent, buttonLine: palette.accent };
   // The stylesheet runs inside a giscus.app iframe, so font URLs must be absolute.
   const origin = site || url;
   // Vite's development font paths are not available to the remote iframe.

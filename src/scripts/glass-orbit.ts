@@ -75,7 +75,7 @@ function cardEtching() {
   return texture;
 }
 
-export async function createGlassOrbit(host: HTMLElement) {
+export async function createGlassOrbit(host: HTMLElement, signal?: AbortSignal) {
   const canvas = host.querySelector<HTMLCanvasElement>('canvas');
   const hero = host.closest<HTMLElement>('.study-hero');
   const portrait = hero?.querySelector<HTMLElement>('.portrait-link');
@@ -179,6 +179,7 @@ export async function createGlassOrbit(host: HTMLElement) {
   let lost = false;
   let backdropWidth = 0;
   let backdropHeight = 0;
+  let backdropTheme = '';
   const pointer = new THREE.Vector2();
   const smoothedPointer = new THREE.Vector2();
   let pointerActivity = 0;
@@ -227,7 +228,9 @@ export async function createGlassOrbit(host: HTMLElement) {
   function drawBackdrop() {
     const nextWidth = Math.min(1920, Math.round(width * 1.25));
     const nextHeight = Math.round(nextWidth * height / width);
-    if (nextWidth === backdropWidth && nextHeight === backdropHeight) return;
+    const theme = document.documentElement.dataset.theme || 'light';
+    if (nextWidth === backdropWidth && nextHeight === backdropHeight && theme === backdropTheme) return;
+    backdropTheme = theme;
     backdropWidth = nextWidth;
     backdropHeight = nextHeight;
     backdropCanvas.width = nextWidth;
@@ -240,12 +243,13 @@ export async function createGlassOrbit(host: HTMLElement) {
     backdropContext.filter = 'saturate(65%)';
     backdropContext.drawImage(photo, (w - imageWidth) / 2, (h - imageHeight) * .64, imageWidth, imageHeight);
     backdropContext.filter = 'none';
-    backdropContext.fillStyle = '#12251c7d';
+    const style = getComputedStyle(hero!);
+    backdropContext.fillStyle = style.getPropertyValue('--hero-tint').trim();
     backdropContext.fillRect(0, 0, w, h);
     const shade = backdropContext.createLinearGradient(0, 0, 0, h);
-    shade.addColorStop(0, '#14201b12');
-    shade.addColorStop(.45, '#14201b08');
-    shade.addColorStop(1, '#14201bb0');
+    shade.addColorStop(0, style.getPropertyValue('--hero-top').trim());
+    shade.addColorStop(.45, style.getPropertyValue('--hero-middle').trim());
+    shade.addColorStop(1, style.getPropertyValue('--hero-bottom').trim());
     backdropContext.fillStyle = shade;
     backdropContext.fillRect(0, 0, w, h);
     // GPU texture storage cannot change dimensions via needsUpdate alone.
@@ -352,6 +356,8 @@ export async function createGlassOrbit(host: HTMLElement) {
   resizeObserver.observe(hero.querySelector('.hero-person')!);
   const motionObserver = new MutationObserver(syncMotion);
   motionObserver.observe(document.body, { attributes: true, attributeFilter: ['data-motion'] });
+  const themeObserver = new MutationObserver(resize);
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
   const intersection = new IntersectionObserver(entries => { visible = entries[0].isIntersecting; syncMotion(); });
   intersection.observe(hero);
   const move = (event: PointerEvent) => {
@@ -380,6 +386,7 @@ export async function createGlassOrbit(host: HTMLElement) {
     cancelAnimationFrame(frame);
     resizeObserver.disconnect();
     motionObserver.disconnect();
+    themeObserver.disconnect();
     intersection.disconnect();
     hero!.removeEventListener('pointermove', move);
     hero!.removeEventListener('pointerleave', leave);
@@ -404,12 +411,14 @@ export async function createGlassOrbit(host: HTMLElement) {
     markTexture.dispose();
     environment.dispose();
     renderer.dispose();
+    renderer.forceContextLoss();
   }
   function pageHide(event: PageTransitionEvent) {
     if (event.persisted) cancelAnimationFrame(frame); else dispose();
   }
   window.addEventListener('pagehide', pageHide);
   window.addEventListener('pageshow', syncMotion);
+  signal?.addEventListener('abort', dispose, { once: true });
   if (import.meta.hot) import.meta.hot.dispose(dispose);
 
   try {

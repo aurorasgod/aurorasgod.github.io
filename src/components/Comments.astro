@@ -5,9 +5,10 @@ import { url } from '../site';
 import { createHash } from 'node:crypto';
 import frameStyles from '../styles/comments-frame.css?raw';
 import themeSource from '../pages/comments/[theme].css.ts?raw';
+import paletteSource from '../data/palette.ts?raw';
 interface Props { slug: string; }
 const { slug } = Astro.props;
-const themeVersion = createHash('sha256').update(frameStyles).update(themeSource).digest('hex').slice(0, 12);
+const themeVersion = createHash('sha256').update(frameStyles).update(themeSource).update(paletteSource).digest('hex').slice(0, 12);
 ---
 <section id="comments" class="article-comments" aria-labelledby="comments-heading"
   data-comments data-term={commentTerm(slug)} data-theme-base={url('comments/')} data-theme-version={themeVersion} data-state="idle">

@@ -1,0 +1,17 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import { palettes } from '../data/palette';
+import '../styles/theme.css';
+const rules = Object.entries(palettes).map(([mode, colors]) => `${mode === 'light' ? ':root' : ':root[data-theme=dark]'}{${Object.entries(colors).map(([key, value]) => `--${key}:${value}`).join(';')};color-scheme:${mode}}`).join('\n');
+---
+<style is:inline set:html={rules} />
+<meta name="theme-color" content={palettes.light.bg} />
+<script is:inline>
+  (() => {
+    let theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    try { const saved = localStorage.getItem('field-notes-theme'); if (saved === 'light' || saved === 'dark') theme = saved; } catch {}
+    document.documentElement.dataset.theme = document.documentElement.dataset.pageTheme || theme;
+  })();
+</script>
+<ClientRouter />
+<script>import '../scripts/theme';</script>

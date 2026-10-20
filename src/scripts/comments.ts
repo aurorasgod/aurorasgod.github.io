@@ -1,5 +1,7 @@
 import { comments, discussionMetadata } from '../lib/comments';
+import { onPageLoad } from './page-lifecycle';
 
+onPageLoad(({ signal, cleanup }) => {
 const section = document.querySelector<HTMLElement>('[data-comments]');
 if (section) {
   const mount = section.querySelector<HTMLElement>('[data-comments-mount]')!;
@@ -9,6 +11,7 @@ if (section) {
   const count = section.querySelector<HTMLElement>('[data-comments-count]')!;
   const link = section.querySelector<HTMLAnchorElement>('[data-discussion-link]')!;
   let timer: ReturnType<typeof setTimeout> | undefined;
+  cleanup(() => clearTimeout(timer));
   let started = false;
   let lastTheme = '';
   let serviceFailed = false;
@@ -122,10 +125,12 @@ if (section) {
       count.hidden = false;
       link.href = metadata.url;
     }
-  });
-  new MutationObserver(syncTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  }, { signal });
+  const themeObserver = new MutationObserver(syncTheme);
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  cleanup(() => themeObserver.disconnect());
   // Observe the newly mounted frame as well: the site theme may have changed while it loaded.
-  new MutationObserver(() => {
+  const frameObserver = new MutationObserver(() => {
     const frame = mount.querySelector<HTMLIFrameElement>('iframe.giscus-frame');
     if (frame && !frame.dataset.themeBound) {
       frame.dataset.themeBound = 'true';
@@ -137,11 +142,15 @@ if (section) {
       frame.title = '文章评论';
     }
     if (frame && !serviceFailed && !frame.classList.contains('giscus-frame--loading') && parseFloat(frame.style.height) > 0) ready();
-  }).observe(mount, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style'] });
+  });
+  frameObserver.observe(mount, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style'] });
+  cleanup(() => frameObserver.disconnect());
   if ('IntersectionObserver' in window) {
     const observer = new IntersectionObserver(entries => {
       if (entries.some(entry => entry.isIntersecting) && !started) { observer.disconnect(); load(); }
     }, { rootMargin: '300px' });
     observer.observe(section);
+    cleanup(() => observer.disconnect());
   } else load();
 }
+});

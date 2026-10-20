@@ -8,6 +8,7 @@ export default defineConfig({
   site: process.env.SITE_URL || 'https://aurorasgod.github.io',
   base: process.env.BASE_PATH || '/',
   output: 'static',
+  prefetch: { prefetchAll: true, defaultStrategy: 'hover' },
   devToolbar: { enabled: false },
   redirects: { '/designs/nocturne/': '/', '/design-lab/': '/', '/design-lab/compare/': '/' },
   integrations: [sitemap({ filter: page => !/\/design(?:s|-lab)(?:\/|$)|\/library\//.test(new URL(page).pathname) })],

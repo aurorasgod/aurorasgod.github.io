@@ -1,19 +1,16 @@
 import { matchesSearch, tagKey, tagLabel } from '../lib/tags';
+import { onPageLoad } from './page-lifecycle';
+onPageLoad(({ signal, cleanup }) => {
+if (document.body.classList.contains('study')) return;
 const base = document.body.dataset.base || '/';
-const root = document.documentElement;
-const themeButton = document.querySelector<HTMLButtonElement>('[data-theme-toggle]');
-function themeLabel() {const dark=root.dataset.theme==='dark';if(themeButton){themeButton.setAttribute('aria-label',dark?'切换到浅色主题':'切换到深色主题');themeButton.title=dark?'切换到浅色主题':'切换到深色主题';}}
-themeLabel();
-themeButton?.addEventListener('click',()=>{const theme=root.dataset.theme==='dark'?'light':'dark';root.dataset.theme=theme;try{localStorage.setItem('field-notes-theme',theme);}catch{}themeLabel();});
-matchMedia('(prefers-color-scheme: dark)').addEventListener('change',event=>{try{if(!localStorage.getItem('field-notes-theme')){root.dataset.theme=event.matches?'dark':'light';themeLabel();}}catch{}});
 
 const menuButton=document.querySelector<HTMLButtonElement>('[data-menu-toggle]');
 const navigation=document.querySelector<HTMLElement>('#main-navigation');
 function closeMenu(){navigation?.classList.remove('open');menuButton?.setAttribute('aria-expanded','false');menuButton?.setAttribute('aria-label','展开导航');}
 menuButton?.addEventListener('click',()=>{const open=navigation?.classList.toggle('open');menuButton.setAttribute('aria-expanded',String(!!open));menuButton.setAttribute('aria-label',open?'收起导航':'展开导航');});
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenu();});
-document.addEventListener('click',event=>{if(!(event.target instanceof Node))return;if(!navigation?.contains(event.target)&&!menuButton?.contains(event.target))closeMenu();});
-matchMedia('(min-width:701px)').addEventListener('change',closeMenu);
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenu();}, { signal });
+document.addEventListener('click',event=>{if(!(event.target instanceof Node))return;if(!navigation?.contains(event.target)&&!menuButton?.contains(event.target))closeMenu();}, { signal });
+matchMedia('(min-width:701px)').addEventListener('change',closeMenu, { signal });
 
 type SearchEntry={title:string;description:string;category:string;tags?:string[];url:string;text:string};
 let searchIndex:SearchEntry[]|null=null;
@@ -29,9 +26,9 @@ document.querySelectorAll('[data-open-search]').forEach(trigger=>trigger.addEven
 document.querySelector('[data-close-search]')?.addEventListener('click',()=>dialog?.close());
 dialog?.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close();}});
 searchInput?.addEventListener('input',showSearchResults);
-searchInput?.addEventListener('keydown',e=>{if(e.key==='ArrowDown'){e.preventDefault();searchResults?.querySelector<HTMLAnchorElement>('a')?.focus();}if(e.key==='Enter'){const first=searchResults?.querySelector<HTMLAnchorElement>('a');if(first){e.preventDefault();location.href=first.href;}}});
+searchInput?.addEventListener('keydown',e=>{if(e.key==='ArrowDown'){e.preventDefault();searchResults?.querySelector<HTMLAnchorElement>('a')?.focus();}if(e.key==='Enter'){const first=searchResults?.querySelector<HTMLAnchorElement>('a');if(first){e.preventDefault();first.click();}}});
 searchResults?.addEventListener('keydown',event=>{const links=Array.from(searchResults.querySelectorAll<HTMLAnchorElement>('a'));const i=links.indexOf(document.activeElement as HTMLAnchorElement);if(event.key==='ArrowDown'){event.preventDefault();links[Math.min(i+1,links.length-1)]?.focus();}if(event.key==='ArrowUp'){event.preventDefault();if(i<=0)searchInput?.focus();else links[i-1]?.focus();}});
-document.addEventListener('keydown',event=>{if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k'){event.preventDefault();if(dialog?.open)dialog.close();else void openSearch();}});
+document.addEventListener('keydown',event=>{if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k'){event.preventDefault();if(dialog?.open)dialog.close();else void openSearch();}}, { signal });
 
 const archive=document.querySelector<HTMLElement>('[data-archive]');
 if (archive) {
@@ -39,7 +36,7 @@ if (archive) {
   const sort = archive.querySelector<HTMLSelectElement>('[data-sort]')!;
   const tagSelect = archive.querySelector<HTMLSelectElement>('[data-tag-filter]')!;
   const activeTag = archive.querySelector<HTMLElement>('[data-active-tag]')!;
-  const buttons = Array.from(archive.querySelectorAll<HTMLButtonElement>('[data-category]'));
+  const buttons = Array.from(archive.querySelectorAll<HTMLButtonElement>('button[data-category]'));
   const rows = Array.from(archive.querySelectorAll<HTMLElement>('[data-post]'));
   const rowTags = new Map(rows.map(row => [row, JSON.parse(row.dataset.tags || '[]') as string[]]));
   const list = archive.querySelector<HTMLElement>('[data-post-list]')!;
@@ -91,7 +88,7 @@ if (archive) {
       if (tag) address.searchParams.set('tag', tagSelect.selectedOptions[0]?.dataset.label || tag);
       if (query) address.searchParams.set('q', query);
       if (sort.value === 'oldest') address.searchParams.set('sort', 'oldest');
-      history.replaceState(null, '', address);
+      history.replaceState(history.state, '', address);
     }
   }
   for (const button of buttons) button.addEventListener('click', () => { category = button.dataset.category || 'all'; filter(); });
@@ -99,7 +96,7 @@ if (archive) {
   sort.addEventListener('change', () => filter());
   tagSelect.addEventListener('change', () => { tag = tagSelect.value; filter(); });
   clear.addEventListener('click', () => { category = 'all'; tag = ''; tagSelect.value = ''; search.value = ''; sort.value = 'newest'; filter(); search.focus(); });
-  window.addEventListener('popstate', () => { readParams(); filter(false); });
+  window.addEventListener('popstate', () => { readParams(); filter(false); }, { signal });
   readParams();
   filter(false);
 }
@@ -107,7 +104,10 @@ if (archive) {
 for(const pre of document.querySelectorAll<HTMLPreElement>('.prose pre')){const code=pre.querySelector('code');if(!code)continue;const button=document.createElement('button');button.className='copy-code';button.type='button';button.textContent='复制代码';button.setAttribute('aria-label','复制代码');button.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(code.textContent||'');button.textContent='已复制';}catch{button.textContent='请手动复制';}setTimeout(()=>button.textContent='复制代码',2000);});pre.append(button);}
 document.querySelector<HTMLButtonElement>('[data-copy-link]')?.addEventListener('click',async event=>{const button=event.currentTarget as HTMLButtonElement;const span=button.querySelector('span');try{await navigator.clipboard.writeText(location.href);if(span)span.textContent='链接已复制';}catch{if(span)span.textContent='请复制地址栏链接';}setTimeout(()=>{if(span)span.textContent='复制文章链接';},2300);});
 const tocLinks=Array.from(document.querySelectorAll<HTMLAnchorElement>('[data-toc-link]'));
-if(tocLinks.length&&'IntersectionObserver' in window){const observer=new IntersectionObserver(entries=>{for(const entry of entries){if(!entry.isIntersecting)continue;for(const link of tocLinks){const active=decodeURIComponent(link.hash.slice(1))===entry.target.id;link.classList.toggle('active',active);if(active)link.setAttribute('aria-current','location');else link.removeAttribute('aria-current');}}},{rootMargin:'-10% 0px -70% 0px',threshold:0});for(const link of tocLinks){const heading=document.getElementById(decodeURIComponent(link.hash.slice(1)));if(heading)observer.observe(heading);}}
+if(tocLinks.length&&'IntersectionObserver' in window){const observer=new IntersectionObserver(entries=>{for(const entry of entries){if(!entry.isIntersecting)continue;for(const link of tocLinks){const active=decodeURIComponent(link.hash.slice(1))===entry.target.id;link.classList.toggle('active',active);if(active)link.setAttribute('aria-current','location');else link.removeAttribute('aria-current');}}},{rootMargin:'-10% 0px -70% 0px',threshold:0});for(const link of tocLinks){const heading=document.getElementById(decodeURIComponent(link.hash.slice(1)));if(heading)observer.observe(heading);}cleanup(()=>observer.disconnect());}
 const topButton=document.querySelector<HTMLButtonElement>('[data-back-top]');
 topButton?.addEventListener('click',()=>window.scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'instant':'smooth'}));
-window.addEventListener('scroll',()=>{if(topButton)topButton.hidden=window.scrollY<650;},{passive:true});
+const updateTopButton = () => { if(topButton) topButton.hidden=window.scrollY<650; };
+window.addEventListener('scroll',updateTopButton,{passive:true,signal});
+updateTopButton();
+});
