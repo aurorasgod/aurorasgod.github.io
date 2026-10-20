@@ -27,12 +27,12 @@ systemTheme.addEventListener('change', event => {
   document.documentElement.dataset.theme = event.matches ? 'dark' : 'light';
   refreshTheme();
 });
-onPageLoad(() => {
+onPageLoad(({ signal }) => {
   refreshTheme();
   document.querySelector('[data-theme-toggle]')?.addEventListener('click', () => {
     const next = currentTheme() === 'dark' ? 'light' : 'dark';
     document.documentElement.dataset.theme = next;
     try { localStorage.setItem('field-notes-theme', next); } catch {}
     refreshTheme();
-  });
+  }, { signal });
 });

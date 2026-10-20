@@ -6,7 +6,7 @@ import '../styles/music.css';
 const tracks = soundtracks.map(track => ({ ...track, src: url(track.src) }));
 const first = tracks[0];
 ---
-<div class="music-widget" data-music-player data-playlist={JSON.stringify(tracks)} transition:persist="music-station">
+<div class="music-widget" data-music-player data-playlist={JSON.stringify(tracks)}>
   <button class="music-trigger" type="button" popovertarget="music-popover" aria-label="音乐台" aria-controls="music-popover" aria-expanded="false" title="音乐台" data-music-trigger><EighthNotes size={18} /><span class="music-indicator" aria-hidden="true"></span></button>
   <div id="music-popover" class="music-popover" popover="auto" role="dialog" aria-labelledby="music-heading">
     <div class="music-heading"><h2 id="music-heading">音乐台</h2><span class="music-status" role="status" data-music-status>{first ? '已暂停' : '暂无曲目'}</span><button class="music-icon" type="button" popovertarget="music-popover" popovertargetaction="hide" aria-label="关闭音乐台" title="关闭音乐台" data-music-close><X size={16} /></button></div>

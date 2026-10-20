@@ -25,7 +25,7 @@ assert.ok(home.includes('Personal Blog')&&home.includes('浙大本硕，电力�
 assert.ok(!home.includes('首页提案')&&!home.includes('noindex,nofollow'),'homepage is still a design proposal');
 assert.ok(home.includes('data-glass-orbit')&&home.includes('data-music-player'),'missing homepage experiences');
 assert.ok(home.includes('data-activity-map')&&!home.includes('now-topics'),'homepage activity calendar missing or duplicate topics remain');
-for(const file of htmlFiles){const html=await readFile(file,'utf8');if(/http-equiv="refresh"/i.test(html))continue;assert.equal((html.match(/data-music-player/g)||[]).length,1,`missing or duplicated music player: ${file}`);assert.ok(html.includes('popover="auto"'),'music player is not a popover');}
+for(const file of htmlFiles){const html=await readFile(file,'utf8');if(/http-equiv="refresh"/i.test(html))continue;assert.equal((html.match(/data-music-player/g)||[]).length,1,`missing or duplicated music player: ${file}`);assert.ok(html.includes('popover="auto"'),'music player is not a popover');assert.equal((html.match(/data-site-header/g)||[]).length,1,`missing or duplicated shared header: ${file}`);assert.ok(html.includes('data-astro-transition-persist="site-header"'),`header is not persistent: ${file}`);}
 for(const category of ['具身智能','电力电子','个人经历'])assert.ok(home.includes(category),'missing category '+category);
 assert.ok(!home.includes('学习工具')&&!home.includes('world-model')&&!home.includes('个人笔记'),'outdated home labels');
 for(const entry of search){

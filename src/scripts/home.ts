@@ -16,7 +16,7 @@ if (motion) {
   motion.addEventListener('change', () => {
     try { localStorage.setItem('home-study-motion', motion.checked ? 'on' : 'off'); } catch { /* Storage is optional. */ }
     applyMotion();
-  });
+  }, { signal });
 }
 reducedMotion.addEventListener('change', () => {
   if (motion && reducedMotion.matches) motion.checked = false;
@@ -48,9 +48,6 @@ document.querySelector('[data-replay-intro]')?.addEventListener('click', () => {
 });
 if (reducedMotion.matches || body.dataset.motion !== 'on') finishOpening();
 reducedMotion.addEventListener('change', () => { if (reducedMotion.matches) finishOpening(); }, { signal });
-const updateHeader = () => document.querySelector('.study-header')?.classList.toggle('is-scrolled', scrollY > 30);
-updateHeader();
-window.addEventListener('scroll', updateHeader, { passive: true, signal });
 
 const revealElements = document.querySelectorAll<HTMLElement>('.reveal');
 if ('IntersectionObserver' in window) {
@@ -108,30 +105,12 @@ updateClock();
 const clockInterval = setInterval(updateClock, 60_000);
 cleanup(() => { clearInterval(clockInterval); clearTimeout(openingTimeout); });
 
-const menu = document.querySelector<HTMLButtonElement>('[data-study-menu]');
-const nav = document.querySelector<HTMLElement>('#study-nav');
-function closeMenu() {
-  menu?.setAttribute('aria-expanded', 'false');
-  menu?.setAttribute('aria-label', '展开导航');
-  nav?.classList.remove('is-open');
-}
-menu?.addEventListener('click', () => {
-  const open = menu.getAttribute('aria-expanded') !== 'true';
-  menu.setAttribute('aria-expanded', String(open));
-  menu.setAttribute('aria-label', open ? '收起导航' : '展开导航');
-  nav?.classList.toggle('is-open', open);
-});
-document.addEventListener('click', event => {
-  if (event.target instanceof Node && !menu?.contains(event.target) && !nav?.contains(event.target)) closeMenu();
-}, { signal });
-window.matchMedia('(min-width: 701px)').addEventListener('change', closeMenu, { signal });
-
 const dialog = document.querySelector<HTMLDialogElement>('.study-search');
 const input = document.querySelector<HTMLInputElement>('[data-study-query]');
 const results = [...document.querySelectorAll<HTMLElement>('[data-study-result]')];
 const searchStatus = document.querySelector<HTMLElement>('.study-search-status');
-const openSearch = () => { closeMenu(); dialog?.showModal(); input?.focus(); };
-document.querySelector('[data-study-search]')?.addEventListener('click', openSearch);
+const openSearch = () => { document.dispatchEvent(new Event('site:close-menu')); dialog?.showModal(); input?.focus(); };
+document.addEventListener('site:search', openSearch, { signal });
 document.querySelector('[data-study-close]')?.addEventListener('click', () => dialog?.close());
 dialog?.addEventListener('click', event => {
   if (event.target !== dialog) return;
@@ -142,7 +121,6 @@ document.addEventListener('keydown', event => {
   if (event.key === 'Escape') finishOpening();
   if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); openSearch(); }
   if (event.key === 'Escape' && dialog?.open) { event.preventDefault(); dialog.close(); }
-  if (event.key === 'Escape' && menu?.getAttribute('aria-expanded') === 'true') { closeMenu(); menu.focus(); }
 }, { signal });
 input?.addEventListener('input', () => {
   const terms = input.value.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);

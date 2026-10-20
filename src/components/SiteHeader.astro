@@ -1,0 +1,26 @@
+---
+import { Sparkles } from '@lucide/astro';
+import Icon from './Icon.astro';
+import MusicStation from './MusicStation.astro';
+import { url } from '../site';
+import '../styles/header.css';
+const { active = 'home' } = Astro.props;
+const nav = [{ id: 'home', title: '首页', path: '' }, { id: 'articles', title: '文章', path: 'articles/' }, { id: 'projects', title: '项目', path: 'projects/' }, { id: 'research', title: '成果', path: 'research/' }, { id: 'about', title: '关于', path: 'about/' }];
+---
+<header class="site-chrome" data-site-header data-section={active} transition:persist="site-header" transition:name="site-header" transition:animate="none">
+  <a class="chrome-brand" href={url()} aria-label="Laplace 首页">laplace<span>.</span></a>
+  <nav class="chrome-nav" id="site-navigation" aria-label="主导航">
+    {nav.map(item => <a href={url(item.path)} data-nav-id={item.id} data-astro-prefetch="false" aria-current={active === item.id ? 'page' : undefined}>{item.title}</a>)}
+    <span class="chrome-indicator" aria-hidden="true"></span>
+  </nav>
+  <div class="chrome-tools">
+    <MusicStation />
+    <div class="chrome-appearance">
+      <label class="chrome-icon chrome-motion" title="动态效果"><input type="checkbox" data-study-motion aria-label="动态效果" checked /><Sparkles size={18}/></label>
+      <button class="chrome-icon chrome-theme" data-theme-toggle aria-label="切换主题" title="切换主题"><span class="theme-moon"><Icon name="moon" size={18}/></span><span class="theme-sun"><Icon name="sun" size={18}/></span></button>
+    </div>
+    <button class="chrome-icon" data-header-search aria-label="搜索文章" title="搜索文章"><Icon name="search" size={19}/></button>
+    <button class="chrome-icon chrome-menu" data-header-menu aria-controls="site-navigation" aria-expanded="false" aria-label="展开导航" title="展开导航"><Icon name="menu"/></button>
+  </div>
+</header>
+<script>import '../scripts/header'; import '../scripts/navigation';</script>

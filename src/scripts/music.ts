@@ -198,7 +198,7 @@ if (player) {
   window.addEventListener('scroll', () => { if (isPopupOpen()) positionPopup(); }, { passive: true });
   document.addEventListener('click', event => {
     if (!(event.target instanceof Element)) return;
-    if (event.target.closest('[data-open-search],[data-study-search],[data-menu-toggle],[data-study-menu]')
+    if (event.target.closest('[data-header-search],[data-header-menu]')
       || (!nativePopover && !popup.contains(event.target) && !trigger.contains(event.target))) closePopup();
   });
   const followMusicLink = () => {

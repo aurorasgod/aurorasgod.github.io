@@ -4,13 +4,7 @@ onPageLoad(({ signal, cleanup }) => {
 if (document.body.classList.contains('study')) return;
 const base = document.body.dataset.base || '/';
 
-const menuButton=document.querySelector<HTMLButtonElement>('[data-menu-toggle]');
-const navigation=document.querySelector<HTMLElement>('#main-navigation');
-function closeMenu(){navigation?.classList.remove('open');menuButton?.setAttribute('aria-expanded','false');menuButton?.setAttribute('aria-label','展开导航');}
-menuButton?.addEventListener('click',()=>{const open=navigation?.classList.toggle('open');menuButton.setAttribute('aria-expanded',String(!!open));menuButton.setAttribute('aria-label',open?'收起导航':'展开导航');});
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenu();}, { signal });
-document.addEventListener('click',event=>{if(!(event.target instanceof Node))return;if(!navigation?.contains(event.target)&&!menuButton?.contains(event.target))closeMenu();}, { signal });
-matchMedia('(min-width:701px)').addEventListener('change',closeMenu, { signal });
+function closeMenu(){document.dispatchEvent(new Event('site:close-menu'));}
 
 type SearchEntry={title:string;description:string;category:string;tags?:string[];url:string;text:string};
 let searchIndex:SearchEntry[]|null=null;
@@ -22,7 +16,7 @@ const searchStatus=document.querySelector<HTMLElement>('.search-status');
 function showSearchResults(){if(!searchIndex||!searchResults||!searchInput)return;const query=searchInput.value.trim();const found=searchIndex.filter(entry=>matchesSearch(entry.text,entry.tags||[],query)).slice(0,8);searchResults.replaceChildren();for(const entry of found){const li=document.createElement('li');const a=document.createElement('a');a.href=entry.url;const category=document.createElement('span');category.className='search-category';category.textContent=entry.category;const title=document.createElement('strong');title.textContent=entry.title;const summary=document.createElement('p');summary.textContent=entry.description;a.append(category,title,summary);li.append(a);searchResults.append(li);}if(searchStatus)searchStatus.textContent=searchIndex.length===0?'暂无公开文章':query?(found.length?`找到 ${found.length} 篇相关笔记`:'没有找到相关笔记，试试其他关键词。'):'最近的笔记';}
 async function loadSearch(){if(searchIndex)return;if(searchLoading)return searchLoading;searchLoading=(async()=>{if(searchStatus)searchStatus.textContent='正在载入笔记…';try{const response=await fetch(`${base}search-index.json`,{cache:'no-cache'});if(!response.ok)throw new Error('Search index unavailable');searchIndex=await response.json();}catch{if(searchStatus)searchStatus.textContent='搜索暂时不可用，可以从文章页浏览。';}finally{searchLoading=null;}})();return searchLoading;}
 async function openSearch(event?:Event){if(!dialog||typeof dialog.showModal!=='function')return;event?.preventDefault();closeMenu();if(!dialog.open)dialog.showModal();searchInput?.focus();await loadSearch();showSearchResults();}
-document.querySelectorAll('[data-open-search]').forEach(trigger=>trigger.addEventListener('click',openSearch));
+document.addEventListener('site:search', openSearch, { signal });
 document.querySelector('[data-close-search]')?.addEventListener('click',()=>dialog?.close());
 dialog?.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close();}});
 searchInput?.addEventListener('input',showSearchResults);
