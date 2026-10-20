@@ -411,11 +411,13 @@ export async function createGlassOrbit(host: HTMLElement) {
   if (import.meta.hot) import.meta.hot.dispose(dispose);
 
   try {
-    await Promise.all([photo.decode(), avatar.decode(), document.fonts.ready]);
+    await Promise.all([photo.decode(), avatar.decode()]);
     if (disposed) return;
     ready = true;
     resize();
     syncMotion();
+    // Late web fonts can refresh the badge without delaying the entire 3D scene.
+    void document.fonts.ready.then(() => { if (!disposed) resize(); });
   } catch {
     host.dataset.glassState = 'fallback';
     dispose();
