@@ -1,0 +1,168 @@
+{
+  "provider": "OneDrive",
+  "access": "existing-permissions",
+  "papers": [
+    {
+      "id": "E86C368D8889243C!sc603be28c1f24ca3b2f8b6ae10a40995",
+      "title": "Apple-pi 中英对照",
+      "fileName": "Apple-pi_中英对照.pdf",
+      "folder": "双语",
+      "vault": "Robotics",
+      "url": "https://onedrive.live.com/?cid=E86C368D8889243C&id=E86C368D8889243C!sc603be28c1f24ca3b2f8b6ae10a40995",
+      "bytes": 10954096
+    },
+    {
+      "id": "E86C368D8889243C!s1ed1f2eb39d749808f702b889f3a0239",
+      "title": "Barlow Twins 中英对照",
+      "fileName": "Barlow_Twins_中英对照.pdf",
+      "folder": "双语",
+      "vault": "Robotics",
+      "url": "https://onedrive.live.com/?cid=E86C368D8889243C&id=E86C368D8889243C!s1ed1f2eb39d749808f702b889f3a0239",
+      "bytes": 1746330
+    },
+    {
+      "id": "E86C368D8889243C!s3a978ea5f0f449e99ce59ed87fcf067c",
+      "title": "BYOL 中英对照",
+      "fileName": "BYOL_中英对照.pdf",
+      "folder": "双语",
+      "vault": "Robotics",
+      "url": "https://onedrive.live.com/?cid=E86C368D8889243C&id=E86C368D8889243C!s3a978ea5f0f449e99ce59ed87fcf067c",
+      "bytes": 5610668
+    },
+    {
+      "id": "E86C368D8889243C!s9d49709ed51c42a2a3aaf7be31e787f9",
+      "title": "I-JEPA 中英对照",
+      "fileName": "I-JEPA_中英对照.pdf",
+      "folder": "双语",
+      "vault": "Robotics",
+      "url": "https://onedrive.live.com/?cid=E86C368D8889243C&id=E86C368D8889243C!s9d49709ed51c42a2a3aaf7be31e787f9",
+      "bytes": 4077998
+    },
+    {
+      "id": "E86C368D8889243C!s5944fa2a869f465396a857fc14156d99",
+      "title": "INTACT 中英对照",
+      "fileName": "INTACT_中英对照.pdf",
+      "folder": "双语",
+      "vault": "Robotics",
+      "url": "https://onedrive.live.com/?cid=E86C368D8889243C&id=E86C368D8889243C!s5944fa2a869f465396a857fc14156d99",
+      "bytes": 3618177
+    },
+    {
+      "id": "E86C368D8889243C!s4b4a2c0d22954338a67aea835501bbe8",
+      "title": "LeJEPA 中英对照",
+      "fileName": "LeJEPA_中英对照.pdf",
+      "folder": "双语",
+      "vault": "Robotics",
+      "url": "https://onedrive.live.com/?cid=E86C368D8889243C&id=E86C368D8889243C!s4b4a2c0d22954338a67aea835501bbe8",
+      "bytes": 14271144
+    },
+    {
+      "id": "E86C368D8889243C!s02d0c6205e2148be983ef6c969ed45d2",
+      "title": "MAE 中英对照",
+      "fileName": "MAE_中英对照.pdf",
+      "folder": "双语",
+      "vault": "Robotics",
+      "url": "https://onedrive.live.com/?cid=E86C368D8889243C&id=E86C368D8889243C!s02d0c6205e2148be983ef6c969ed45d2",
+      "bytes": 8031820
+    },
+    {
+      "id": "E86C368D8889243C!sbcd4042d3a2b4500a6f13e37429a9324",
+      "title": "MoCo 中英对照",
+      "fileName": "MoCo_中英对照.pdf",
+      "folder": "双语",
+      "vault": "Robotics",
+      "url": "https://onedrive.live.com/?cid=E86C368D8889243C&id=E86C368D8889243C!sbcd4042d3a2b4500a6f13e37429a9324",
+      "bytes": 1167297
+    },
+    {
+      "id": "E86C368D8889243C!sef1d5bb668b048cc93bc00815da771ab",
+      "title": "ODEWorld 中英对照",
+      "fileName": "ODEWorld_中英对照.pdf",
+      "folder": "双语",
+      "vault": "Robotics",
+      "url": "https://onedrive.live.com/?cid=E86C368D8889243C&id=E86C368D8889243C!sef1d5bb668b048cc93bc00815da771ab",
+      "bytes": 7163882
+    },
+    {
+      "id": "E86C368D8889243C!s93107045a00141d4a24955030ee52fa3",
+      "title": "OpenVLA",
+      "fileName": "OpenVLA.pdf",
+      "folder": "",
+      "vault": "Robotics",
+      "url": "https://onedrive.live.com/?cid=E86C368D8889243C&id=E86C368D8889243C!s93107045a00141d4a24955030ee52fa3",
+      "bytes": 13240309
+    },
+    {
+      "id": "E86C368D8889243C!sa050779da62d4607a7784f6473b3ce57",
+      "title": "PhysEditWorld 中英对照",
+      "fileName": "PhysEditWorld_中英对照.pdf",
+      "folder": "双语",
+      "vault": "Robotics",
+      "url": "https://onedrive.live.com/?cid=E86C368D8889243C&id=E86C368D8889243C!sa050779da62d4607a7784f6473b3ce57",
+      "bytes": 53351544
+    },
+    {
+      "id": "E86C368D8889243C!sec1acb1d772a4ca1be00d6fdc1eb0ba3",
+      "title": "SADL 中英对照",
+      "fileName": "SADL_中英对照.pdf",
+      "folder": "双语",
+      "vault": "Robotics",
+      "url": "https://onedrive.live.com/?cid=E86C368D8889243C&id=E86C368D8889243C!sec1acb1d772a4ca1be00d6fdc1eb0ba3",
+      "bytes": 7333519
+    },
+    {
+      "id": "E86C368D8889243C!se69f41511421408f8f13eabb4275fcec",
+      "title": "SimCLR 中英对照",
+      "fileName": "SimCLR_中英对照.pdf",
+      "folder": "双语",
+      "vault": "Robotics",
+      "url": "https://onedrive.live.com/?cid=E86C368D8889243C&id=E86C368D8889243C!se69f41511421408f8f13eabb4275fcec",
+      "bytes": 3169580
+    },
+    {
+      "id": "E86C368D8889243C!s25dd0d7833744fa7b55a2ca426af3963",
+      "title": "SimSiam 中英对照",
+      "fileName": "SimSiam_中英对照.pdf",
+      "folder": "双语",
+      "vault": "Robotics",
+      "url": "https://onedrive.live.com/?cid=E86C368D8889243C&id=E86C368D8889243C!s25dd0d7833744fa7b55a2ca426af3963",
+      "bytes": 1045023
+    },
+    {
+      "id": "E86C368D8889243C!s027da1db36c147c98f87cdaa1fb78447",
+      "title": "V-JEPA 2 中英对照",
+      "fileName": "V-JEPA_2_中英对照.pdf",
+      "folder": "双语",
+      "vault": "Robotics",
+      "url": "https://onedrive.live.com/?cid=E86C368D8889243C&id=E86C368D8889243C!s027da1db36c147c98f87cdaa1fb78447",
+      "bytes": 19232610
+    },
+    {
+      "id": "E86C368D8889243C!s4f49c6ae3a944a0d8d7df33367e49b22",
+      "title": "V-JEPA 中英对照",
+      "fileName": "V-JEPA_中英对照.pdf",
+      "folder": "双语",
+      "vault": "Robotics",
+      "url": "https://onedrive.live.com/?cid=E86C368D8889243C&id=E86C368D8889243C!s4f49c6ae3a944a0d8d7df33367e49b22",
+      "bytes": 5273442
+    },
+    {
+      "id": "E86C368D8889243C!s973b8f8d3acc4d13b67ffa721196ccf3",
+      "title": "VICReg 中英对照",
+      "fileName": "VICReg_中英对照.pdf",
+      "folder": "双语",
+      "vault": "Robotics",
+      "url": "https://onedrive.live.com/?cid=E86C368D8889243C&id=E86C368D8889243C!s973b8f8d3acc4d13b67ffa721196ccf3",
+      "bytes": 1375984
+    },
+    {
+      "id": "E86C368D8889243C!s1d45b26d25a147fa9d98882467df110d",
+      "title": "ViT 中英对照",
+      "fileName": "ViT_中英对照.pdf",
+      "folder": "双语",
+      "vault": "Robotics",
+      "url": "https://onedrive.live.com/?cid=E86C368D8889243C&id=E86C368D8889243C!s1d45b26d25a147fa9d98882467df110d",
+      "bytes": 5349034
+    }
+  ]
+}

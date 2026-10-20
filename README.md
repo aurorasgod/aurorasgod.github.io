@@ -1,6 +1,6 @@
 # Laplace's Notes · Personal Blog
 
-Laplace / Qimai Yan 的个人博客，分类为 **具身智能 / 电力电子 / 个人经历**。浅色纯白、深色纯深灰，强调色为绿色；演示文章已移除。
+Laplace / Qimai Yan 的个人博客，分类为 **具身智能 / 电力电子 / 个人经历**。首页采用夜航设计，包含 3D 玻璃卡牌、音乐台与内容切换。维护入口见 [SITE-MAINTENANCE.md](SITE-MAINTENANCE.md)。
 
 在线网址：<https://aurorasgod.github.io>。另一份 Sites 部署：<https://field-notes-research.gptplus6267.chatgpt.site>。
 
@@ -82,13 +82,13 @@ GitHub 静态版使用 `npm run build:static`；工作流自动注入 GitHub 地
 ## 修改网站
 
 - `src/site.ts`：身份、简介和分类。
-- `src/pages/index.astro`：首页。
+- `src/layouts/Home.astro`：首页；`src/data/home.ts`：首页简介与音乐。
 - `src/pages/about/index.astro`：关于。
 - `src/content/projects/`：项目介绍。
 - `src/styles/global.css` / `notebook.css`：配色与排版。
 - `public/avatar.jpg`：头像。
 
-英文标题与小标题使用 Fraunces，正文使用 Newsreader；中文为 Noto Serif SC。字体自托管、按 Unicode 分块加载；许可见 `FONT-LICENSES.txt`。
+英文标题使用 Fraunces，文章正文使用 Newsreader 与 Noto Serif SC；界面中文小字使用 Noto Sans SC Variable。字体自托管、按 Unicode 分块加载；许可见 `FONT-LICENSES.txt` 与 Fontsource 包内的 OFL 许可。
 
 ## 更新与访问热力图
 

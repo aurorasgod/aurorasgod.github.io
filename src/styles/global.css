@@ -1,5 +1,8 @@
 @import './fonts.css';
 @import './notebook.css';
+@import './interactions.css';
+
+html:root { --ui:'Noto Sans SC Variable','PingFang SC','Microsoft YaHei',sans-serif; }
 
 :root{--bg:#ffffff;--surface:#ffffff;--text:#252525;--muted:#6b6b6b;--faint:#7c7c7c;--line:#e8e8e8;--accent:#267052;--accent-soft:#f1f8f3;--accent-line:#d6e8db;--accent-secondary:#3e765d;--accent-secondary-soft:#f4f8f5;--accent-secondary-display:#66a187;--hover:#f6f6f6;--ui:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;--body:'Newsreader Local','Noto Serif SC Local','Songti SC',Georgia,serif;--display:'Fraunces Local','Noto Serif SC Local','Songti SC',Georgia,serif;--mono:'SFMono-Regular',Consolas,monospace;color-scheme:light;scroll-behavior:smooth}
 :root[data-theme=dark]{--bg:#181818;--surface:#202020;--text:#ededed;--muted:#aeaeae;--faint:#959595;--line:#343434;--accent:#a2cfb0;--accent-soft:#24312a;--accent-line:#3b5344;--accent-secondary:#a2c4ae;--accent-secondary-soft:#252c27;--accent-secondary-display:#8abe9c;--hover:#272727;color-scheme:dark}

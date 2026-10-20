@@ -1,0 +1,31 @@
+.intro-sequence, .intro-skip { display: none; }
+html:not([data-opening=on]) .intro-skip { display: none; }
+html[data-opening=on] .intro-sequence { display: block; position: fixed; inset: 0; z-index: 90; pointer-events: none; overflow: hidden; animation: intro-finish 2.65s both; }
+html[data-opening=on] .intro-skip { display: grid; position: fixed; top: 22px; right: 24px; z-index: 95; color: #e9ede4; background: #18251d9c; border: 1px solid #8fa78f42; }
+.intro-shutters { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); width: 100%; height: 100%; }
+.intro-shutter { position: relative; overflow: hidden; background: #15261d; border-right: 1px solid #aac6ab20; animation: shutter-reveal .75s cubic-bezier(.76,0,.24,1) both; animation-delay: calc(1.05s + var(--i) * .055s); }
+.intro-shutter:nth-child(even) { background: #1a2e24; }
+.intro-shutter img { position: absolute; left: calc(var(--i) * -100%); width: 500%; max-width: none; height: 100%; object-fit: cover; object-position: center; opacity: .18; filter: saturate(.4); animation: shutter-photo 1.5s cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(var(--i) * .055s); }
+.intro-shutter::after { content: ''; position: absolute; inset: 0; background: #0e1c1363; }
+.intro-signature { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 24px; padding: 24px; color: #eef2e9; animation: signature-depart .45s cubic-bezier(.7,0,.3,1) 1.05s both; }
+.intro-kicker { font: 11px Consolas, monospace; color: #b8cbb8; animation: signature-arrive .65s ease .15s both; }
+.intro-wordmark { display: flex; align-items: baseline; font: 500 100px/1.05 'Fraunces Local', Georgia, serif; }
+.intro-wordmark > span { display: inline-block; transform-origin: center bottom; animation: letter-arrive .8s cubic-bezier(.17,.8,.25,1.12) both; animation-delay: calc(.12s + var(--i) * .055s); }
+.intro-wordmark > .intro-period { color: #dfbb94; }
+.intro-rule { display: flex; align-items: center; gap: 22px; color: #c3d1c0; font: 10px Consolas, monospace; }
+.intro-rule i { width: 65px; height: 1px; background: #d1bc9566; transform-origin: right; animation: rule-extend .65s ease .45s both; }
+.intro-rule i:last-child { transform-origin: left; }
+.intro-rule span { animation: signature-arrive .6s ease .4s both; }
+.intro-signature p { margin: 0; font: 13px 'Noto Serif SC Local', serif; color: #acbcae; animation: signature-arrive .7s ease .5s both; }
+html[data-opening=on] .hero-name, html[data-opening=on] .hero-introduction { animation: hero-unveil .8s ease 1.65s both; }
+@keyframes shutter-reveal { from { transform: translateY(0); } to { transform: translateY(-101%); } }
+@keyframes shutter-photo { from { transform: translateY(9%) scale(1.08); } to { transform: none; } }
+@keyframes letter-arrive { from { opacity: 0; transform: translateY(48px) rotate(9deg) scale(.8); filter: blur(7px); } 65% { opacity: 1; filter: blur(0); } to { opacity: 1; transform: none; filter: blur(0); } }
+@keyframes signature-arrive { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes signature-depart { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(-40px); } }
+@keyframes rule-extend { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes hero-unveil { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes intro-finish { 0%, 99% { visibility: visible; } 100% { visibility: hidden; } }
+@media(max-width:700px) { .intro-wordmark { font-size: 64px; } .intro-signature { gap: 21px; } .intro-kicker { font-size: 9px; } .intro-rule i { width: 35px; } .intro-signature p { font-size: 12px; } }
+@media(max-width:370px) { .intro-wordmark { font-size: 56px; } }
+@media(prefers-reduced-motion:reduce) { html[data-opening=on] .intro-sequence, html[data-opening=on] .intro-skip { display: none; } }

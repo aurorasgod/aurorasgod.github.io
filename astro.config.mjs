@@ -5,11 +5,12 @@ import rehypeKatex from 'rehype-katex';
 import { unified } from '@astrojs/markdown-remark';
 
 export default defineConfig({
-  site: process.env.SITE_URL || 'https://field-notes-research.gptplus6267.chatgpt.site',
+  site: process.env.SITE_URL || 'https://aurorasgod.github.io',
   base: process.env.BASE_PATH || '/',
   output: 'static',
   devToolbar: { enabled: false },
-  integrations: [sitemap()],
+  redirects: { '/designs/nocturne/': '/' },
+  integrations: [sitemap({ filter: page => !/\/designs(?:\/|$)|\/library\//.test(new URL(page).pathname) })],
   markdown: {
     processor: unified({ remarkPlugins: [remarkMath], rehypePlugins: [rehypeKatex] }),
     shikiConfig: { themes: { light: 'github-light', dark: 'github-dark' } },

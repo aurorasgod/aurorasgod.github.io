@@ -12,19 +12,37 @@ if (section) {
   let started = false;
   let lastTheme = '';
   let serviceFailed = false;
+  const localPreview = ['localhost', '127.0.0.1', '[::1]'].includes(new URL(location.origin).hostname);
+  const previewThemes = new Map<string, Promise<string>>();
+  const themeMode = () => document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
 
   function themeUrl() {
-    const mode = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
+    const mode = themeMode();
     const address = new URL(`${section!.dataset.themeBase}${mode}.css`, location.origin);
     address.searchParams.set('v', section!.dataset.themeVersion || '1');
     return address.href;
   }
-  function syncTheme() {
+  async function syncTheme() {
     const frame = mount.querySelector<HTMLIFrameElement>('iframe.giscus-frame');
     const theme = themeUrl();
     if (!frame?.contentWindow || lastTheme === theme) return;
-    frame.contentWindow.postMessage({ giscus: { setConfig: { theme } } }, comments.origin);
     lastTheme = theme;
+    let resolved = theme;
+    if (localPreview) {
+      // Fetch on the parent origin: a public iframe cannot request loopback CSS.
+      let pending = previewThemes.get(theme);
+      if (!pending) {
+        pending = fetch(theme).then(response => {
+          if (!response.ok) throw new Error('Comment theme unavailable');
+          return response.text();
+        }).then(css => `data:text/css;charset=utf-8,${encodeURIComponent(css)}`);
+        previewThemes.set(theme, pending);
+      }
+      try { resolved = await pending; }
+      catch { previewThemes.delete(theme); resolved = themeMode(); }
+    }
+    if (theme !== themeUrl() || frame !== mount.querySelector('iframe.giscus-frame')) return;
+    frame.contentWindow?.postMessage({ giscus: { setConfig: { theme: resolved } } }, comments.origin);
   }
   function ready() {
     clearTimeout(timer);
@@ -74,7 +92,7 @@ if (section) {
       category: comments.category, 'category-id': comments.categoryId,
       mapping: 'specific', term: section!.dataset.term!, strict: '1',
       'reactions-enabled': '0', 'emit-metadata': '1', 'input-position': 'top',
-      theme: themeUrl(), lang: 'zh-CN', loading: 'eager',
+      theme: localPreview ? themeMode() : themeUrl(), lang: 'zh-CN', loading: 'eager',
     };
     for (const [key, value] of Object.entries(config)) script.setAttribute(`data-${key}`, value);
     script.addEventListener('error', () => fail('评论暂时无法加载，可以重试或在 GitHub 中查看。'));

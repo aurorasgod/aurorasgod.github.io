@@ -1,0 +1,15 @@
+---
+import Base from '../../layouts/Base.astro';
+import ResearchList from '../../components/ResearchList.astro';
+import { researchResults } from '../../data/research';
+---
+<Base title="科研成果" active="research">
+  <div class="page-container research-page">
+    <div class="page-heading"><div><span class="eyebrow">RESEARCH</span><h1>科研成果<span class="title-dot">.</span></h1></div></div>
+    <div class="research-content"><ResearchList items={researchResults}/></div>
+  </div>
+</Base>
+<style>
+  .research-page { min-height: calc(100svh - 290px); }
+  .research-content { border-top: 1px solid var(--line); }
+</style>

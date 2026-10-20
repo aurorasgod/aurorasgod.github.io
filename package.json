@@ -17,10 +17,13 @@
     "@astrojs/markdown-remark": "^7.3.2",
     "@astrojs/rss": "latest",
     "@astrojs/sitemap": "latest",
+    "@fontsource-variable/noto-sans-sc": "^5.3.1",
+    "@lucide/astro": "^1.59.0",
     "astro": "latest",
     "katex": "latest",
     "rehype-katex": "latest",
-    "remark-math": "latest"
+    "remark-math": "latest",
+    "three": "^0.186.1"
   },
   "devDependencies": {
     "@astrojs/check": "latest",
@@ -29,6 +32,7 @@
     "vite": "latest",
     "wrangler": "latest",
     "drizzle-kit": "latest",
-    "drizzle-orm": "latest"
+    "drizzle-orm": "latest",
+    "@types/three": "^0.186.0"
   }
 }

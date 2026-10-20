@@ -1,0 +1,16 @@
+---
+import { url } from '../site';
+import '../styles/glass-orbit.css';
+---
+<div class="glass-orbit" data-glass-orbit data-background={url('images/designs/alpine-lake.jpg')} aria-hidden="true">
+  <div class="glass-orbit-fallback"><span></span><span></span></div>
+  <canvas class="glass-orbit-canvas"></canvas>
+</div>
+<script>
+  const host = document.querySelector<HTMLElement>('[data-glass-orbit]');
+  if (host) {
+    import('../scripts/glass-orbit').then(({ createGlassOrbit }) => createGlassOrbit(host)).catch(() => {
+      host.dataset.glassState = 'fallback';
+    });
+  }
+</script>

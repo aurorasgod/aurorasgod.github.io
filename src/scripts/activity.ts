@@ -1,5 +1,6 @@
-import { activityWindow, activityLevel } from '../lib/activity.mjs';
+import { activityWindow, activityMonths, activityLevel } from '../lib/activity.mjs';
 const api = (import.meta.env.PUBLIC_ACTIVITY_API || '').replace(/\/$/, '');
+const localPreview = import.meta.env.DEV && !api;
 const map = document.querySelector<HTMLElement>('[data-activity-map]');
 let visits:Record<string,number> = {};
 let available = false;
@@ -12,11 +13,12 @@ function render() {
   const window = activityWindow();
   const months = map.querySelector<HTMLElement>('.activity-months')!;
   months.replaceChildren();
-  let lastMonth = '';
-  window.filter((_,i)=>i%7===0).forEach(day=>{
-    const month = day.date.slice(0,7), label = document.createElement('span');
-    label.textContent = month !== lastMonth ? `${Number(day.date.slice(5,7))}月` : '';
-    months.append(label); lastMonth=month;
+  activityMonths(window).forEach(month=>{
+    const label = document.createElement('span');
+    label.textContent = month.label;
+    label.style.gridColumn = `${month.start + 1} / span ${month.span}`;
+    label.style.textAlign = month.align;
+    months.append(label);
   });
   const cells = [...grid.querySelectorAll<HTMLElement>('.activity-cell')];
   let totalUpdates=0, totalVisits=0;
@@ -37,6 +39,7 @@ function render() {
 }
 async function refresh() {
   if(!map) return;
+  if(localPreview) { loaded=true; render(); return; }
   try {
     const response=await fetch(`${api}/api/activity`,{cache:'no-store',signal:AbortSignal.timeout(7000)});
     if(!response.ok) throw new Error('unavailable');
@@ -72,6 +75,7 @@ let sent=false;
 async function track() {
   if(sent || document.visibilityState!=='visible') return;
   sent=true;
+  if(localPreview) { await refresh(); return; }
   const key=`laplace-pageview:${location.pathname}`;
   try {const last=Number(sessionStorage.getItem(key));if(Date.now()-last<30000){await refresh();return;}}catch{}
   const eventId=crypto.randomUUID();

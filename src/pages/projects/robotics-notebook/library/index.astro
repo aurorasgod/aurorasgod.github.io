@@ -1,0 +1,44 @@
+---
+import Base from '../../../../layouts/Base.astro';
+import { ArrowLeft, ArrowUpRight, FileText, Search, LockKeyhole } from '@lucide/astro';
+import papers from '../../../../data/papers.json';
+import { url } from '../../../../site';
+const fileSize = (bytes: number) => `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+---
+<Base title="论文资料" active="projects" noindex>
+  <article class="paper-library page-container">
+    <a class="text-link" href={url('projects/robotics-notebook/')}><ArrowLeft size={16} />具身智能阅读记录</a>
+    <header class="page-heading"><div><span class="eyebrow">RESEARCH LIBRARY</span><h1>论文资料<span class="title-dot">.</span></h1><p>OneDrive · {papers.papers.length} 份 PDF</p></div><span class="library-access"><LockKeyhole size={14} />按云端权限访问</span></header>
+    <label class="paper-search"><Search size={18}/><span class="sr-only">搜索论文</span><input type="search" placeholder="搜索论文" data-paper-search /></label>
+    <ul class="paper-list">{papers.papers.map(paper => <li data-paper data-title={paper.title.toLowerCase()}><a href={paper.url} target="_blank" rel="noopener noreferrer"><FileText size={21}/><span><strong>{paper.title}</strong><small>{paper.folder === '双语' ? '中英对照' : '原文'} · PDF · {fileSize(paper.bytes)}</small></span><ArrowUpRight size={18}/></a></li>)}</ul>
+    <p class="paper-empty" data-paper-empty role="status" hidden>没有找到相关论文</p>
+  </article>
+</Base>
+<style>
+  .paper-library { max-width: 1000px; font-family: var(--ui); }
+  .page-heading { margin-top: 35px; }
+  .library-access { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--muted); }
+  .paper-search { display: flex; align-items: center; gap: 12px; padding: 13px 16px; border: 1px solid var(--line); border-radius: 5px; color: var(--muted); }
+  .paper-search input { min-width: 0; width: 100%; background: transparent; border: 0; outline: 0; color: var(--text); font-size: 16px; }
+  .paper-search:focus-within { outline: 2px solid var(--accent); }
+  .paper-list { padding: 0; margin: 22px 0 0; list-style: none; }
+  .paper-list a { display: flex; gap: 18px; align-items: center; padding: 22px 0; border-bottom: 1px solid var(--line); }
+  .paper-list a > svg { color: var(--accent); }
+  .paper-list a > svg:last-child { margin-left: auto; }
+  .paper-list strong { font-size: 16px; font-weight: 500; }
+  .paper-list small { display: block; margin-top: 7px; font-size: 12px; color: var(--muted); }
+  .paper-list a:hover strong { color: var(--accent); }
+  .paper-empty { padding: 35px 0; color: var(--muted); }
+  @media(max-width:700px) { .page-heading { align-items: start; flex-direction: column; gap: 20px; } .paper-list strong { font-size: 14px; } }
+</style>
+<script>
+  const input = document.querySelector<HTMLInputElement>('[data-paper-search]');
+  const rows = [...document.querySelectorAll<HTMLElement>('[data-paper]')];
+  const empty = document.querySelector<HTMLElement>('[data-paper-empty]');
+  input?.addEventListener('input', () => {
+    let count = 0;
+    const terms = input.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    rows.forEach(row => { row.hidden = !terms.every(term => row.dataset.title?.includes(term)); if (!row.hidden) count++; });
+    if (empty) empty.hidden = count > 0;
+  });
+</script>

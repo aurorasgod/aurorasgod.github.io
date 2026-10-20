@@ -5,7 +5,7 @@ import vm from 'node:vm';
 import ts from 'typescript';
 import * as config from '../src/lib/comments.ts';
 
-function client() {
+function client({ origin = 'https://aurorasgod.github.io', fetch: loadTheme } = {}) {
   const node = () => ({ hidden: false, dataset: {}, style: {}, textContent: '',
     listeners: {}, addEventListener(type, fn) { this.listeners[type] = fn; },
     setAttribute() {}, replaceChildren() {}, append() {} });
@@ -25,7 +25,7 @@ function client() {
     require: () => config,
     document: { querySelector: () => section, documentElement: root, createElement: node },
     window: { addEventListener(type, fn) { events[type] = fn; } },
-    location: { origin: 'https://aurorasgod.github.io' },
+    location: { origin }, fetch: loadTheme,
     setTimeout(fn) { timer = fn; return 1; }, clearTimeout() {},
     MutationObserver: class { constructor(fn) { this.fn = fn; observers.push(this); } observe(target) { this.target = target; } },
   };
@@ -73,4 +73,28 @@ test('theme updates preserve the iframe; foreign messages cannot change discussi
   ui.events.message({ origin: 'https://giscus.app', source: frame.contentWindow, data: { giscus: metadata } });
   assert.equal(ui.link.href, metadata.discussion.url);
   assert.equal(ui.count.textContent, '3');
+});
+
+test('local previews deliver CSS without a cross-origin request to loopback and ignore stale themes', async () => {
+  const requests = [];
+  const ui = client({ origin: 'http://127.0.0.1:4321', fetch: url => new Promise(resolve => requests.push({ url, resolve })) });
+  const frame = ui.attachFrame();
+  frame.listeners.load();
+  ui.changeTheme('dark');
+  assert.equal(requests.length, 2);
+  requests[1].resolve({ ok: true, text: async () => 'main { color: #ededed; }' });
+  await new Promise(setImmediate);
+  assert.equal(ui.messages.at(-1).data.giscus.setConfig.theme, `data:text/css;charset=utf-8,${encodeURIComponent('main { color: #ededed; }')}`);
+  requests[0].resolve({ ok: true, text: async () => 'main { color: #252525; }' });
+  await new Promise(setImmediate);
+  assert.equal(ui.messages.length, 1, 'A slow light theme must not overwrite the active dark theme');
+  assert.equal(ui.messages[0].origin, 'https://giscus.app');
+});
+
+test('local theme fetch failure keeps a readable built-in theme', async () => {
+  const ui = client({ origin: 'http://localhost:4321', fetch: async () => ({ ok: false }) });
+  ui.root.dataset.theme = 'dark';
+  ui.attachFrame().listeners.load();
+  await new Promise(setImmediate);
+  assert.equal(ui.messages.at(-1).data.giscus.setConfig.theme, 'dark');
 });

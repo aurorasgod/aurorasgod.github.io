@@ -1,0 +1,30 @@
+---
+import Icon from './Icon.astro';
+import type { ResearchResult } from '../data/research';
+interface Props { items: ResearchResult[]; }
+const { items } = Astro.props;
+---
+{items.length ? <ol class="research-list">{items.map(item => <li>
+  <span class="research-year">{item.year}</span>
+  <div class="research-entry">
+    {item.venue && <p class="research-venue">{item.venue}</p>}
+    <h3>{item.title}</h3>
+    {item.authors && <p class="research-authors">{item.authors}</p>}
+    {item.description && <p class="research-description">{item.description}</p>}
+    {item.links?.length ? <div class="research-links">{item.links.map(link => <a href={link.href} target="_blank" rel="noopener noreferrer">{link.label}<Icon name="arrow" size={14}/></a>)}</div> : null}
+  </div>
+</li>)}</ol> : <p class="research-empty">暂无公开科研成果。</p>}
+<style>
+  .research-list { list-style: none; padding: 0; margin: 0; }
+  .research-list li { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 24px; padding: 28px 0; border-bottom: 1px solid var(--line); }
+  .research-year { font: 12px/1.8 var(--mono); color: var(--muted); }
+  .research-entry h3 { margin: 0; font: 500 18px/1.65 var(--ui, 'Noto Sans SC Variable', sans-serif); }
+  .research-venue, .research-authors, .research-description, .research-empty { color: var(--muted); font: 13px/1.9 var(--ui, 'Noto Sans SC Variable', sans-serif); }
+  .research-venue { margin-bottom: 8px; color: var(--accent); }
+  .research-authors, .research-description { margin-top: 10px; }
+  .research-links { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 16px; }
+  .research-links a { display: inline-flex; align-items: center; gap: 7px; color: var(--accent); font-size: 12px; }
+  .research-links a:hover { text-decoration: underline; text-underline-offset: 4px; }
+  .research-empty { padding: 25px 0; margin: 0; }
+  @media (max-width: 700px) { .research-list li { grid-template-columns: 1fr; gap: 8px; } }
+</style>

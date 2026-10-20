@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
 import { readFileSync, readdirSync } from 'node:fs';
 import { activityAPI } from '../worker/activity.mjs';
-import { activityWindow, dayKey, contentActivity, activityLevel } from '../src/lib/activity.mjs';
+import { activityWindow, activityMonths, dayKey, contentActivity, activityLevel } from '../src/lib/activity.mjs';
 function database(){
   const db=new DatabaseSync(':memory:');
   for(const file of readdirSync('drizzle').filter(f=>f.endsWith('.sql'))) db.exec(readFileSync(`drizzle/${file}`,'utf8'));
@@ -23,6 +23,20 @@ test('Publish and revision count per article per date, logarithmic visits',()=>{
   assert.deepEqual(contentActivity([{data:{pubDate:new Date('2026-10-05'),updatedDate:new Date('2026-10-05')}}]),{'2026-10-05':1});
   assert.equal(activityLevel(0,0),0);assert.equal(activityLevel(1,0),3);assert.equal(activityLevel(0,1),1);
   assert.equal(activityLevel(0,100000),4);
+});
+
+test('Month labels reserve space across partial months and year boundaries',()=>{
+  const october = activityMonths(activityWindow(new Date('2026-10-20T00:00:00Z')));
+  assert.equal(october[0].label, '5月');
+  for (let offset = 0; offset < 740; offset++) {
+    const date = new Date(Date.UTC(2025, 0, 1 + offset));
+    const labels = activityMonths(activityWindow(date));
+    labels.forEach((label, index) => {
+      assert.equal(label.span, 3);
+      assert.ok(label.start >= 0 && label.start + label.span <= 26);
+      if (index) assert.ok(label.start >= labels[index - 1].start + 3, `${date.toISOString()}: overlapping month labels`);
+    });
+  }
 });
 test('Atomic daily totals, retry idempotency, midnight boundary and all-reader aggregation',async()=>{
   const env={DB:database()}, id=crypto.randomUUID();

@@ -13,6 +13,27 @@ export function activityWindow(now = new Date()) {
     return { date:date.toISOString().slice(0,10), future:date > end };
   });
 }
+export function activityMonths(days) {
+  const weeks = days.filter((_, index) => index % 7 === 0);
+  const segments = [];
+  weeks.forEach((day, index) => {
+    const month = day.date.slice(0, 7);
+    const previous = segments.at(-1);
+    if (previous?.month === month) previous.length++;
+    else segments.push({ month, start: index, length: 1 });
+  });
+  // A month name needs three week columns; omit a short leading partial month.
+  const labels = segments.filter((segment, index) => index > 0 || segment.length >= 3).map(segment => ({
+    label: `${Number(segment.month.slice(5))}月`,
+    start: Math.min(segment.start, Math.max(0, weeks.length - 3)),
+    span: 3,
+    align: segment.start > weeks.length - 3 ? 'end' : 'start',
+  }));
+  for (let index = labels.length - 2; index >= 0; index--) {
+    labels[index].start = Math.min(labels[index].start, labels[index + 1].start - labels[index].span);
+  }
+  return labels.filter(label => label.start >= 0);
+}
 // Updates have a fixed contribution; visits grow logarithmically.
 export function activityLevel(updates, visits) {
   const weight = updates * 4 + Math.log2(visits + 1);

@@ -1,4 +1,5 @@
-/* Self-hosted Google Fonts; licenses in FONT-LICENSES.txt. */
+@import '@fontsource-variable/noto-sans-sc';
+/* Self-hosted Google Fonts; licenses in FONT-LICENSES.txt and the Fontsource package. */
 @font-face {
   font-family: 'Fraunces Local';
   font-style: normal;

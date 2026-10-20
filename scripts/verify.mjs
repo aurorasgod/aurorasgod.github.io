@@ -8,7 +8,7 @@ async function files(dir){const entries=await readdir(dir,{withFileTypes:true});
 const all=await files(root);
 const htmlFiles=all.filter(p=>p.endsWith('.html'));
 const errors=[];
-for(const file of htmlFiles){const html=await readFile(file,'utf8');assert.ok(html.includes('lang="zh-CN"'),`missing language: ${file}`);assert.ok(/<h1[\s>]/.test(html),`missing page heading: ${file}`);for(const match of html.matchAll(/(?:href|src)="([^"#]+)"/g)){const target=match[1].replaceAll('&amp;','&');if(!target.startsWith('/'))continue;const path=decodeURIComponent(target.split(/[?#]/)[0]);if(!path.startsWith(prefix)){errors.push(`${file}: wrong base path ${path}`);continue;}let local=join(root,path.slice(prefix.length));try{const s=await stat(local);if(s.isDirectory())local=join(local,'index.html');await stat(local);}catch{errors.push(`${file}: missing ${path}`);}}}
+for(const file of htmlFiles){const html=await readFile(file,'utf8');if(/http-equiv="refresh"/i.test(html)){assert.ok(html.includes('url='),'missing redirect target');continue;}assert.ok(html.includes('lang="zh-CN"'),`missing language: ${file}`);assert.ok(/<h1[\s>]/.test(html),`missing page heading: ${file}`);for(const match of html.matchAll(/(?:href|src)="([^"#]+)"/g)){const target=match[1].replaceAll('&amp;','&');if(!target.startsWith('/'))continue;const path=decodeURIComponent(target.split(/[?#]/)[0]);if(!path.startsWith(prefix)){errors.push(`${file}: wrong base path ${path}`);continue;}let local=join(root,path.slice(prefix.length));try{const s=await stat(local);if(s.isDirectory())local=join(local,'index.html');await stat(local);}catch{errors.push(`${file}: missing ${path}`);}}}
 const search=JSON.parse(await readFile(join(root,'search-index.json'),'utf8'));
 assert.ok(Array.isArray(search),'invalid search index');
 for(const entry of search){assert.ok(entry.title&&entry.text&&entry.url,'incomplete search entry');await stat(join(root,entry.url.slice(prefix.length),'index.html'));}
@@ -17,7 +17,11 @@ assert.equal((rss.match(/<item>/g)||[]).length,search.length,'feed and index cou
 assert.ok(await stat(join(root,'avatar.jpg')),'missing avatar');
 assert.ok(await stat(join(root,'sitemap-index.xml')),'missing sitemap');
 const home=await readFile(join(root,'index.html'),'utf8');
-assert.ok(home.includes('Personal Blog')&&home.includes('ZJU电力电子硕士在读'),'missing personal identity');
+assert.ok(home.includes('Personal Blog')&&home.includes('浙大本硕，电力电子在读'),'missing personal identity');
+assert.ok(!home.includes('首页提案')&&!home.includes('noindex,nofollow'),'homepage is still a design proposal');
+assert.ok(home.includes('data-glass-orbit')&&home.includes('data-music-player'),'missing homepage experiences');
+assert.ok(home.includes('data-activity-map')&&!home.includes('now-topics'),'homepage activity calendar missing or duplicate topics remain');
+for(const file of htmlFiles){const html=await readFile(file,'utf8');if(/http-equiv="refresh"/i.test(html))continue;assert.equal((html.match(/data-music-player/g)||[]).length,1,`missing or duplicated music player: ${file}`);assert.ok(html.includes('popover="auto"'),'music player is not a popover');}
 for(const category of ['具身智能','电力电子','个人经历'])assert.ok(home.includes(category),'missing category '+category);
 assert.ok(!home.includes('学习工具')&&!home.includes('world-model')&&!home.includes('个人笔记'),'outdated home labels');
 for(const entry of search){

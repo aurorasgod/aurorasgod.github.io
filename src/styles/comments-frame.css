@@ -11,9 +11,9 @@ html, body { background: var(--blog-bg); }
 #__next .gsc-left-header > em { display: none; }
 #__next .gsc-comment-box, #__next .gsc-comment { border-radius: 5px; box-shadow: none; }
 /* Stable surfaces: focus and tab changes never change border width or padding. */
-#__next .gsc-comment-box { --editor-height: 170px; }
+#__next .gsc-comment-box { --editor-height: 170px; background: var(--blog-surface); border-color: var(--blog-line); }
 #__next .gsc-comment-box-is-reply { --editor-height: 138px; }
-#__next .gsc-comment-box-tabs { border-color: var(--blog-line); background: var(--blog-bg); }
+#__next .gsc-comment-box-tabs { border-color: var(--blog-line); background: var(--blog-surface); }
 #__next .gsc-comment-box-tabs > div:first-child { display: flex; gap: 22px; margin: 0 14px; }
 #__next .gsc-comment-box-tabs > div:first-child > button {
   margin: 0; padding: 12px 1px 10px; min-height: 42px;
@@ -29,7 +29,7 @@ html, body { background: var(--blog-bg); }
 #__next .gsc-comment-box-main { margin: 12px; min-height: var(--editor-height); }
 #__next .gsc-comment-box-write, #__next .gsc-comment-box-preview {
   min-height: var(--editor-height); border: 1px solid var(--blog-line); border-radius: 4px;
-  background: var(--blog-bg);
+  background: var(--blog-editor);
 }
 #__next .gsc-comment-box-write { transition: border-color 140ms ease; }
 #__next .gsc-comment-box-write:focus-within {
@@ -37,15 +37,16 @@ html, body { background: var(--blog-bg); }
 }
 #__next .gsc-comment-box-textarea {
   display: block; padding: 11px 13px; border: 0; border-radius: 4px 4px 0 0;
-  background: var(--blog-bg); font-size: 15px; line-height: 1.9;
+  background: var(--blog-editor); color: var(--blog-fg); font-size: 15px; line-height: 1.9;
   min-height: calc(var(--editor-height) - 32px); caret-color: var(--blog-accent);
 }
+#__next .gsc-comment-box-textarea::placeholder { color: var(--blog-muted); opacity: 1; }
 #__next .gsc-comment-box-textarea:focus, #__next .gsc-comment-box-textarea:focus-visible {
   border: 0; box-shadow: none; outline: none;
 }
 #__next .gsc-comment-box-textarea-extras {
   min-height: 30px; padding: 6px 12px; border: 0;
-  background: var(--blog-bg); box-shadow: none;
+  background: var(--blog-editor); box-shadow: none;
 }
 #__next .gsc-comment-box-preview {
   padding: 11px 13px; font-size: 15px; line-height: 1.9; overflow-wrap: anywhere;

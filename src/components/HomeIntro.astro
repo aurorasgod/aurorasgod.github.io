@@ -1,0 +1,15 @@
+---
+import { X } from '@lucide/astro';
+import { url } from '../site';
+import '../styles/intro.css';
+---
+<div class="intro-sequence" aria-hidden="true">
+  <div class="intro-shutters">{[0, 1, 2, 3, 4].map(index => <div class="intro-shutter" style={`--i:${index}`}><img src={url('images/designs/alpine-lake.jpg')} alt="" /></div>)}</div>
+  <div class="intro-signature">
+    <span class="intro-kicker">QIMAI YAN / PERSONAL JOURNAL</span>
+    <div class="intro-wordmark">{[...'laplace.'].map((letter, index) => <span style={`--i:${index}`} class:list={{'intro-period': letter === '.'}}>{letter}</span>)}</div>
+    <div class="intro-rule"><i></i><span>NOTES & LIFE</span><i></i></div>
+    <p>人生海海，山山而川。</p>
+  </div>
+</div>
+<button class="intro-skip study-icon" data-skip-intro title="跳过开场" aria-label="跳过开场"><X size={18} /></button>

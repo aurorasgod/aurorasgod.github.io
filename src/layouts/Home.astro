@@ -1,0 +1,116 @@
+---
+import { getCollection } from 'astro:content';
+import { Sparkles, ArrowUpRight, RotateCcw } from '@lucide/astro';
+import Icon from '../components/Icon.astro';
+import GlassOrbit from '../components/GlassOrbit.astro';
+import MusicStation from '../components/MusicStation.astro';
+import HomeIntro from '../components/HomeIntro.astro';
+import ActivityHeatmap from '../components/ActivityHeatmap.astro';
+import ResearchList from '../components/ResearchList.astro';
+import { researchResults } from '../data/research';
+import { publicPosts, dateLabel, readingMinutes } from '../lib/content';
+import { site, categories, categoryName, url } from '../site';
+import { introduction } from '../data/home';
+import '../styles/home.css';
+const posts = await publicPosts();
+const latest = [...posts].sort((a, b) => Number(b.data.featured) - Number(a.data.featured)).slice(0, 3);
+const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
+const statusLabels = { ongoing: '进行中', planned: '计划中', complete: '已完成' };
+const canonical = new URL(import.meta.env.BASE_URL, Astro.site);
+---
+<!doctype html>
+<html lang="zh-CN" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={site.description} />
+    <meta name="theme-color" content="#141b18" />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:title" content={site.title} /><meta property="og:description" content={site.description} />
+    <meta property="og:url" content={canonical} /><meta property="og:type" content="website" />
+    <meta property="og:image" content={new URL(url('social.svg'), Astro.site)} />
+    <link rel="icon" href={url('favicon.svg')} type="image/svg+xml" />
+    <link rel="alternate" type="application/rss+xml" title={site.title} href={url('rss.xml')} />
+    <title>{site.title} · Personal Blog</title>
+    <script is:inline>
+      try {
+        if (!matchMedia('(prefers-reduced-motion: reduce)').matches && localStorage.getItem('home-study-motion') !== 'off' && sessionStorage.getItem('laplace-intro-v2') !== 'seen') {
+          document.documentElement.dataset.opening = 'on';
+          document.documentElement.dataset.openingStarted = String(performance.now());
+        }
+        if (!localStorage.getItem('field-notes-theme')) localStorage.setItem('field-notes-theme', 'dark');
+      } catch {}
+    </script>
+  </head>
+  <body class="study study-nocturne" data-base={import.meta.env.BASE_URL}>
+    <a class="study-skip" href="#main">跳到正文</a>
+    <HomeIntro />
+    <header class="study-header">
+      <a class="study-brand" href={url()} aria-label="Laplace 首页">laplace<span>.</span></a>
+      <span class="header-caption">NOTES & EXPLORATIONS</span>
+      <nav class="study-nav" id="study-nav" aria-label="主导航">
+        <a href={url()} aria-current="page">首页</a>
+        <a href={url('articles/')}>文章</a>
+        <a href={url('projects/')}>项目</a>
+        <a href={url('research/')}>成果</a>
+        <a href={url('about/')}>关于</a>
+      </nav>
+      <div class="study-tools">
+        <MusicStation />
+        <label class="motion-toggle study-icon" title="动态效果"><input type="checkbox" data-study-motion aria-label="动态效果" checked /><Sparkles size={18} /></label>
+        <button class="study-icon" data-study-search title="搜索文章" aria-label="搜索文章"><Icon name="search" size={19} /></button>
+        <button class="study-icon study-menu" data-study-menu aria-controls="study-nav" aria-expanded="false" aria-label="展开导航" title="展开导航"><Icon name="menu" /></button>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="study-hero" aria-labelledby="hero-heading">
+        <div class="hero-scenery" aria-hidden="true"><img src={url('images/designs/alpine-lake.jpg')} alt="" width="2000" height="1333" fetchpriority="high" /><div class="scenery-veil"></div></div>
+        <GlassOrbit />
+        <div class="hero-index"><span class="hero-greeting">你好，我是 {site.fullName}</span><span>QIMAI YAN / PERSONAL JOURNAL</span></div>
+        <div class="hero-person">
+          <div class="portrait-stage"><a href={url('about/')} class="portrait-link" aria-label="了解 Laplace"><img class="study-avatar" src={url('avatar.jpg')} alt="Laplace 的头像" width="180" height="180" fetchpriority="high" /><span class="portrait-mark" aria-hidden="true">L.</span></a></div>
+          <div class="hero-name"><h1 id="hero-heading">Laplace<span class="name-dot">.</span><em>Notes & life</em></h1></div>
+        </div>
+        <div class="hero-introduction"><p class="hero-role">{introduction.role}</p><p class="hero-bio">{introduction.text}</p><div class="hero-links"><a class="about-link" href={url('about/')}>关于我 <Icon name="arrow" size={17} /></a><a href={site.github} target="_blank" rel="noopener noreferrer">GitHub <Icon name="arrow" size={15} /></a><a href={url('rss.xml')} aria-label="订阅 RSS" title="订阅 RSS"><Icon name="rss" size={18} /></a></div></div>
+        <div class="hero-foot"><a href="#writing" aria-label="向下浏览文章"><span>继续探索</span><Icon name="right" size={18} /></a><span class="hero-location">ZJU · <time data-study-clock>HANGZHOU</time></span></div>
+      </section>
+
+      <div class="study-body">
+        <nav class="interest-ribbon reveal" aria-label="研究与生活主题">
+          <span class="ribbon-label">探索的方向<small>THE THREADS</small></span>
+          {categories.map((category, index) => <a href={url(`articles/?category=${category.id}`)}><span class="ribbon-number">0{index + 1}</span><span>{category.name}<small>{category.en}</small></span><Icon name="arrow" size={17} /></a>)}
+        </nav>
+
+        <div class="content-grid">
+          <section class="study-writing reveal" id="writing" aria-labelledby="writing-heading">
+            <div class="study-section-heading"><h2 id="writing-heading"><span class="section-number">01 /</span> 最近写下<em>Writing</em></h2><a href={url('articles/')}>全部文章 <Icon name="arrow" size={15} /></a></div>
+            <div class="study-posts">{latest.map(post => <article class="study-post"><div class="study-post-meta"><time datetime={post.data.pubDate.toISOString()}>{dateLabel(post.data.pubDate)}</time><span>{categoryName(post.data.category)}</span>{post.data.featured && <span class="post-pinned">置顶</span>}</div><a class="study-post-link" href={url(`blog/${post.id}/`)}><h3>{post.data.title}</h3><Icon name="arrow" size={25} /></a><p>{post.data.description}</p><div class="study-post-bottom"><div class="study-tags">{post.data.tags.map(tag => <a href={url(`articles/?tag=${encodeURIComponent(tag)}`)}>#{tag}</a>)}</div><span>{readingMinutes(post.body)} 分钟阅读</span></div></article>)}</div>
+            {!latest.length && <p class="study-empty">新的笔记正在整理中。</p>}
+          </section>
+
+          <aside class="study-now reveal" aria-label="近况与内容">
+            <div class="now-tabs" role="tablist" aria-label="内容视图"><button id="tab-now" role="tab" aria-selected="true" aria-controls="panel-now" data-now-tab="now">近况</button><button id="tab-writing" role="tab" aria-selected="false" aria-controls="panel-writing" tabindex="-1" data-now-tab="writing">文章</button><button id="tab-projects" role="tab" aria-selected="false" aria-controls="panel-projects" tabindex="-1" data-now-tab="projects">项目</button></div>
+            <div class="now-panels">
+              <section id="panel-now" role="tabpanel" aria-labelledby="tab-now" tabindex="0" data-now-panel="now"><p class="now-label">最近发布</p>{posts[0] ? <a class="now-feature" href={url(`blog/${posts[0].id}/`)}><strong>{posts[0].data.title}</strong><time datetime={posts[0].data.pubDate.toISOString()}>{dateLabel(posts[0].data.pubDate)}</time><ArrowUpRight size={18} /></a> : <p class="now-empty">暂无文章</p>}<ActivityHeatmap posts={posts}/></section>
+              <section id="panel-writing" role="tabpanel" aria-labelledby="tab-writing" tabindex="0" data-now-panel="writing" hidden><p class="now-label">已发布 {posts.length} 篇</p><ul class="now-list">{posts.slice(0, 4).map(post => <li><a href={url(`blog/${post.id}/`)}><span>{post.data.title}<small>{dateLabel(post.data.pubDate)}</small></span><ArrowUpRight size={15} /></a></li>)}</ul><a class="now-all" href={url('articles/')}>文章归档 <Icon name="right" size={15} /></a></section>
+              <section id="panel-projects" role="tabpanel" aria-labelledby="tab-projects" tabindex="0" data-now-panel="projects" hidden><p class="now-label">{projects.length} 个项目</p><ul class="now-list">{projects.map(project => <li><a href={url(`projects/${project.id}/`)}><span>{project.data.title}<small>{statusLabels[project.data.status]}</small></span><ArrowUpRight size={15} /></a></li>)}</ul></section>
+            </div>
+          </aside>
+
+          <section class="study-projects" aria-labelledby="projects-heading"><div class="study-section-heading"><h2 id="projects-heading"><span class="section-number">02 /</span> 正在构建<em>Projects</em></h2><a href={url('projects/')}>全部项目 <Icon name="arrow" size={15} /></a></div><div class="study-project-grid">{projects.map((project, index) => <a class="study-project" href={url(`projects/${project.id}/`)}><div class="project-top"><span class="project-index">0{index + 1}</span><span class="project-state">{statusLabels[project.data.status]}</span><Icon name="arrow" size={20} /></div><span class="project-category">{project.data.category}</span><h3>{project.data.title}</h3><p>{project.data.description}</p><div class="project-labels">{project.data.tags.slice(0, 3).map(tag => <span>#{tag}</span>)}</div></a>)}</div></section>
+          <section class="study-research" aria-labelledby="research-heading">
+            <div class="study-section-heading"><h2 id="research-heading"><span class="section-number">03 /</span> 科研成果<em>Research</em></h2><a href={url('research/')}>全部成果 <Icon name="arrow" size={15}/></a></div>
+            <ResearchList items={researchResults.slice(0, 3)}/>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <footer class="study-footer"><a class="study-brand" href="#main">laplace<span>.</span></a><p>© {new Date().getFullYear()} {site.fullName}</p><div class="footer-navigation"><nav aria-label="页脚导航"><a href={url('articles/')}>文章</a><a href={url('projects/')}>项目</a><a href={url('about/')}>关于</a><a href={site.github} target="_blank" rel="noopener noreferrer">GitHub</a></nav><div class="footer-tools"><button class="study-icon" data-replay-intro title="重播开场" aria-label="重播开场"><RotateCcw size={17} /></button><a class="study-icon" href={url('rss.xml')} title="订阅 RSS" aria-label="订阅 RSS"><Icon name="rss" size={17} /></a></div></div></footer>
+
+    <dialog class="study-search" aria-labelledby="study-search-title"><div class="search-top"><h2 id="study-search-title">搜索笔记</h2><button class="study-icon" data-study-close aria-label="关闭搜索" title="关闭搜索"><Icon name="close" /></button></div><label class="study-search-field"><Icon name="search" /><span class="sr-only">搜索关键词</span><input type="search" data-study-query placeholder="搜索文章或 #标签" autocomplete="off" /></label><p class="study-search-status" role="status">{posts.length} 篇文章</p><ul class="study-search-results">{posts.map(post => <li data-study-result data-title={post.data.title.toLocaleLowerCase()} data-description={post.data.description.toLocaleLowerCase()} data-tags={JSON.stringify(post.data.tags.map(tag => tag.toLocaleLowerCase()))}><a href={url(`blog/${post.id}/`)}><span>{categoryName(post.data.category)}</span><strong>{post.data.title}</strong><p>{post.data.description}</p><Icon name="arrow" size={18} /></a></li>)}</ul></dialog>
+
+    <script>import '../scripts/home'; import '../scripts/activity';</script>
+  </body>
+</html>
