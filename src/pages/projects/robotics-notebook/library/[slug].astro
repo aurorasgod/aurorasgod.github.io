@@ -1,0 +1,34 @@
+---
+import Base from '../../../../layouts/Base.astro';
+import { ArrowLeft, ArrowUpRight, ChevronLeft, ChevronRight, Download, Search, X, RotateCw, Maximize, RefreshCw } from '@lucide/astro';
+import papers from '../../../../data/papers.json';
+import { url } from '../../../../site';
+import 'pdfjs-dist/web/pdf_viewer.css';
+import '../../../../styles/pdf-reader.css';
+export function getStaticPaths() { return papers.papers.map(paper => ({ params: { slug: paper.slug }, props: { paper } })); }
+const { paper } = Astro.props;
+---
+<Base title={paper.title} active="projects" noindex>
+  <article class="paper-reading">
+    <div class="paper-reading-heading"><a class="text-link" href={url('projects/robotics-notebook/library/')}><ArrowLeft size={16}/>论文资料</a><a class="text-link" href={paper.url} target="_blank" rel="noopener noreferrer">OneDrive<ArrowUpRight size={15}/></a><h1>{paper.title}</h1></div>
+    <section class="pdf-reader" data-pdf-reader data-pdf-src={url(paper.localUrl)} data-pdf-assets={url('vendor/pdfjs/')} aria-label={`${paper.title} PDF 阅读器`}>
+      <div class="pdf-toolbar" role="toolbar" aria-label="PDF 工具栏">
+        <button class="pdf-button" data-pdf-prev disabled title="上一页" aria-label="上一页"><ChevronLeft size={19}/></button>
+        <label class="pdf-page-control"><span class="sr-only">页码</span><input data-pdf-page type="number" min="1" value="1" disabled aria-label="页码"/><span data-pdf-total>/ --</span></label>
+        <button class="pdf-button" data-pdf-next disabled title="下一页" aria-label="下一页"><ChevronRight size={19}/></button>
+        <label class="pdf-zoom-control"><span class="sr-only">缩放</span><select data-pdf-zoom aria-label="缩放" disabled><option value="page-width">适合宽度</option><option value="page-fit">整页</option>{[.75,1,1.25,1.5,2].map(value=><option value={value}>{value*100}%</option>)}</select></label>
+        <button class="pdf-button" data-pdf-find-toggle title="查找文字" aria-label="查找文字" aria-expanded="false"><Search size={17}/></button>
+        <button class="pdf-button" data-pdf-rotate disabled title="旋转页面" aria-label="旋转页面"><RotateCw size={17}/></button>
+        <button class="pdf-button" data-pdf-fullscreen title="全屏" aria-label="全屏"><Maximize size={17}/></button>
+        <a class="pdf-button" href={url(paper.localUrl)} download={paper.fileName} data-astro-reload title="下载 PDF" aria-label="下载 PDF"><Download size={17}/></a>
+      </div>
+      <div class="pdf-find" data-pdf-find hidden><input type="search" data-pdf-query aria-label="PDF 内查找" placeholder="查找文字"/><span data-pdf-matches role="status"></span><button class="pdf-button" data-pdf-find-prev title="上一个匹配" aria-label="上一个匹配"><ChevronLeft size={17}/></button><button class="pdf-button" data-pdf-find-next title="下一个匹配" aria-label="下一个匹配"><ChevronRight size={17}/></button><button class="pdf-button" data-pdf-find-close title="关闭查找" aria-label="关闭查找"><X size={17}/></button></div>
+      <div class="pdf-stage">
+        <div class="pdf-scroll" data-pdf-scroll tabindex="0"><div class="pdfViewer" data-pdf-pages></div></div>
+        <div class="pdf-status" data-pdf-status><p role="status" data-pdf-status-text>正在加载 PDF…</p><button class="text-link" data-pdf-retry hidden><RefreshCw size={15}/>重新加载</button></div>
+      </div>
+      <noscript><p><a href={url(paper.localUrl)} data-astro-reload>打开 PDF 文件</a></p></noscript>
+    </section>
+  </article>
+</Base>
+<script>import '../../../../scripts/pdf-reader';</script>

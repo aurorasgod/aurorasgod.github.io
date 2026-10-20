@@ -14,3 +14,6 @@ dist/
 
 # Local Obsidian vault settings and publishing drafts
 **/.obsidian/
+
+# Generated from the pinned PDF.js package before dev/build
+public/vendor/pdfjs/

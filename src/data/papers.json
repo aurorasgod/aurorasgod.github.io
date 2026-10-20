@@ -9,7 +9,10 @@
       "folder": "双语",
       "vault": "Robotics",
       "url": "https://1drv.ms/b/c/e86c368d8889243c/IQAovgPG8sGjTLL4tq4QpAmVATUG7uqDkUxmGW4_uhKxgH0",
-      "bytes": 10954096
+      "bytes": 10954096,
+      "slug": "apple-pi-bilingual",
+      "localUrl": "papers/apple-pi-bilingual.pdf",
+      "sha256": "333fd6485ec0ec5cfc88d15bccdb1eb720facd50aa186cf2e1af994ed8537dc5"
     },
     {
       "id": "E86C368D8889243C!s1ed1f2eb39d749808f702b889f3a0239",
@@ -18,7 +21,10 @@
       "folder": "双语",
       "vault": "Robotics",
       "url": "https://1drv.ms/b/c/e86c368d8889243c/IQDr8tEe1zmASY9wK4ifOgI5ASbBzhRcSR40FoX_QVz6fSQ",
-      "bytes": 1746330
+      "bytes": 1746330,
+      "slug": "barlow-twins-bilingual",
+      "localUrl": "papers/barlow-twins-bilingual.pdf",
+      "sha256": "669438941eaf44d941a9d25a12e99f85693a9ce2c87bb68661740313bdc2195e"
     },
     {
       "id": "E86C368D8889243C!s3a978ea5f0f449e99ce59ed87fcf067c",
@@ -27,7 +33,10 @@
       "folder": "双语",
       "vault": "Robotics",
       "url": "https://1drv.ms/b/c/e86c368d8889243c/IQCljpc69PDpSZzlnth_zwZ8AZSGd87GybLkxmjvtKTTBfo",
-      "bytes": 5610668
+      "bytes": 5610668,
+      "slug": "byol-bilingual",
+      "localUrl": "papers/byol-bilingual.pdf",
+      "sha256": "0867d71478313e1e52ea328e9534e6b411bee42628647345ab7dc9a166885091"
     },
     {
       "id": "E86C368D8889243C!s9d49709ed51c42a2a3aaf7be31e787f9",
@@ -36,7 +45,10 @@
       "folder": "双语",
       "vault": "Robotics",
       "url": "https://1drv.ms/b/c/e86c368d8889243c/IQCecEmdHNWiQqOq974x54f5AfY3qJRGSGF1I5cd65pBO5M",
-      "bytes": 4077998
+      "bytes": 4077998,
+      "slug": "i-jepa-bilingual",
+      "localUrl": "papers/i-jepa-bilingual.pdf",
+      "sha256": "e2547a24e27df3acf72b0465f88cfaea528a907a04a4b2c9a4aa266b4c228cbe"
     },
     {
       "id": "E86C368D8889243C!s5944fa2a869f465396a857fc14156d99",
@@ -45,7 +57,10 @@
       "folder": "双语",
       "vault": "Robotics",
       "url": "https://1drv.ms/b/c/e86c368d8889243c/IQAq-kRZn4ZTRpaoV_wUFW2ZASebHqIYQZ36rbeZjD2XRMM",
-      "bytes": 3618177
+      "bytes": 3618177,
+      "slug": "intact-bilingual",
+      "localUrl": "papers/intact-bilingual.pdf",
+      "sha256": "4435b1820e0615f0471059a2a15f565c0ed9a9ff4139d85ddda5a7a665bf3568"
     },
     {
       "id": "E86C368D8889243C!s4b4a2c0d22954338a67aea835501bbe8",
@@ -54,7 +69,10 @@
       "folder": "双语",
       "vault": "Robotics",
       "url": "https://1drv.ms/b/c/e86c368d8889243c/IQANLEpLlSI4Q6Z66oNVAbvoATBjetOOyAEkaD55WkOpGoA",
-      "bytes": 14271144
+      "bytes": 14271144,
+      "slug": "lejepa-bilingual",
+      "localUrl": "papers/lejepa-bilingual.pdf",
+      "sha256": "cbba42b6bde18e199052ef9a409529ba73ed3af93ad0371b918cb8df809b5a1b"
     },
     {
       "id": "E86C368D8889243C!s02d0c6205e2148be983ef6c969ed45d2",
@@ -63,7 +81,10 @@
       "folder": "双语",
       "vault": "Robotics",
       "url": "https://1drv.ms/b/c/e86c368d8889243c/IQAgxtACIV6-SJg-9slp7UXSAc3iko_cny9WvUgNPz8iNWw",
-      "bytes": 8031820
+      "bytes": 8031820,
+      "slug": "mae-bilingual",
+      "localUrl": "papers/mae-bilingual.pdf",
+      "sha256": "18c2604af470fcc575d1524b3a3123d09febbc70db4cca5e41081d76915b57d2"
     },
     {
       "id": "E86C368D8889243C!sbcd4042d3a2b4500a6f13e37429a9324",
@@ -72,7 +93,10 @@
       "folder": "双语",
       "vault": "Robotics",
       "url": "https://1drv.ms/b/c/e86c368d8889243c/IQAtBNS8KzoARabxPjdCmpMkAXEM0i3n7Ss5oE8m9FZwbdg",
-      "bytes": 1167297
+      "bytes": 1167297,
+      "slug": "moco-bilingual",
+      "localUrl": "papers/moco-bilingual.pdf",
+      "sha256": "083c47eb97ee267d4d94ad2f98d2c2083b35c0a6ebb6ecaad1e7fb708faf4209"
     },
     {
       "id": "E86C368D8889243C!sef1d5bb668b048cc93bc00815da771ab",
@@ -81,7 +105,10 @@
       "folder": "双语",
       "vault": "Robotics",
       "url": "https://1drv.ms/b/c/e86c368d8889243c/IQC2Wx3vsGjMSJO8AIFdp3GrAbYIYZaODcKy-ixEjTdCWdg",
-      "bytes": 7163882
+      "bytes": 7163882,
+      "slug": "odeworld-bilingual",
+      "localUrl": "papers/odeworld-bilingual.pdf",
+      "sha256": "dfc2608eff433b6b5080905c820fff26c34d84c6d8c24d52a1c56c15f77ef89d"
     },
     {
       "id": "E86C368D8889243C!s93107045a00141d4a24955030ee52fa3",
@@ -90,7 +117,10 @@
       "folder": "",
       "vault": "Robotics",
       "url": "https://1drv.ms/b/c/e86c368d8889243c/IQBFcBCTAaDUQaJJVQMO5S-jAa2jKTqTgkx5w3oTkNSBZBM",
-      "bytes": 13240309
+      "bytes": 13240309,
+      "slug": "openvla",
+      "localUrl": "papers/openvla.pdf",
+      "sha256": "353c37df34458f12f969b14dfd8b77175b727b9cddea7bb891759beddeefe1be"
     },
     {
       "id": "E86C368D8889243C!sa050779da62d4607a7784f6473b3ce57",
@@ -99,7 +129,10 @@
       "folder": "双语",
       "vault": "Robotics",
       "url": "https://1drv.ms/b/c/e86c368d8889243c/IQCdd1CgLaYHRqd4T2Rzs85XAeCHMO3Zt2bdu2jNVWVs0NY",
-      "bytes": 53351544
+      "bytes": 53351544,
+      "slug": "physeditworld-bilingual",
+      "localUrl": "papers/physeditworld-bilingual.pdf",
+      "sha256": "20f09f346d8c6728cedc58d180b0121492417e24f8525f3c962e38d6ff9562ec"
     },
     {
       "id": "E86C368D8889243C!sec1acb1d772a4ca1be00d6fdc1eb0ba3",
@@ -108,7 +141,10 @@
       "folder": "双语",
       "vault": "Robotics",
       "url": "https://1drv.ms/b/c/e86c368d8889243c/IQAdyxrsKnehTL4A1v3B6wujAUANEn5NrkVPfJkQwDXD4Ws",
-      "bytes": 7333519
+      "bytes": 7333519,
+      "slug": "sadl-bilingual",
+      "localUrl": "papers/sadl-bilingual.pdf",
+      "sha256": "14210f0075327d8f41ae8f2f85555294260d4e307b799d85eba8c64e7fcea4d6"
     },
     {
       "id": "E86C368D8889243C!se69f41511421408f8f13eabb4275fcec",
@@ -117,7 +153,10 @@
       "folder": "双语",
       "vault": "Robotics",
       "url": "https://1drv.ms/b/c/e86c368d8889243c/IQBRQZ_mIRSPQI8T6rtCdfzsAddQvxF-ZPstmzETCHyhQl4",
-      "bytes": 3169580
+      "bytes": 3169580,
+      "slug": "simclr-bilingual",
+      "localUrl": "papers/simclr-bilingual.pdf",
+      "sha256": "8f8ce284606f2d3b84942d0064da7a3e3464943cf03fb5a979135901b596b82c"
     },
     {
       "id": "E86C368D8889243C!s25dd0d7833744fa7b55a2ca426af3963",
@@ -126,7 +165,10 @@
       "folder": "双语",
       "vault": "Robotics",
       "url": "https://1drv.ms/b/c/e86c368d8889243c/IQB4Dd0ldDOnT7VaLKQmrzljAYWpaCZwOxz4hUuZyRTGzJU",
-      "bytes": 1045023
+      "bytes": 1045023,
+      "slug": "simsiam-bilingual",
+      "localUrl": "papers/simsiam-bilingual.pdf",
+      "sha256": "1a32ff3d914687430b433676adc0f037f03ab2df28390b74374dcdc838c339da"
     },
     {
       "id": "E86C368D8889243C!s027da1db36c147c98f87cdaa1fb78447",
@@ -135,7 +177,10 @@
       "folder": "双语",
       "vault": "Robotics",
       "url": "https://1drv.ms/b/c/e86c368d8889243c/IQDboX0CwTbJR4-Hzaoft4RHATEsiC-uPK_5_9iOdyssZgw",
-      "bytes": 19232610
+      "bytes": 19232610,
+      "slug": "v-jepa-2-bilingual",
+      "localUrl": "papers/v-jepa-2-bilingual.pdf",
+      "sha256": "a94fcf5bea5e6dd6afbadf1926087cf8f1773bf9d4af67b715e3a2b81ba85f2b"
     },
     {
       "id": "E86C368D8889243C!s4f49c6ae3a944a0d8d7df33367e49b22",
@@ -144,7 +189,10 @@
       "folder": "双语",
       "vault": "Robotics",
       "url": "https://1drv.ms/b/c/e86c368d8889243c/IQCuxklPlDoNSo198zNn5JsiATOtfrizL5VdiURDtS-0H10",
-      "bytes": 5273442
+      "bytes": 5273442,
+      "slug": "v-jepa-bilingual",
+      "localUrl": "papers/v-jepa-bilingual.pdf",
+      "sha256": "d9a69dc601a598470c691088f8ec75a803165e15cef025999f227113bf4b72cc"
     },
     {
       "id": "E86C368D8889243C!s973b8f8d3acc4d13b67ffa721196ccf3",
@@ -153,7 +201,10 @@
       "folder": "双语",
       "vault": "Robotics",
       "url": "https://1drv.ms/b/c/e86c368d8889243c/IQCNjzuXzDoTTbZ_-nIRlszzAV7_piquogTwMflZrPF66vU",
-      "bytes": 1375984
+      "bytes": 1375984,
+      "slug": "vicreg-bilingual",
+      "localUrl": "papers/vicreg-bilingual.pdf",
+      "sha256": "8bf0a4ba2dcd18195dad091218830328e29901f04bb656b5dc1aba9e5b8fc288"
     },
     {
       "id": "E86C368D8889243C!s1d45b26d25a147fa9d98882467df110d",
@@ -162,7 +213,10 @@
       "folder": "双语",
       "vault": "Robotics",
       "url": "https://1drv.ms/b/c/e86c368d8889243c/IQBtskUdoSX6R52YiCRn3xENAegf3gPFaLv5yI9hIAWYF4c",
-      "bytes": 5349034
+      "bytes": 5349034,
+      "slug": "vit-bilingual",
+      "localUrl": "papers/vit-bilingual.pdf",
+      "sha256": "916739d757bbcddffcb4c15493144a7c48585a6e88d45845b7c9f30ce3fc9a5a"
     }
   ]
 }

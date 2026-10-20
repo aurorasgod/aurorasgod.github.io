@@ -18,7 +18,7 @@ test('Refreshing shared PDFs preserves approved links and does not add unapprove
     await writeFile(join(config, 'data.json'), JSON.stringify({ serviceType: 'onedrive', onedrive: { accessToken: 'test-token' } }));
     const output = join(root, 'papers.json');
     const shared = 'https://1drv.ms/b/approved-test-link';
-    await writeFile(output, JSON.stringify({ provider: 'OneDrive', access: 'anonymous-view', papers: [{ id: 'approved', url: shared }] }));
+    await writeFile(output, JSON.stringify({ provider: 'OneDrive', access: 'anonymous-view', papers: [{ id: 'approved', url: shared, slug: 'approved', localUrl: 'papers/approved.pdf', sha256: 'fixture-hash' }] }));
     const loader = join(root, 'mock-graph.mjs');
     await writeFile(loader, `
       import assert from 'node:assert/strict';
@@ -44,6 +44,9 @@ test('Refreshing shared PDFs preserves approved links and does not add unapprove
     assert.equal(result.papers[0].id, 'approved');
     assert.equal(result.papers[0].url, shared);
     assert.equal(result.papers[0].bytes, 123);
+    assert.equal(result.papers[0].localUrl, 'papers/approved.pdf');
+    assert.equal(result.papers[0].slug, 'approved');
+    assert.equal(result.papers[0].sha256, 'fixture-hash');
   } finally {
     assert.ok(root.startsWith(join(tmpdir(), 'laplace-papers-')));
     await rm(root, { recursive: true, force: true });

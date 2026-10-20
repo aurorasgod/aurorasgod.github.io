@@ -3,6 +3,7 @@ import { readdir, readFile, stat } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { soundtracks } from '../src/data/home.ts';
 import { palettes } from '../src/data/palette.ts';
+import { createHash } from 'node:crypto';
 
 const root=resolve(process.env.STATIC_DIR || 'dist/client');
 const prefix=(process.env.BASE_PATH||'/').replace(/\/?$/,'/');
@@ -21,6 +22,18 @@ assert.equal((rss.match(/<item>/g)||[]).length,search.length,'feed and index cou
 assert.ok(await stat(join(root,'avatar.jpg')),'missing avatar');
 assert.ok(await stat(join(root,'sitemap-index.xml')),'missing sitemap');
 const home=await readFile(join(root,'index.html'),'utf8');
+const papers=JSON.parse(await readFile(resolve('src/data/papers.json'),'utf8')).papers;
+assert.equal(new Set(papers.map(paper=>paper.slug)).size,papers.length,'duplicate PDF reader routes');
+for(const paper of papers){
+  assert.match(paper.localUrl,/^papers\/[a-z0-9-]+\.pdf$/);
+  const bytes=await readFile(join(root,paper.localUrl));
+  assert.equal(bytes.length,paper.bytes,`PDF size mismatch: ${paper.slug}`);
+  assert.equal(bytes.subarray(0,5).toString(),'%PDF-',`invalid PDF: ${paper.slug}`);
+  assert.equal(createHash('sha256').update(bytes).digest('hex'),paper.sha256,`PDF integrity mismatch: ${paper.slug}`);
+  const reader=await readFile(join(root,'projects/robotics-notebook/library',paper.slug,'index.html'),'utf8');
+  assert.ok(reader.includes('data-pdf-reader')&&reader.includes(paper.url)&&reader.includes('noindex'),'PDF reader or OneDrive fallback missing');
+}
+await stat(join(root,'vendor/pdfjs/standard_fonts/FoxitSerif.pfb'));
 assert.ok(home.includes('Personal Blog')&&home.includes('浙大本硕，电力电子在读'),'missing personal identity');
 assert.ok(!home.includes('首页提案')&&!home.includes('noindex,nofollow'),'homepage is still a design proposal');
 assert.ok(home.includes('data-glass-orbit')&&home.includes('data-music-player'),'missing homepage experiences');

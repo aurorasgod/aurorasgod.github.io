@@ -4,10 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "predev": "node scripts/prepare-pdf-assets.mjs",
     "dev": "astro dev --host 127.0.0.1",
+    "prebuild": "node scripts/prepare-pdf-assets.mjs",
     "build": "node scripts/build.mjs",
     "preview": "astro preview --host 127.0.0.1",
     "check": "astro check",
+    "prebuild:static": "node scripts/prepare-pdf-assets.mjs",
     "build:static": "astro build",
     "dev:activity": "wrangler dev --config dist/server/wrangler.json --port 4321 --persist-to .wrangler/state",
     "db:generate": "drizzle-kit generate",
@@ -21,6 +24,7 @@
     "@lucide/astro": "^1.59.0",
     "astro": "latest",
     "katex": "latest",
+    "pdfjs-dist": "6.4.299",
     "rehype-katex": "latest",
     "remark-math": "latest",
     "three": "^0.186.1"

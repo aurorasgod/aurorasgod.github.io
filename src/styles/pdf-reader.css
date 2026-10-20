@@ -1,0 +1,35 @@
+.paper-reading { max-width: 1400px; margin: auto; padding: 26px 32px 0; font-family: var(--ui); }
+.paper-reading-heading { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-bottom: 20px; }
+.paper-reading-heading > a { font-size: 12px; color: var(--muted); }
+.paper-reading-heading > a:nth-child(2) { margin-left: auto; }
+.paper-reading-heading h1 { flex-basis: 100%; margin: 0; font: 500 25px/1.5 var(--display); overflow-wrap: anywhere; }
+.pdf-reader { display: flex; flex-direction: column; height: max(420px, calc(100dvh - 230px)); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--surface); color: var(--text); }
+.pdf-reader:fullscreen { width: 100%; height: 100dvh; border: 0; border-radius: 0; }
+.pdf-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; min-height: 49px; padding: 6px 10px; border-bottom: 1px solid var(--line); flex: none; }
+.pdf-button { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 34px; height: 34px; border: 0; border-radius: 4px; padding: 0; background: transparent; color: var(--muted); }
+.pdf-button:hover { background: var(--hover); color: var(--text); }
+.pdf-button:disabled { opacity: .35; cursor: default; }
+.pdf-page-control { display: flex; align-items: center; gap: 7px; font: 12px var(--ui); }
+.pdf-page-control input { width: 52px; height: 30px; border: 1px solid var(--line); border-radius: 4px; background: var(--bg); color: var(--text); text-align: center; font: inherit; }
+.pdf-page-control > span:last-child { min-width: 40px; font-variant-numeric: tabular-nums; color: var(--muted); }
+.pdf-zoom-control { margin-right: auto; }
+.pdf-zoom-control select { width: 108px; height: 32px; padding: 0 6px; font: 12px var(--ui); background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 4px; }
+.pdf-find { display: flex; flex: none; align-items: center; gap: 5px; padding: 6px 10px; border-bottom: 1px solid var(--line); }
+.pdf-find input { width: 190px; min-width: 0; flex: 1; max-width: 320px; padding: 5px 8px; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 4px; font: 14px var(--ui); }
+.pdf-find > span { font-size: 11px; color: var(--muted); min-width: 40px; }
+.pdf-stage { position: relative; flex: 1; min-height: 0; background: var(--hover); }
+.pdf-scroll { position: absolute; inset: 0; overflow: auto; overscroll-behavior: contain; }
+.pdf-scroll .pdfViewer { padding-top: 12px; padding-bottom: 12px; }
+.pdf-status { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: 24px; font-size: 13px; color: var(--muted); text-align: center; background: var(--hover); }
+.pdf-status [data-pdf-retry] { border: 0; background: none; color: var(--accent); font-size: 13px; }
+@media(max-width:700px) {
+  .paper-reading { padding: 20px 12px 0; }
+  .paper-reading-heading h1 { font-size: 20px; }
+  .pdf-reader { height: max(420px, calc(100dvh - 204px)); }
+  .pdf-toolbar { gap: 3px; padding: 5px; }
+  .pdf-zoom-control select { width: 100px; }
+  .pdf-toolbar .pdf-button { width: 31px; }
+  .pdf-find { padding: 6px; gap: 2px; }
+  .pdf-find .pdf-button { width: 27px; }
+  .pdf-find input { font-size: 16px; }
+}

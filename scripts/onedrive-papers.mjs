@@ -9,6 +9,7 @@ try { existing = JSON.parse(await readFile(destination, 'utf8')); }
 catch (error) { if (error.code !== 'ENOENT') throw error; }
 const sharedOnly = existing?.access === 'anonymous-view';
 const sharedLinks = new Map((sharedOnly ? existing.papers : []).map(paper => [paper.id, paper.url]));
+const copies = new Map((existing?.papers || []).map(({ id, slug, localUrl, sha256 }) => [id, { slug, localUrl, sha256 }]));
 const raw = JSON.parse(await readFile(resolve(vaultPath, '.obsidian/plugins/remotely-save/data.json'), 'utf8'));
 const settings = raw.d ? JSON.parse(Buffer.from([...raw.d].reverse().join(''), 'base64url').toString('utf8')) : raw;
 if (settings.serviceType !== 'onedrive' || !settings.onedrive?.accessToken) throw new Error('This vault has no connected OneDrive account.');
@@ -52,7 +53,7 @@ async function walk(id, relative = '') {
       if (sharedOnly && !sharedLinks.has(item.id)) continue;
       const link = new URL(sharedLinks.get(item.id) || item.webUrl);
       if (link.protocol !== 'https:') throw new Error('Unexpected file link protocol.');
-      papers.push({ id: item.id, title: item.name.replace(/\.pdf$/i, '').replaceAll('_', ' '), fileName: item.name, folder: relative.replace(/\/$/, ''), vault: vaultName, url: link.href, bytes: item.size });
+      papers.push({ id: item.id, title: item.name.replace(/\.pdf$/i, '').replaceAll('_', ' '), fileName: item.name, folder: relative.replace(/\/$/, ''), vault: vaultName, url: link.href, bytes: item.size, ...copies.get(item.id) });
     }
   }
 }
