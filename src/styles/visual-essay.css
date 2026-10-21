@@ -55,3 +55,8 @@
   .visual-essay .essay-map .map-node { padding: 10px 8px; font-size: 11px; }
   .visual-essay .essay-coda p { font-size: 18px; }
 }
+
+@media(min-width:901px) {
+  .visual-essay .mobile-toc nav a { font-size: 14px; }
+  .visual-essay .mobile-toc nav a.nested { font-size: 13px; }
+}
