@@ -4,6 +4,12 @@
 .visual-essay .article-header > h1 { font-size: clamp(30px, 3.6vw, 44px); line-height: 1.5; letter-spacing: -.035em; margin: 19px 0; }
 .visual-essay .article-description { max-width: 35em; line-height: 1.9; }
 .visual-essay .article-toc { top: 100px; }
+.visual-essay .article-toc nav { max-height: calc(100dvh - 270px); overflow-y: auto; scrollbar-width: thin; }
+.visual-essay .mobile-toc { display: block; padding: 17px 20px; margin: 28px 0; background: color-mix(in srgb, var(--accent) 3%, var(--bg)); }
+.visual-essay .mobile-toc summary { color: var(--text); font-size: 13px; }
+.visual-essay .mobile-toc nav { max-height: 300px; overflow-y: auto; scrollbar-width: thin; padding-right: 12px; }
+.visual-essay .mobile-toc nav a { line-height: 1.8; }
+.visual-essay .mobile-toc nav a.nested { padding-left: 18px; }
 .visual-essay .essay-cover { margin: 30px 0 45px; }
 .visual-essay .essay-cover img { width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: cover; border-radius: 3px; }
 .visual-essay figcaption { font: 11px/1.85 var(--ui); color: var(--muted); margin-top: 12px; }
