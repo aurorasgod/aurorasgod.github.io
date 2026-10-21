@@ -11,7 +11,6 @@ presentation: visual-essay
 cover:
   src: images/posts/vla-wam-cat/cat-and-cup.webp
   alt: 一只橘猫伸出爪子，试探木桌上的白色杯子
-  caption: "猫与杯子。AI 配图。"
 ---
 
 ## 猫和机器人，做出一只哆啦A梦有多难？
@@ -78,7 +77,6 @@ $$
 
 <figure class="essay-photo" data-essay-extra="cat-imagines">
   <img src="/images/posts/vla-wam-cat/cat-imagines.webp" alt="橘猫趴在桌边，梦境中的杯子悬浮在桌面上方" width="1536" height="1024" loading="lazy" decoding="async" />
-  <figcaption>脑内小剧场。AI 配图。</figcaption>
 </figure>
 
 　　接下来，我们从VLA开始，看看一个原本擅长看图和理解语言的模型，是怎么学会输出动作的。
@@ -117,7 +115,6 @@ $$
 
 <figure class="essay-photo">
   <img src="/images/posts/vla-wam-cat/robot-and-cup.webp" alt="机械臂的夹爪将白色杯子抬离桌面" width="1536" height="1024" loading="lazy" decoding="async" />
-  <figcaption>机械臂拿起杯子。AI 配图。</figcaption>
 </figure>
 
 ## 机器人不会梦到拿起一只杯子-WAM
@@ -162,7 +159,6 @@ $$
 
 <figure class="essay-photo" data-essay-extra="different-cups">
   <img src="/images/posts/vla-wam-cat/different-cups.webp" alt="机械臂面前摆着四只形状和材质不同的杯子" width="1536" height="1024" loading="lazy" decoding="async" />
-  <figcaption>换一只杯子，还会拿吗？AI 配图。</figcaption>
 </figure>
 
 ### 先在同一张考卷上比一比
@@ -202,7 +198,6 @@ $$
 
 <figure class="essay-photo" data-essay-extra="folding-towel">
   <img src="/images/posts/vla-wam-cat/folding-towel.webp" alt="两只机械臂夹住毛巾的边角，将毛巾对折" width="1536" height="1024" loading="lazy" decoding="async" />
-  <figcaption>从拿杯子到叠毛巾。AI 配图。</figcaption>
 </figure>
 
 　　因此，我更愿意从学习方式理解二者的偏向。VLA把视觉语言知识接到动作上，重点是让模型理解任务，并把已有的操作经验迁移到眼前的情况；WAM则进一步利用视频中的变化信息，希望从动作和结果的联系中学到更多。这种额外的学习目标已经在一些实验里产生了收益，而收益能否延续到新的机器人、新的环境和新的任务，目前还处在验证的田园阶段。
