@@ -60,3 +60,38 @@ test('Reject other origins and unknown pages; permit configured GitHub Pages ori
   const response=await activityAPI(new Request(`${origin}/api/visit`,{method:'POST',headers:{Origin:origin,'Content-Type':'application/json'},body:'{'}),env,paths);
   assert.equal(response.status,400);
 });
+
+test('GitHub project, research and library pages count independently of bundled routes', async () => {
+  const env = { DB: database() };
+  const currentPages = ['/research/', '/projects/new-project/', '/projects/robotics-notebook/library/', '/projects/robotics-notebook/library/apple-pi-bilingual/'];
+  for (const path of currentPages) {
+    const response = await activityAPI(visit(undefined, path, 'https://aurorasgod.github.io'), env, paths);
+    assert.equal(response.status, 200, path);
+    assert.equal((await response.json()).counted, true);
+    assert.equal((await activityAPI(visit(undefined, path), env, paths)).status, 400);
+  }
+  for (const path of ['/api/visit', '/private/', '/projects/../private/', '/projects/foo.pdf', '/projects/a//', '/projects/a/?x=1']) {
+    assert.equal((await activityAPI(visit(undefined, path, 'https://aurorasgod.github.io'), env, paths)).status, 400, path);
+  }
+});
+
+const { createVisitDelivery } = await import('../src/lib/visit-delivery.mjs');
+test('A failed visit can be retried; concurrent and later triggers do not duplicate it', async () => {
+  let calls = 0;
+  let release;
+  const delivery = createVisitDelivery(async () => {
+    calls++;
+    if (calls === 1) throw new Error('network timeout');
+    await new Promise(resolve => { release = resolve; });
+  });
+  await assert.rejects(delivery.run(), /network timeout/);
+  assert.equal(delivery.delivered, false);
+  const retry = delivery.run();
+  assert.equal(delivery.run(), retry);
+  await Promise.resolve();
+  release();
+  await retry;
+  assert.equal(delivery.delivered, true);
+  assert.equal(await delivery.run(), false);
+  assert.equal(calls, 2);
+});

@@ -1,4 +1,5 @@
 import { activityWindow, activityMonths, activityLevel } from '../lib/activity.mjs';
+import { createVisitDelivery } from '../lib/visit-delivery.mjs';
 import { onPageLoad } from './page-lifecycle';
 onPageLoad(({ signal, cleanup }) => {
 const api = (import.meta.env.PUBLIC_ACTIVITY_API || '').replace(/\/$/, '');
@@ -39,11 +40,13 @@ function render() {
   if(today) today.tabIndex=0;
   map.querySelector('.activity-summary')!.textContent = `${totalUpdates} 次更新 · ${available?`${totalVisits} 次访问`:(loaded?'访问量暂不可用':'正在加载访问量…')}`;
 }
+let refreshing = false;
 async function refresh() {
-  if(!map || signal.aborted) return;
+  if(!map || signal.aborted || refreshing) return;
   if(localPreview) { loaded=true; render(); return; }
+  refreshing = true;
   try {
-    const response=await fetch(`${api}/api/activity`,{cache:'no-store',signal:AbortSignal.timeout(7000)});
+    const response=await fetch(`${api}/api/activity`,{cache:'no-store',signal:AbortSignal.any([signal, AbortSignal.timeout(15000)])});
     if(!response.ok) throw new Error('unavailable');
     const data=await response.json();
     if (signal.aborted) return;
@@ -51,7 +54,10 @@ async function refresh() {
     available=true;
     trackingSince=data.trackingSince||null;
     map.dataset.trackingSince=trackingSince||'';
-  } catch {available=false;}
+  } catch {
+    // Keep the last successful server totals during a temporary network failure.
+  } finally { refreshing = false; }
+  if (signal.aborted) return;
   loaded=true;
   render();
 }
@@ -90,27 +96,38 @@ if(map) {
   });
 }
 // Browser storage only suppresses rapid reloads; all totals live in server D1.
-let sent=false;
+const key = `laplace-pageview:${location.pathname}`;
+const eventId = crypto.randomUUID();
+const base = document.body.dataset.base || '/';
+const pagePath = location.pathname.startsWith(base) ? `/${location.pathname.slice(base.length)}` : location.pathname;
+const delivery = createVisitDelivery(async () => {
+  try {
+    const last = Number(sessionStorage.getItem(key));
+    if (Date.now() - last < 30000) return;
+  } catch {}
+  const response = await fetch(`${api}/api/visit`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ eventId, path: pagePath }), keepalive: true,
+    // Let keepalive finish a real page view even if navigation swaps the page.
+    signal: AbortSignal.timeout(15000),
+  });
+  if (!response.ok) throw new Error('visit_unavailable');
+  try { sessionStorage.setItem(key, String(Date.now())); } catch {}
+});
 async function track() {
-  if(sent || signal.aborted || document.visibilityState!=='visible') return;
-  sent=true;
-  if(localPreview) { await refresh(); return; }
-  const key=`laplace-pageview:${location.pathname}`;
-  try {const last=Number(sessionStorage.getItem(key));if(Date.now()-last<30000){await refresh();return;}}catch{}
-  const eventId=crypto.randomUUID();
-  const base=document.body.dataset.base||'/';
-  const pagePath=location.pathname.startsWith(base)?`/${location.pathname.slice(base.length)}`:location.pathname;
-  for(let attempt=0;attempt<2;attempt++){
-    if (signal.aborted) return;
-    try {
-      const response=await fetch(`${api}/api/visit`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({eventId,path:pagePath}),keepalive:true,signal:AbortSignal.timeout(7000)});
-      if(!response.ok)throw new Error('unavailable');
-      try{sessionStorage.setItem(key,String(Date.now()));}catch{}
-      break;
-    }catch{if(attempt===0) await new Promise(resolve=>setTimeout(resolve,1500));}
-  }
-  await refresh();
+  if (localPreview || signal.aborted || document.visibilityState !== 'visible' || delivery.delivered) return;
+  try { if (await delivery.run()) await refresh(); } catch {}
 }
+function resume() {
+  if (signal.aborted || document.visibilityState !== 'visible') return;
+  // Reading existing totals must not wait for a slow or failed visit report.
+  void refresh();
+  void track();
+}
+void refresh();
 void track();
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){if(!sent)void track();else void refresh();}}, { signal });
+document.addEventListener('visibilitychange', resume, { signal });
+window.addEventListener('online', resume, { signal });
+const retry = window.setInterval(resume, 30000);
+cleanup(() => window.clearInterval(retry));
 });
