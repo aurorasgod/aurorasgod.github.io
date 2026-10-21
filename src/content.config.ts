@@ -14,6 +14,12 @@ const blog = defineCollection({
     publish: z.boolean().default(false),
     draft: z.boolean().default(false),
     featured: z.boolean().default(false),
+    presentation: z.enum(['standard', 'visual-essay']).default('standard'),
+    cover: z.object({
+      src: z.string(),
+      alt: z.string(),
+      caption: z.string().optional(),
+    }).optional(),
   }),
 });
 

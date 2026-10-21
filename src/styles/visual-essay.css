@@ -1,0 +1,50 @@
+/* Opt-in article treatment. Existing posts retain their reading layout. */
+.visual-essay { --essay-rule: color-mix(in srgb, var(--accent) 25%, var(--line)); }
+.visual-essay .article-header { border: 0; margin-bottom: 26px; padding-bottom: 0; }
+.visual-essay .article-header > h1 { font-size: clamp(30px, 3.6vw, 44px); line-height: 1.5; letter-spacing: -.035em; margin: 19px 0; }
+.visual-essay .article-description { max-width: 35em; line-height: 1.9; }
+.visual-essay .article-toc { top: 100px; }
+.visual-essay .essay-cover { margin: 30px 0 45px; }
+.visual-essay .essay-cover img { width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: cover; border-radius: 3px; }
+.visual-essay figcaption { font: 11px/1.85 var(--ui); color: var(--muted); margin-top: 12px; }
+.visual-essay .prose { counter-reset: essay-section; line-height: 2.05; }
+.visual-essay .prose > p { margin-bottom: 26px; }
+.visual-essay .prose h2 { position: relative; margin: 64px 0 27px; padding-top: 27px; border-top: 1px solid var(--essay-rule); font-size: 26px; line-height: 1.65; scroll-margin-top: 110px; }
+.visual-essay .prose h2::before { counter-increment: essay-section; content: counter(essay-section, decimal-leading-zero); display: block; font: 11px/1.5 var(--mono); letter-spacing: .18em; color: var(--accent); margin-bottom: 11px; }
+.visual-essay .prose h3 { scroll-margin-top: 110px; }
+.visual-essay .essay-lede { font-size: 21px; line-height: 1.95; }
+.visual-essay .prose blockquote { background: transparent; border-left: 2px solid var(--accent); margin: 34px 0; padding: 9px 0 9px 22px; font: 500 22px/1.8 var(--display); color: var(--text); }
+.visual-essay .prose .katex-display { margin: 28px 0; padding: 24px 14px; border-block: 1px solid var(--line); background: color-mix(in srgb,var(--accent) 3%,var(--bg)); border-radius: 3px; }
+.visual-essay .prose table { font: 13px/1.85 var(--ui); margin: 28px 0 14px; font-variant-numeric: tabular-nums; }
+.visual-essay .prose th { font-weight: 500; color: var(--muted); }
+.visual-essay .prose tr:last-child td { border-bottom-color: var(--essay-rule); }
+.visual-essay .prose td strong { color: var(--accent); }
+.visual-essay .prose .table-note { font: 11px/1.9 var(--ui); color: var(--muted); margin: 0 0 28px; }
+.visual-essay .essay-photo { margin: 36px 0; }
+.visual-essay .essay-photo img { width: 100%; height: auto; border: 0; border-radius: 3px; margin: 0; }
+.visual-essay .essay-map { margin: 36px 0; padding: 26px; border: 1px solid var(--essay-rule); border-radius: 4px; font-family: var(--ui); background: color-mix(in srgb,var(--accent) 3%,var(--bg)); }
+.visual-essay .essay-map .map-heading { display: block; font: 11px/1.5 var(--mono); color: var(--accent); letter-spacing: .15em; margin-bottom: 20px; }
+.visual-essay .essay-map .map-lane { display: grid; grid-template-columns: 48px 1fr 15px 1fr; gap: 12px; align-items: center; margin: 13px 0; }
+.visual-essay .essay-map .map-lane > b { font: 500 15px/1.5 var(--display); }
+.visual-essay .essay-map .map-node { display: block; padding: 14px 12px; background: var(--bg); border: 1px solid var(--line); border-radius: 3px; font-size: 12px; line-height: 1.8; }
+.visual-essay .essay-map .map-node strong { display: block; font-weight: 500; color: var(--text); }
+.visual-essay .essay-map .map-node small { display: block; color: var(--muted); font-size: 10px; margin-top: 4px; }
+.visual-essay .essay-map .map-arrow { font-size: 16px; color: var(--accent); }
+.visual-essay .essay-map figcaption { border-top: 1px solid var(--line); padding-top: 15px; margin-top: 20px; }
+.visual-essay .essay-coda { padding: 25px 0 2px; border-top: 1px solid var(--essay-rule); margin-top: 32px; }
+.visual-essay .essay-coda p { font-size: 20px; line-height: 2; margin-bottom: 20px; }
+.visual-essay .essay-sources { font: 12px/1.95 var(--ui); color: var(--muted); }
+.visual-essay .essay-sources li { margin: 13px 0; }
+@media(max-width:700px) {
+  .visual-essay .essay-cover { margin: 26px 0 31px; }
+  .visual-essay .article-header > h1 { font-size: 30px; }
+  .visual-essay .essay-lede { font-size: 19px; }
+  .visual-essay .prose h2 { font-size: 23px; margin-top: 48px; }
+  .visual-essay .prose blockquote { font-size: 19px; padding-left: 17px; }
+  .visual-essay .prose table { font-size: 11px; }
+  .visual-essay .essay-map { padding: 18px 14px; }
+  .visual-essay .essay-map .map-lane { grid-template-columns: 36px 1fr 12px 1fr; gap: 7px; }
+  .visual-essay .essay-map .map-lane > b { font-size: 12px; }
+  .visual-essay .essay-map .map-node { padding: 10px 8px; font-size: 11px; }
+  .visual-essay .essay-coda p { font-size: 18px; }
+}
