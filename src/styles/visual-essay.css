@@ -21,7 +21,8 @@
 .visual-essay .essay-lede { font-size: 21px; line-height: 1.95; }
 .visual-essay .prose blockquote { background: transparent; border-left: 2px solid var(--accent); margin: 34px 0; padding: 9px 0 9px 22px; font: 500 22px/1.8 var(--display); color: var(--text); }
 .visual-essay .prose .katex-display { margin: 28px 0; padding: 24px 14px; border-block: 1px solid var(--line); background: color-mix(in srgb,var(--accent) 3%,var(--bg)); border-radius: 3px; }
-.visual-essay .prose table { font: 13px/1.85 var(--ui); margin: 28px 0 14px; font-variant-numeric: tabular-nums; }
+.visual-essay .prose table { width: auto; max-width: 100%; font: 13px/1.85 var(--ui); margin: 28px auto 14px; font-variant-numeric: tabular-nums; }
+.visual-essay .prose :is(th, td) { text-align: center; vertical-align: middle; }
 .visual-essay .prose th { font-weight: 500; color: var(--muted); }
 .visual-essay .prose tr:last-child td { border-bottom-color: var(--essay-rule); }
 .visual-essay .prose td strong { color: var(--accent); }
