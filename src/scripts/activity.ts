@@ -41,8 +41,11 @@ function render() {
   map.querySelector('.activity-summary')!.textContent = `${totalUpdates} 次更新 · ${available?`${totalVisits} 次访问`:(loaded?'访问量暂不可用':'正在加载访问量…')}`;
 }
 let refreshing = false;
+let refreshQueued = false;
 async function refresh() {
-  if(!map || signal.aborted || refreshing) return;
+  if(!map || signal.aborted) return;
+  // A visit acknowledged during a read needs a fresh read after that one ends.
+  if(refreshing) { refreshQueued = true; return; }
   if(localPreview) { loaded=true; render(); return; }
   refreshing = true;
   try {
@@ -60,6 +63,10 @@ async function refresh() {
   if (signal.aborted) return;
   loaded=true;
   render();
+  if (refreshQueued) {
+    refreshQueued = false;
+    void refresh();
+  }
 }
 if(map) {
   const fitCalendar = () => {
