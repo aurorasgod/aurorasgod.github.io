@@ -67,23 +67,12 @@ document.addEventListener('astro:before-preparation', event => {
     }
   };
 });
-function warmNavigation() {
+function canWarm() {
   const connection = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
-  if (import.meta.env.DEV || connection?.saveData || /(^|-)2g$/.test(connection?.effectiveType || '')) return;
-  const links = [...document.querySelectorAll<HTMLAnchorElement>('[data-nav-id]')];
-  const ordered = links.sort((a, b) => Number(b.dataset.navId === 'articles') - Number(a.dataset.navId === 'articles'));
-  void (async () => {
-    for (const link of ordered) {
-      const address = new URL(link.href);
-      const key = keyFor(address);
-      if (key && address.pathname !== location.pathname) await warm(key);
-    }
-  })();
+  return !import.meta.env.DEV && !connection?.saveData && !/(^|-)2g$/.test(connection?.effectiveType || '');
 }
-document.addEventListener('astro:page-load', warmNavigation);
-warmNavigation();
 const warmIntent = (event: Event) => {
-  if (import.meta.env.DEV || !(event.target instanceof Element)) return;
+  if (!canWarm() || !(event.target instanceof Element)) return;
   const link = event.target.closest<HTMLAnchorElement>('a[data-nav-id]');
   if (!link) return;
   const address = new URL(link.href);

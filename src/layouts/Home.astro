@@ -1,5 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
+import { getImage } from 'astro:assets';
+import lake from '../../public/images/designs/alpine-lake.jpg';
 import { ArrowUpRight, RotateCcw } from '@lucide/astro';
 import Icon from '../components/Icon.astro';
 import GlassOrbit from '../components/GlassOrbit.astro';
@@ -19,6 +21,7 @@ const latest = [...posts].sort((a, b) => Number(b.data.featured) - Number(a.data
 const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
 const statusLabels = { ongoing: '进行中', planned: '计划中', complete: '已完成' };
 const canonical = new URL(import.meta.env.BASE_URL, Astro.site);
+const heroImage = await getImage({ src: lake, format: 'webp', quality: 80 });
 ---
 <!doctype html>
 <html lang="zh-CN" data-page-theme="dark" data-theme="dark" transition:animate={fade({ duration: '200ms' })}>
@@ -33,7 +36,7 @@ const canonical = new URL(import.meta.env.BASE_URL, Astro.site);
     <meta property="og:image" content={new URL(url('social.svg'), Astro.site)} />
     <link rel="icon" href={url('favicon.svg')} type="image/svg+xml" />
     <link rel="preload" href={url('avatar.jpg')} as="image" fetchpriority="high" />
-    <link rel="preload" href={url('images/designs/alpine-lake.jpg')} as="image" fetchpriority="high" />
+    <link rel="preload" href={heroImage.src} as="image" fetchpriority="high" />
     <link rel="alternate" type="application/rss+xml" title={site.title} href={url('rss.xml')} />
     <title>{site.title} · Personal Blog</title>
     <script is:inline data-astro-rerun>
@@ -62,13 +65,13 @@ const canonical = new URL(import.meta.env.BASE_URL, Astro.site);
   <body class="study study-nocturne" data-base={import.meta.env.BASE_URL} data-section="home">
     <script is:inline data-astro-rerun>document.body.dataset.motion = document.documentElement.dataset.motion || 'off';</script>
     <a class="study-skip" href="#main">跳到正文</a>
-    <HomeIntro />
+    <HomeIntro background={heroImage.src} />
     <SiteHeader active="home" />
 
     <main id="main">
       <section class="study-hero" aria-labelledby="hero-heading">
-        <div class="hero-scenery" aria-hidden="true"><img src={url('images/designs/alpine-lake.jpg')} alt="" width="2000" height="1333" fetchpriority="high" /><div class="scenery-veil"></div></div>
-        <GlassOrbit />
+        <div class="hero-scenery" aria-hidden="true"><img src={heroImage.src} alt="" width={lake.width} height={lake.height} fetchpriority="high" /><div class="scenery-veil"></div></div>
+        <GlassOrbit background={heroImage.src} />
         <div class="hero-index"><span class="hero-greeting">你好，我是 {site.fullName}</span><span>QIMAI YAN / PERSONAL JOURNAL</span></div>
         <div class="hero-person">
           <div class="portrait-stage"><a href={url('about/')} class="portrait-link" aria-label="了解 Laplace"><img class="study-avatar" src={url('avatar.jpg')} alt="Laplace 的头像" width="180" height="180" fetchpriority="high" /><span class="portrait-mark" aria-hidden="true">L.</span></a></div>

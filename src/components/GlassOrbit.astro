@@ -1,8 +1,9 @@
 ---
-import { url } from '../site';
 import '../styles/glass-orbit.css';
+interface Props { background: string; }
+const { background } = Astro.props;
 ---
-<div class="glass-orbit" data-glass-orbit data-background={url('images/designs/alpine-lake.jpg')} aria-hidden="true">
+<div class="glass-orbit" data-glass-orbit data-background={background} aria-hidden="true">
   <div class="glass-orbit-fallback"><span></span><span></span></div>
   <canvas class="glass-orbit-canvas"></canvas>
 </div>

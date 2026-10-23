@@ -67,11 +67,17 @@ if (player) {
     if (!track()) return;
     try { sessionStorage.setItem(resumeKey, JSON.stringify({ trackId: track().id, source: track().src, time: audio.readyState ? audio.currentTime : pendingTime, playing: wantsPlayback, muted: audio.muted, savedAt: Date.now() })); } catch {}
   }
+  function loadTrack() {
+    audio.preload = 'metadata';
+    if (audio.getAttribute('src') !== track().src) audio.src = track().src;
+    audio.load();
+  }
   async function startPlayback(blockedMessage = '暂时无法播放，请重试') {
     if (!track()) return;
     const request = ++playbackRequest;
     wantsPlayback = true;
     status.textContent = '加载中';
+    if (!audio.hasAttribute('src')) loadTrack();
     if (audio.error) { pendingTime = audio.currentTime || pendingTime; audio.load(); }
     try { await audio.play(); }
     catch {
@@ -99,8 +105,11 @@ if (player) {
     pendingTime = time;
     wantsPlayback = autoplay;
     audio.preload = autoplay || isPopupOpen() ? 'metadata' : 'none';
-    audio.src = track().src;
-    audio.load();
+    if (autoplay || isPopupOpen()) loadTrack();
+    else {
+      audio.removeAttribute('src');
+      audio.load();
+    }
     title.textContent = track().title;
     version.textContent = track().version;
     const attribution = track().credit;
@@ -141,7 +150,7 @@ if (player) {
     trigger.setAttribute('aria-expanded', String(opening));
     if (opening) {
       positionPopup();
-      if (track() && audio.paused && audio.readyState === 0) { audio.preload = 'metadata'; audio.load(); }
+      if (track() && audio.paused && audio.readyState === 0) loadTrack();
     } else returnFocus = popup.contains(document.activeElement);
   }
   function focusPopup(opening: boolean) {
