@@ -42,19 +42,22 @@ function render() {
 }
 let refreshing = false;
 let refreshQueued = false;
+let mapVisible = false;
+let lastRefresh = 0;
 async function refresh() {
-  if(!map || signal.aborted) return;
+  if(!map || !mapVisible || signal.aborted || document.visibilityState !== 'visible') return;
   // A visit acknowledged during a read needs a fresh read after that one ends.
   if(refreshing) { refreshQueued = true; return; }
   if(localPreview) { loaded=true; render(); return; }
   refreshing = true;
   try {
-    const response=await fetch(`${api}/api/activity`,{cache:'no-store',signal:AbortSignal.any([signal, AbortSignal.timeout(15000)])});
+    const response=await fetch(`${api}/api/activity`,{cache:'no-store',priority:'low',signal:AbortSignal.any([signal, AbortSignal.timeout(15000)])});
     if(!response.ok) throw new Error('unavailable');
     const data=await response.json();
     if (signal.aborted) return;
     visits=Object.fromEntries(data.days.map((d:{date:string;visits:number})=>[d.date,d.visits]));
     available=true;
+    lastRefresh=Date.now();
     trackingSince=data.trackingSince||null;
     map.dataset.trackingSince=trackingSince||'';
   } catch {
@@ -114,7 +117,7 @@ const delivery = createVisitDelivery(async () => {
   } catch {}
   const response = await fetch(`${api}/api/visit`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ eventId, path: pagePath }), keepalive: true,
+    body: JSON.stringify({ eventId, path: pagePath }), keepalive: true, priority: 'low',
     // Let keepalive finish a real page view even if navigation swaps the page.
     signal: AbortSignal.timeout(15000),
   });
@@ -128,10 +131,17 @@ async function track() {
 function resume() {
   if (signal.aborted || document.visibilityState !== 'visible') return;
   // Reading existing totals must not wait for a slow or failed visit report.
-  void refresh();
+  if (!available || Date.now() - lastRefresh >= 120000) void refresh();
   void track();
 }
-void refresh();
+if (map) {
+  const observer = new IntersectionObserver(entries => {
+    mapVisible = entries.some(entry => entry.isIntersecting);
+    if (mapVisible) resume();
+  }, { rootMargin: '200px' });
+  observer.observe(map);
+  cleanup(() => observer.disconnect());
+}
 void track();
 document.addEventListener('visibilitychange', resume, { signal });
 window.addEventListener('online', resume, { signal });

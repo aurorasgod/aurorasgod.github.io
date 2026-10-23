@@ -85,6 +85,7 @@ test('Standalone API supports browser preflight, writes and shared totals withou
   const preflight = await standalone.fetch(new Request(`${api}/api/visit`, { method: 'OPTIONS', headers }), env);
   assert.equal(preflight.status, 204);
   assert.equal(preflight.headers.get('Access-Control-Allow-Origin'), headers.Origin);
+  assert.equal(preflight.headers.get('Access-Control-Max-Age'), '3600');
   const body = JSON.stringify({ eventId: crypto.randomUUID(), path: '/research/' });
   for (const counted of [true, false]) {
     const response = await standalone.fetch(new Request(`${api}/api/visit`, { method: 'POST', headers, body }), env);

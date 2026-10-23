@@ -6,7 +6,7 @@ export async function activityAPI(request, env, allowedPaths, now = new Date()) 
   if(origin && allowedOrigin) headers['Access-Control-Allow-Origin']=origin;
   const reply=(body,status=200)=>Response.json(body,{status,headers});
   if(!allowedOrigin) return reply({error:'origin_not_allowed'},403);
-  if(request.method==='OPTIONS')return new Response(null,{status:204,headers:{...headers,'Access-Control-Allow-Methods':'GET, POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type'}});
+  if(request.method==='OPTIONS')return new Response(null,{status:204,headers:{...headers,'Access-Control-Allow-Methods':'GET, POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type','Access-Control-Max-Age':'3600'}});
   if(url.pathname==='/api/activity' && request.method==='GET'){
     const start=activityWindow(now)[0].date, today=dayKey(now);
     const result=await env.DB.prepare('SELECT day AS date, visits FROM daily_visits WHERE day >= ? AND day <= ? ORDER BY day').bind(start,today).all();
