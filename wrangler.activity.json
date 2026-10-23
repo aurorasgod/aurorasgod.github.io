@@ -1,0 +1,16 @@
+{
+  "name": "laplace-activity",
+  "main": "worker/standalone.mjs",
+  "account_id": "8401b2e402df5d5eda262b76ca80f3a9",
+  "compatibility_date": "2026-10-06",
+  "workers_dev": true,
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "laplace-visits",
+      "database_id": "90b0d2c9-1b11-4782-b3ff-67bb6b1a8e44",
+      "migrations_dir": "drizzle"
+    }
+  ],
+  "observability": { "enabled": true }
+}

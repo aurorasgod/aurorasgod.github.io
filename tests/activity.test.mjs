@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
 import { readFileSync, readdirSync } from 'node:fs';
 import { activityAPI } from '../worker/activity.mjs';
+import standalone from '../worker/standalone.mjs';
 import { activityWindow, activityMonths, dayKey, contentActivity, activityLevel } from '../src/lib/activity.mjs';
 function database(){
   const db=new DatabaseSync(':memory:');
@@ -76,6 +77,23 @@ test('GitHub project, research and library pages count independently of bundled 
 });
 
 const { createVisitDelivery } = await import('../src/lib/visit-delivery.mjs');
+
+test('Standalone API supports browser preflight, writes and shared totals without static assets', async () => {
+  const env = { DB: database() };
+  const api = 'https://laplace-activity.aurorasgod.workers.dev';
+  const headers = { Origin: 'https://aurorasgod.github.io', 'Content-Type': 'application/json' };
+  const preflight = await standalone.fetch(new Request(`${api}/api/visit`, { method: 'OPTIONS', headers }), env);
+  assert.equal(preflight.status, 204);
+  assert.equal(preflight.headers.get('Access-Control-Allow-Origin'), headers.Origin);
+  const body = JSON.stringify({ eventId: crypto.randomUUID(), path: '/research/' });
+  for (const counted of [true, false]) {
+    const response = await standalone.fetch(new Request(`${api}/api/visit`, { method: 'POST', headers, body }), env);
+    assert.equal((await response.json()).counted, counted);
+  }
+  const response = await standalone.fetch(new Request(`${api}/api/activity`, { headers }), env);
+  assert.equal(response.headers.get('Access-Control-Allow-Origin'), headers.Origin);
+  assert.equal((await response.json()).days[0].visits, 1);
+});
 test('A failed visit can be retried; concurrent and later triggers do not duplicate it', async () => {
   let calls = 0;
   let release;

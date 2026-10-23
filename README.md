@@ -95,7 +95,16 @@ GitHub 静态版使用 `npm run build:static`；工作流自动注入 GitHub 地
 
 近 26 周的日历使用北京时间。公开文章的发布日期与修订日期自动生成更新记录；同篇同日只记一次。修订正文后应更新 `updatedDate`。没有文章时更新次数为 0，不使用演示数据。
 
-访问为全站页面访问次数（PV），由 Cloudflare Worker + D1 持久保存，所有访客共享。GitHub Pages 调用既有 Sites API；新文章、项目、科研成果和项目资料库地址无需为统计单独重新部署 Worker。仅保存每日总数及 24 小时随机事件 ID，不保存 IP、身份或页面路径。同一标签页 30 秒内重复刷新同一页面不重计。热力图读取与访问上报独立进行；网络失败时，页面在前台每 30 秒或网络恢复后重试，同一次访问沿用同一事件 ID，避免重复计数。
+访问为全站页面访问次数（PV），由 Cloudflare Worker + D1 持久保存，所有访客共享。GitHub Pages 调用独立的 `https://laplace-activity.aurorasgod.workers.dev` API；新文章、项目、科研成果和项目资料库地址无需为统计单独重新部署 Worker。仅保存每日总数及 24 小时随机事件 ID，不保存 IP、身份或页面路径。同一标签页 30 秒内重复刷新同一页面不重计。热力图读取与访问上报独立进行；网络失败时，页面在前台每 30 秒或网络恢复后重试，同一次访问沿用同一事件 ID，避免重复计数。
+
+独立统计服务部署（先执行迁移，再发布）：
+
+```bash
+npx wrangler d1 migrations apply DB --remote --config wrangler.activity.json
+npx wrangler deploy --config wrangler.activity.json
+```
+
+配置文件绑定账号下的 `laplace-visits` 数据库，不依赖 Sites 构建产物。旧 Sites API 返回 403，历史数据尚未迁入；新数据库从恢复上线后开始记录实际访问。
 
 颜色权重为 `4 × 更新 + log2(PV + 1)`，按 0、2、4、7 分档。强调色跟随深浅主题。统计开始前的日期显示“访问未统计”；API 故障不会使用本地模拟数据。
 
