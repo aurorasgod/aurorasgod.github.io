@@ -58,6 +58,18 @@ if (player) {
     }
   }
 
+  function schedulePreloadAfterOpening() {
+    const root = document.documentElement;
+    if (root.dataset.opening !== 'on') {
+      scheduleIdlePreload();
+      return;
+    }
+    // Keep the first audio request out of the opening animation and WebGL startup.
+    const started = Number(root.dataset.openingStarted);
+    const elapsed = Number.isFinite(started) ? performance.now() - started : 0;
+    setTimeout(scheduleIdlePreload, Math.max(0, 2800 - elapsed));
+  }
+
   function updateProgress() {
     current.textContent = format(audio.readyState ? audio.currentTime : pendingTime);
     duration.textContent = format(audio.duration);
@@ -314,7 +326,7 @@ if (player) {
     audio.preload = 'metadata';
     void startPlayback('点击继续播放');
   } else {
-    scheduleIdlePreload();
+    schedulePreloadAfterOpening();
   }
   window.addEventListener('pagehide', () => { savePlayback(); leaving = true; });
   window.addEventListener('pageshow', () => { leaving = false; });
