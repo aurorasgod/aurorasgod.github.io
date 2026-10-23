@@ -41,6 +41,23 @@ if (player) {
   const track = () => tracks[index];
   const format = (seconds: number) => Number.isFinite(seconds) ? `${Math.floor(seconds / 60)}:${Math.floor(seconds % 60).toString().padStart(2, '0')}` : '--:--';
 
+  function scheduleIdlePreload() {
+    const connection = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
+    if (connection?.saveData || /(^|-)2g$/.test(connection?.effectiveType || '')) return;
+    const preloadIndex = index;
+    const warm = () => {
+      if (!track() || index !== preloadIndex || wantsPlayback || !audio.paused || audio.hasAttribute('src')) return;
+      audio.preload = 'auto';
+      audio.src = track().src;
+      audio.load();
+    };
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(warm, { timeout: 2000 });
+    } else {
+      setTimeout(warm, 1200);
+    }
+  }
+
   function updateProgress() {
     current.textContent = format(audio.readyState ? audio.currentTime : pendingTime);
     duration.textContent = format(audio.duration);
@@ -296,6 +313,8 @@ if (player) {
   if (track() && resumePlaying) {
     audio.preload = 'metadata';
     void startPlayback('点击继续播放');
+  } else {
+    scheduleIdlePreload();
   }
   window.addEventListener('pagehide', () => { savePlayback(); leaving = true; });
   window.addEventListener('pageshow', () => { leaving = false; });
