@@ -11,10 +11,20 @@ const { background } = Astro.props;
   import { onPageLoad } from '../scripts/page-lifecycle';
   onPageLoad(({ signal }) => {
   const host = document.querySelector<HTMLElement>('[data-glass-orbit]');
-  if (host) {
+  if (!host) return;
+  const start = () => {
+    if (signal.aborted) return;
     import('../scripts/glass-orbit').then(({ createGlassOrbit }) => { if (!signal.aborted) return createGlassOrbit(host, signal); }).catch(() => {
       host.dataset.glassState = 'fallback';
     });
+  };
+  if (document.documentElement.dataset.opening === 'on') {
+    // WebGL setup is expensive; keep it out of the first letter and shutter frames.
+    const started = Number(document.documentElement.dataset.openingStarted);
+    const elapsed = Number.isFinite(started) ? performance.now() - started : 0;
+    setTimeout(start, Math.max(0, 2800 - elapsed));
+  } else {
+    start();
   }
   });
 </script>

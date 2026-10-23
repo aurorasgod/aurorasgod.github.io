@@ -10,7 +10,7 @@ html[data-opening=on] .intro-skip { display: grid; position: fixed; top: 22px; r
 .intro-signature { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 24px; padding: 24px; color: #eef2e9; animation: signature-depart .45s cubic-bezier(.7,0,.3,1) 1.05s both; }
 .intro-kicker { font: 11px Consolas, monospace; color: #b8cbb8; animation: signature-arrive .65s ease .15s both; }
 .intro-wordmark { display: flex; align-items: baseline; font: 500 100px/1.05 'Fraunces Local', Georgia, serif; }
-.intro-wordmark > span { display: inline-block; transform-origin: center bottom; animation: letter-arrive .8s cubic-bezier(.17,.8,.25,1.12) both; animation-delay: calc(.12s + var(--i) * .055s); }
+.intro-wordmark > span { display: inline-block; transform-origin: center bottom; will-change: transform, opacity; animation: letter-arrive .8s cubic-bezier(.17,.8,.25,1.12) both; animation-delay: calc(.12s + var(--i) * .055s); }
 .intro-wordmark > .intro-period { color: var(--accent); }
 .intro-rule { display: flex; align-items: center; gap: 22px; color: #c3d1c0; font: 10px Consolas, monospace; }
 .intro-rule i { width: 65px; height: 1px; background: var(--accent-line); transform-origin: right; animation: rule-extend .65s ease .45s both; }
@@ -20,7 +20,7 @@ html[data-opening=on] .intro-skip { display: grid; position: fixed; top: 22px; r
 html[data-opening=on] .hero-name, html[data-opening=on] .hero-introduction { animation: hero-unveil .8s ease 1.65s both; }
 @keyframes shutter-reveal { from { transform: translateY(0); } to { transform: translateY(-101%); } }
 @keyframes shutter-photo { from { transform: translateY(9%) scale(1.08); } to { transform: none; } }
-@keyframes letter-arrive { from { opacity: 0; transform: translateY(48px) rotate(9deg) scale(.8); filter: blur(7px); } 65% { opacity: 1; filter: blur(0); } to { opacity: 1; transform: none; filter: blur(0); } }
+@keyframes letter-arrive { from { opacity: 0; transform: translate3d(0, 48px, 0) rotate(9deg) scale(.8); } 65% { opacity: 1; } to { opacity: 1; transform: none; } }
 @keyframes signature-arrive { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @keyframes signature-depart { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(-40px); } }
 @keyframes rule-extend { from { transform: scaleX(0); } to { transform: scaleX(1); } }
