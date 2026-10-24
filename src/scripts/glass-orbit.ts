@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { orbitFrame } from '../lib/orbit-layout.mjs';
+import type { OrbitPreview } from './orbit-preview';
 
 function roundedCard(width: number, height: number, radius: number) {
   const shape = new THREE.Shape();
@@ -75,8 +76,8 @@ function cardEtching() {
   return texture;
 }
 
-export async function createGlassOrbit(host: HTMLElement, signal?: AbortSignal) {
-  const canvas = host.querySelector<HTMLCanvasElement>('canvas');
+export async function createGlassOrbit(host: HTMLElement, signal?: AbortSignal, preview?: OrbitPreview) {
+  const canvas = host.querySelector<HTMLCanvasElement>('.glass-orbit-canvas');
   const hero = host.closest<HTMLElement>('.study-hero');
   const portrait = hero?.querySelector<HTMLElement>('.portrait-link');
   const avatar = portrait?.querySelector<HTMLImageElement>('.study-avatar');
@@ -287,8 +288,13 @@ export async function createGlassOrbit(host: HTMLElement, signal?: AbortSignal) 
 
   function render() {
     if (!ready || disposed || lost) return;
+    if (preview && !preview.ownedByRenderer) {
+      elapsed = preview.time;
+      preview.ownedByRenderer = true;
+    }
     poseCards();
     renderer.render(scene, camera);
+    if (preview) { preview.time = elapsed; preview.draw(); }
     if (host.dataset.glassState !== 'ready') host.dataset.glassState = 'ready';
   }
 
