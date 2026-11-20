@@ -85,6 +85,7 @@ GitHub 静态版使用 `npm run build:static`；工作流自动注入 GitHub 地
 - `src/layouts/Home.astro`：首页；`src/data/home.ts`：首页简介与音乐。
 - `src/data/research.ts`：科研成果，目前留空；首页与 `/research/` 共用。
 - `src/pages/about/index.astro`：关于。
+- `src/data/academic.ts`：学术主页的全部内容，中英文各写一份（英文 `/academic/` 为默认，中文 `/academic/zh/`）；论文列表取自 `src/data/research.ts`。
 - `src/content/projects/`：项目介绍。
 - `src/styles/global.css` / `notebook.css`：配色与排版。
 - `public/avatar.jpg`：头像。

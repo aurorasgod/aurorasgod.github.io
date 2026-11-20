@@ -28,7 +28,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
   <a class="skip-link" href="#main">跳到正文</a>
   <SiteHeader active={active} />
   <main id="main"><slot/></main>
-  <footer class="site-footer"><div><span class="footer-brand">Laplace<span>·</span></span><span class="footer-caption">© {new Date().getFullYear()} {site.fullName}</span></div><div class="footer-links"><a href={url('rss.xml')}>RSS <Icon name="rss" size={14}/></a><a href={url('about/')}>关于</a></div></footer>
+  <footer class="site-footer"><div><span class="footer-brand">Laplace<span>·</span></span><span class="footer-caption">© {new Date().getFullYear()} {site.fullName}</span></div><div class="footer-links"><a href={url('rss.xml')}>RSS <Icon name="rss" size={14}/></a><a href={url('about/')}>关于</a><a href={url('academic/')} data-astro-reload>学术主页</a></div></footer>
   <dialog id="search-dialog" class="search-dialog" aria-labelledby="search-title">
     <div class="search-dialog-top"><h2 id="search-title">搜索笔记</h2><button class="icon-button" data-close-search aria-label="关闭搜索"><Icon name="close"/></button></div>
     <label class="dialog-search-input"><Icon name="search"/><span class="sr-only">关键词</span><input id="global-search" type="search" placeholder="搜索文章，或输入 #标签…" autocomplete="off"/></label>

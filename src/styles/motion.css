@@ -1,0 +1,80 @@
+/* Motion added on top of the existing design. Everything here is decorative:
+   the homepage switch (body[data-motion]) and prefers-reduced-motion both turn it off. */
+
+/* ---------- Shared: header ---------- */
+.chrome-nav > a::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; border-radius: 1px; background: var(--accent); opacity: .45; transform: scaleX(0); transform-origin: left; transition: transform .25s cubic-bezier(.2,.8,.2,1); pointer-events: none; }
+.chrome-nav > a[aria-current]::after { display: none; }
+.chrome-brand > span { display: inline-block; }
+.theme-moon, .theme-sun { transition: transform .45s cubic-bezier(.2,.8,.2,1); }
+@media (hover: hover) and (pointer: fine) {
+  .chrome-nav > a:not([aria-current]):hover::after { transform: scaleX(1); }
+  .chrome-brand:hover > span { animation: brand-dot .55s cubic-bezier(.3,.7,.3,1); }
+  .chrome-theme:hover :is(.theme-moon, .theme-sun) { transform: rotate(-22deg); }
+}
+@keyframes brand-dot { 40% { transform: translateY(-7px); } 70% { transform: translateY(1px); } }
+
+/* ---------- Shared: the new theme spreads out from the switch ---------- */
+html.theme-switching * { view-transition-name: none !important; }
+html.theme-switching::view-transition-old(*) { animation: none; mix-blend-mode: normal; }
+html.theme-switching::view-transition-new(*) { animation: theme-reveal .6s cubic-bezier(.4,0,.2,1) both; mix-blend-mode: normal; }
+@keyframes theme-reveal {
+  from { clip-path: circle(0 at var(--theme-x, 50%) var(--theme-y, 0)); }
+  to { clip-path: circle(var(--theme-r, 150vmax) at var(--theme-x, 50%) var(--theme-y, 0)); }
+}
+
+/* ---------- Homepage ---------- */
+/* Items follow their section in, one after another. `backwards` leaves hover transforms free afterwards. */
+.study[data-motion=on] .reveal.is-visible [data-stagger] { animation: content-reveal .6s cubic-bezier(.2,.7,.3,1) backwards; animation-delay: calc(var(--i, 0) * 90ms + 90ms); }
+.study[data-motion=on] .reveal.is-visible .activity-cell { animation: cell-in .45s cubic-bezier(.2,.7,.3,1) backwards; animation-delay: calc(var(--c, 0) * 22ms + 220ms); }
+@keyframes cell-in { from { opacity: 0; transform: scale(.35); } }
+
+.study[data-motion=on] .hero-foot > a svg { animation: cue-bob 2.4s ease-in-out infinite; }
+@keyframes cue-bob { 0%, 100% { transform: rotate(90deg); } 50% { transform: rotate(90deg) translateX(4px); } }
+
+.study-post-link h3 { transition: transform .3s cubic-bezier(.2,.8,.2,1); }
+.study-project::before { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .3s; background: radial-gradient(260px circle at var(--spot-x, 50%) var(--spot-y, 50%), color-mix(in srgb, var(--accent) 13%, transparent), transparent 70%); }
+@media (hover: hover) and (pointer: fine) {
+  .study-post-link:hover h3 { transform: translateX(6px); }
+  .study-project:hover::before { opacity: 1; }
+}
+
+/* ---------- Inner pages ---------- */
+.reading-progress { display: none; }
+.article-toc nav > a::before { content: ''; position: absolute; left: -18px; top: 3px; bottom: 3px; width: 3px; background: var(--accent); transform: scaleY(0); transition: transform .25s cubic-bezier(.2,.8,.2,1); }
+.article-toc nav > a.active::before { transform: scaleY(1); }
+.post-content h3 a { background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat; transition: background-size .35s cubic-bezier(.2,.8,.2,1), color .2s; }
+@media (hover: hover) and (pointer: fine) {
+  .post-content h3 a:hover { background-size: 100% 1px; }
+  .read-link > svg { transition: transform .25s cubic-bezier(.2,.8,.2,1); }
+  .read-link:hover > svg { transform: translate(3px, -3px); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  body:not(.study) :is(.page-heading, .about-heading, .article-back, .article-header, .paper-reading-heading) { animation: rise-in .6s cubic-bezier(.2,.7,.3,1) backwards; }
+  body:not(.study) :is(.archive-controls, .category-tabs, .archive-summary, .essay-cover, .mobile-toc, .prose, .article-toc, .research-content, .paper-search, .pdf-reader) { animation: rise-in .6s cubic-bezier(.2,.7,.3,1) .12s backwards; }
+  /* Rows are re-inserted when the archive is filtered, so they only stagger until the first interaction. */
+  .archive-posts:not([data-settled]) .post-row, .project-row, .paper-list > li, .research-list > li { animation: rise-in .55s cubic-bezier(.2,.7,.3,1) backwards; animation-delay: calc(var(--row, 0) * 80ms + 200ms); }
+  :is(.post-row, .project-row, .paper-list > li, .research-list > li):nth-child(2) { --row: 1; }
+  :is(.post-row, .project-row, .paper-list > li, .research-list > li):nth-child(3) { --row: 2; }
+  :is(.post-row, .project-row, .paper-list > li, .research-list > li):nth-child(4) { --row: 3; }
+  :is(.post-row, .project-row, .paper-list > li, .research-list > li):nth-child(5) { --row: 4; }
+  :is(.post-row, .project-row, .paper-list > li, .research-list > li):nth-child(n + 6) { --row: 5; }
+
+  /* Project illustrations draw themselves. */
+  .project-visual svg > :not(.sketch-static, .sketch-fill) { animation: stroke-draw 1.5s cubic-bezier(.4,0,.2,1) backwards; animation-delay: calc(var(--row, 0) * 80ms + 350ms); }
+  /* Dashed lines and solid marks cannot be drawn with a dash offset, so they fade in once the outline is there. */
+  .project-visual svg > :is(.sketch-static, .sketch-fill) { animation: sketch-fade .6s ease backwards; animation-delay: calc(var(--row, 0) * 80ms + 1300ms); }
+
+  @supports (animation-timeline: scroll()) {
+    .reading-progress { display: block; position: fixed; top: 79px; left: 0; right: 0; z-index: 41; height: 2px; background: var(--accent); transform: scaleX(0); transform-origin: 0 50%; animation: reading-progress linear both; animation-timeline: scroll(root block); pointer-events: none; }
+    @media (max-width: 700px) { .reading-progress { top: 69px; } }
+  }
+}
+@keyframes rise-in { from { opacity: 0; transform: translateY(14px); } }
+@keyframes stroke-draw { from { stroke-dasharray: 1; stroke-dashoffset: 1; } to { stroke-dasharray: 1; stroke-dashoffset: 0; } }
+@keyframes sketch-fade { from { opacity: 0; } }
+@keyframes reading-progress { to { transform: scaleX(1); } }
+
+@media (prefers-reduced-motion: reduce) {
+  html.theme-switching::view-transition-new(*) { animation: none; }
+}

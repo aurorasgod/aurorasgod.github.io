@@ -7,6 +7,10 @@ function readingTheme() {
   try { const saved = localStorage.getItem('field-notes-theme'); if (saved === 'dark' || saved === 'light') return saved; } catch {}
   return systemTheme.matches ? 'dark' : 'light';
 }
+function motionAllowed() {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
+  try { return localStorage.getItem('home-study-motion') !== 'off'; } catch { return true; }
+}
 function refreshTheme() {
   const mode = currentTheme();
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', palettes[mode].bg);
@@ -29,10 +33,22 @@ systemTheme.addEventListener('change', event => {
 });
 onPageLoad(({ signal }) => {
   refreshTheme();
-  document.querySelector('[data-theme-toggle]')?.addEventListener('click', () => {
+  document.querySelector<HTMLElement>('[data-theme-toggle]')?.addEventListener('click', event => {
+    const root = document.documentElement;
     const next = currentTheme() === 'dark' ? 'light' : 'dark';
-    document.documentElement.dataset.theme = next;
-    try { localStorage.setItem('field-notes-theme', next); } catch {}
-    refreshTheme();
+    const apply = () => {
+      root.dataset.theme = next;
+      try { localStorage.setItem('field-notes-theme', next); } catch {}
+      refreshTheme();
+    };
+    if (!document.startViewTransition || !motionAllowed()) { apply(); return; }
+    // The new theme spreads out from the button as a growing circle (styles in motion.css).
+    const bounds = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    const x = bounds.left + bounds.width / 2, y = bounds.top + bounds.height / 2;
+    root.style.setProperty('--theme-x', `${x}px`);
+    root.style.setProperty('--theme-y', `${y}px`);
+    root.style.setProperty('--theme-r', `${Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y))}px`);
+    root.classList.add('theme-switching');
+    document.startViewTransition(apply).finished.finally(() => root.classList.remove('theme-switching'));
   }, { signal });
 });

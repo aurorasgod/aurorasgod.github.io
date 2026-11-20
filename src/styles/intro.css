@@ -26,6 +26,14 @@ html[data-opening=on] .hero-name, html[data-opening=on] .hero-introduction { ani
 @keyframes rule-extend { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @keyframes hero-unveil { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 @keyframes intro-finish { 0%, 99% { visibility: visible; } 100% { visibility: hidden; } }
+:root[data-theme=light] .intro-skip { color: #2b3530; background: #f5f6f4b8; border-color: #24382c2e; }
+:root[data-theme=light] .intro-shutter { background: #eef2ee; border-right-color: #24382c14; }
+:root[data-theme=light] .intro-shutter:nth-child(even) { background: #e7ede8; }
+:root[data-theme=light] .intro-shutter img { opacity: .26; }
+:root[data-theme=light] .intro-shutter::after { background: #f5f6f44d; }
+:root[data-theme=light] .intro-signature { color: #242b28; }
+:root[data-theme=light] .intro-kicker, :root[data-theme=light] .intro-rule { color: #5c6b62; }
+:root[data-theme=light] .intro-signature p { color: #66756c; }
 @media(max-width:700px) { .intro-wordmark { font-size: 64px; } .intro-signature { gap: 21px; } .intro-kicker { font-size: 9px; } .intro-rule i { width: 35px; } .intro-signature p { font-size: 12px; } }
 @media(max-width:370px) { .intro-wordmark { font-size: 56px; } }
 @media(prefers-reduced-motion:reduce) { html[data-opening=on] .intro-sequence, html[data-opening=on] .intro-skip { display: none; } }

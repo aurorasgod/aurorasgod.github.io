@@ -226,6 +226,11 @@ export async function createGlassOrbit(host: HTMLElement, signal?: AbortSignal, 
     markMesh.position.set(avatarRadius - markWidth / 2, -avatarRadius + markWidth / 2, .1);
   }
 
+  function applyTheme() {
+    // The etching texture is pale gold; multiplying it gives a bronze line that reads on bright glass.
+    etchingMaterial.color.set(document.documentElement.dataset.theme === 'dark' ? '#ffffff' : '#8a7a55');
+  }
+
   function drawBackdrop() {
     const nextWidth = Math.min(1920, Math.round(width * 1.25));
     const nextHeight = Math.round(nextWidth * height / width);
@@ -352,6 +357,7 @@ export async function createGlassOrbit(host: HTMLElement, signal?: AbortSignal, 
     const renderHeight = Math.round(height * ratio / pixelStep) * pixelStep;
     // Keep all transmission buffers on integer pixels, including fractional OS scaling.
     if (canvas!.width !== renderWidth || canvas!.height !== renderHeight) renderer.setSize(renderWidth, renderHeight, false);
+    applyTheme();
     drawBackdrop();
     render();
   }

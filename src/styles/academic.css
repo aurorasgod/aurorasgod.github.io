@@ -1,0 +1,95 @@
+@import './fonts.css';
+
+/* The academic page: one sheet, read top to bottom like a CV. Light only, no motion, prints cleanly. */
+.academic {
+  --ac-sans: 'Noto Sans SC Variable', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --ac-serif: 'Fraunces Local', 'Noto Serif SC Local', 'Songti SC', 'SimSun', Georgia, serif;
+  margin: 0; padding: 40px 20px 56px; background: var(--bg); color: var(--text);
+  font: 17px/1.9 var(--ac-sans); -webkit-font-smoothing: antialiased; color-scheme: light;
+}
+.academic *, .academic *::before, .academic *::after { box-sizing: border-box; }
+.academic :where(h1, h2, h3, p, ul, ol, dl, dd) { margin: 0; padding: 0; }
+.academic :where(ul, ol) { list-style: none; }
+.academic a { color: var(--accent); text-decoration: underline; text-decoration-color: var(--accent-line); text-decoration-thickness: 1px; text-underline-offset: 4px; }
+.academic a:hover { text-decoration-color: currentColor; }
+.academic :is(a, button):focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+
+.ac-sheet { max-width: 920px; margin: 0 auto; padding: 28px 64px 36px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; }
+
+.ac-top { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 6px 24px; font-size: 14px; }
+.ac-languages { display: flex; gap: 14px; margin-right: auto; }
+.ac-languages strong { font-weight: 500; color: var(--text); }
+.ac-top a, .ac-top button { color: var(--muted); }
+.ac-top button { padding: 0; border: 0; background: none; font: inherit; cursor: pointer; text-decoration: underline; text-decoration-color: var(--line); text-decoration-thickness: 1px; text-underline-offset: 4px; }
+.ac-top a { text-decoration-color: var(--line); }
+.ac-top :is(a, button):hover { color: var(--accent); }
+
+.ac-intro { padding: 28px 0 40px; }
+.ac-intro.has-photo { display: grid; grid-template-columns: minmax(0, 1fr) 200px; gap: 48px; align-items: start; }
+.ac-intro h1 { font: 600 46px/1.25 var(--ac-serif); letter-spacing: .04em; }
+.ac-intro h1 > span { margin-left: 18px; font: italic 400 26px/1.25 var(--ac-serif); letter-spacing: 0; color: var(--muted); }
+.ac-intro h1 > span:lang(zh) { font-style: normal; font-size: 24px; letter-spacing: .06em; }
+.ac-affiliation { margin-top: 14px; font-size: 19px; font-weight: 500; }
+.ac-position { color: var(--muted); }
+.ac-bio { margin-top: 18px; max-width: 40em; text-wrap: pretty; }
+.ac-position + .ac-bio { margin-top: 26px; }
+.ac-links { display: flex; flex-wrap: wrap; gap: 6px 28px; margin-top: 24px; }
+.ac-photo { width: 200px; height: auto; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 4px; border: 1px solid var(--line); }
+
+/* Section name in the margin, entries beside it. */
+.ac-section { display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 0 36px; padding: 30px 0; border-top: 1px solid var(--line); }
+.ac-section > h2 { font: 600 21px/1.6 var(--ac-serif); letter-spacing: .06em; }
+
+.ac-interests > div { display: grid; grid-template-columns: 6.5em minmax(0, 1fr); gap: 0 12px; }
+.ac-interests > div + div { margin-top: 8px; }
+.ac-interests dt { font-weight: 500; }
+
+.ac-entries > li + li { margin-top: 22px; }
+.ac-entry-head { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; }
+.ac-entry-head h3 { font: 500 18px/1.7 var(--ac-sans); text-wrap: pretty; }
+.ac-period { flex: none; font-size: 15px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ac-subtitle, .ac-detail, .ac-venue { color: var(--muted); }
+.ac-venue { font-style: italic; }
+.ac-detail { max-width: 40em; }
+.ac-entry-links { display: flex; flex-wrap: wrap; gap: 4px 22px; margin-top: 2px; font-size: 16px; }
+
+.ac-footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; padding-top: 24px; border-top: 1px solid var(--line); font-size: 14px; color: var(--faint); }
+
+/* English runs longer per label and needs less leading than Chinese. */
+.academic:lang(en) { line-height: 1.75; }
+.academic:lang(en) .ac-intro h1, .academic:lang(en) .ac-section > h2 { letter-spacing: 0; }
+.academic:lang(en) .ac-interests > div { grid-template-columns: 10.5em minmax(0, 1fr); }
+.academic:lang(en) .ac-entry-head h3 { line-height: 1.5; }
+.academic:lang(en) .ac-entries > li > p { margin-top: 2px; }
+
+@media (max-width: 760px) {
+  .academic:lang(en) .ac-interests > div { grid-template-columns: minmax(0, 1fr); }
+  .academic { padding: 0; font-size: 16px; }
+  .ac-sheet { padding: 18px 22px 28px; border: 0; border-radius: 0; }
+  .ac-intro { padding: 22px 0 30px; }
+  .ac-intro.has-photo { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .ac-photo { width: 140px; grid-row: 1; }
+  .ac-intro h1 { font-size: 36px; }
+  .ac-intro h1 > span { display: block; margin: 4px 0 0; font-size: 21px; }
+  .ac-affiliation { font-size: 17px; }
+  .ac-section { grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 24px 0; }
+  .ac-entry-head { flex-direction: column; gap: 0; }
+  .ac-interests > div { grid-template-columns: minmax(0, 1fr); }
+  .ac-interests > div + div { margin-top: 12px; }
+}
+
+@media print {
+  @page { margin: 16mm 15mm; }
+  .academic { padding: 0; background: #fff; font-size: 11.5pt; line-height: 1.75; }
+  .ac-sheet { max-width: none; padding: 0; border: 0; }
+  .ac-top { display: none; }
+  .ac-intro { padding: 0 0 20pt; }
+  .ac-intro h1 { font-size: 26pt; }
+  .ac-section { padding: 14pt 0; grid-template-columns: 78pt minmax(0, 1fr); gap: 0 18pt; break-inside: auto; }
+  .ac-entries > li { break-inside: avoid; }
+  .ac-entries > li + li { margin-top: 10pt; }
+  .academic a { color: inherit; text-decoration: none; }
+  /* Printed pages cannot be clicked, so outbound links show their address. */
+  .ac-links a[href^="http"]::after, .ac-entry-links a[href^="http"]::after { content: '（' attr(href) '）'; font-size: 9.5pt; color: #555; }
+  .academic:lang(en) :is(.ac-links, .ac-entry-links) a[href^="http"]::after { content: ' (' attr(href) ')'; }
+}

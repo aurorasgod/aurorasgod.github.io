@@ -76,6 +76,8 @@ if (archive) {
     empty.hidden = visible > 0;
     clear.hidden = category === 'all' && !query && !tag && sort.value === 'newest';
     if (updateUrl) {
+      // Rows are re-inserted below; stop their entrance animation from replaying on every keystroke.
+      list.dataset.settled = 'true';
       const address = new URL(location.href);
       address.search = '';
       if (category !== 'all') address.searchParams.set('category', category);

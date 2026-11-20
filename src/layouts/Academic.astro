@@ -1,0 +1,123 @@
+---
+// The academic homepage in one language: English at /academic/ (default), Chinese at /academic/zh/.
+// It is meant to be shared on its own: no music player, no animation, no scripts of its own beyond
+// the print button, light theme only. Content lives in src/data/academic.ts.
+import '../styles/academic.css';
+import { academic, academicLabels, localize, type Lang } from '../data/academic';
+import { researchResults } from '../data/research';
+import { palettes } from '../data/palette';
+import { site, url } from '../site';
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+
+const content = localize(academic, lang);
+const labels = localize(academicLabels, lang);
+const paths = { en: 'academic/', zh: 'academic/zh/' };
+const other: Lang = lang === 'en' ? 'zh' : 'en';
+const htmlLang = { en: 'en', zh: 'zh-CN' };
+const colors = `:root{${Object.entries(palettes.light).map(([key, value]) => `--${key}:${value}`).join(';')}}`;
+const absolute = (path: string) => new URL(url(path), Astro.site);
+const title = `${content.name} · ${labels.pageTitle}`;
+const description = lang === 'en' ? `${content.name} (${content.alternateName}), ${content.affiliation}. ${content.position}.` : `${content.name}（${content.alternateName}），${content.affiliation}。${content.position}。`;
+const email = content.email || site.email;
+const href = (target: string) => /^https?:/.test(target) ? target : url(target);
+const external = (target: string) => /^https?:/.test(target) ? { target: '_blank', rel: 'noopener noreferrer' } : {};
+const sections = [
+  { id: 'education', title: labels.education, entries: content.education },
+  { id: 'experience', title: labels.experience, entries: content.experience },
+  { id: 'awards', title: labels.awards, entries: content.awards },
+  { id: 'projects', title: labels.projects, entries: content.projects },
+].filter(section => section.entries.length);
+---
+<!doctype html>
+<html lang={htmlLang[lang]}>
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" /><meta name="theme-color" content={palettes.light.bg} />
+  <meta name="description" content={description} />
+  <style is:inline set:html={colors} />
+  <link rel="icon" href={url('favicon.svg')} type="image/svg+xml" />
+  <link rel="canonical" href={absolute(paths[lang])} />
+  <link rel="alternate" hreflang="en" href={absolute(paths.en)} /><link rel="alternate" hreflang="zh-CN" href={absolute(paths.zh)} /><link rel="alternate" hreflang="x-default" href={absolute(paths.en)} />
+  <meta property="og:title" content={title} /><meta property="og:description" content={description} />
+  <meta property="og:type" content="profile" /><meta property="og:url" content={absolute(paths[lang])} />
+  <title>{title}</title>
+</head>
+<body class="academic" data-standalone-page>
+  <div class="ac-sheet">
+    <nav class="ac-top" aria-label={labels.tools}>
+      <span class="ac-languages">
+        {lang === 'en' ? <strong aria-current="page">English</strong> : <a href={url(paths.en)} lang="en" hreflang="en">English</a>}
+        {lang === 'zh' ? <strong aria-current="page">中文</strong> : <a href={url(paths.zh)} lang="zh-CN" hreflang="zh-CN">中文</a>}
+      </span>
+      <a href={url()}>{labels.blog}</a>
+      <button type="button" onclick="window.print()">{labels.print}</button>
+    </nav>
+
+    <main>
+      <header class:list={['ac-intro', { 'has-photo': content.photo }]}>
+        <div>
+          <h1>{content.name}<span lang={htmlLang[other]}>{content.alternateName}</span></h1>
+          <p class="ac-affiliation">{content.affiliation}</p>
+          <p class="ac-position">{content.position}</p>
+          {content.bio.map(paragraph => <p class="ac-bio">{paragraph}</p>)}
+          <ul class="ac-links">
+            {email && <li><a href={`mailto:${email}`}>{email}</a></li>}
+            <li><a href={site.github} target="_blank" rel="noopener noreferrer">GitHub</a></li>
+            <li><a href={url()}>{labels.blog}</a></li>
+            {researchResults.length > 0 && <li><a href="#publications">{labels.publications}</a></li>}
+          </ul>
+        </div>
+        {content.photo && <img class="ac-photo" src={url(content.photo)} alt={lang === 'en' ? `${labels.photoAlt} ${content.name}` : `${labels.photoAlt}${content.name}`} width="200" height="250" />}
+      </header>
+
+      {content.interests.length > 0 && (
+        <section class="ac-section" aria-labelledby="interests">
+          <h2 id="interests">{labels.interests}</h2>
+          <dl class="ac-interests">
+            {content.interests.map(interest => <div><dt>{interest.area}</dt><dd>{interest.topics}</dd></div>)}
+          </dl>
+        </section>
+      )}
+
+      {researchResults.length > 0 && (
+        <section class="ac-section" aria-labelledby="publications">
+          <h2 id="publications">{labels.publications}</h2>
+          <ol class="ac-entries">
+            {researchResults.map(item => (
+              <li>
+                <div class="ac-entry-head"><h3>{item.title}</h3><span class="ac-period">{item.year}</span></div>
+                {item.authors && <p class="ac-subtitle">{item.authors}</p>}
+                {item.venue && <p class="ac-venue">{item.venue}</p>}
+                {item.description && <p class="ac-detail">{item.description}</p>}
+                {item.links?.length ? <p class="ac-entry-links">{item.links.map(link => <a href={link.href} target="_blank" rel="noopener noreferrer">{link.label}</a>)}</p> : null}
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+
+      {sections.map(section => (
+        <section class="ac-section" aria-labelledby={section.id}>
+          <h2 id={section.id}>{section.title}</h2>
+          <ul class="ac-entries">
+            {section.entries.map(entry => (
+              <li>
+                <div class="ac-entry-head"><h3>{entry.title}</h3>{entry.period && <span class="ac-period">{entry.period}</span>}</div>
+                {entry.subtitle && <p class="ac-subtitle">{entry.subtitle}</p>}
+                {entry.details?.map(detail => <p class="ac-detail">{detail}</p>)}
+                {entry.link && <p class="ac-entry-links"><a href={href(entry.link.href)} {...external(entry.link.href)}>{entry.link.label}</a></p>}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </main>
+
+    <footer class="ac-footer">
+      <span>{labels.updated} {content.updated}</span>
+      <span>© {new Date().getFullYear()} {content.name}</span>
+    </footer>
+  </div>
+</body>
+</html>

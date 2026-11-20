@@ -7,7 +7,7 @@
 - `SiteRuntime.astro` 在两套布局中接入 Astro ClientRouter，正文约 200ms 淡入淡出。共用 `SiteHeader.astro` 通过 `transition:persist` 常驻，栏目、品牌与工具区尺寸固定；预留滚动条空间，避免长短页面之间横移。只更新选中标识和当前页面的工具状态。
 - `src/scripts/navigation.ts` 优先预取文章页 HTML、样式和脚本，五个公开栏目页采用当前标签页内 60 秒缓存。缓存失效或预取失败时回到 Astro 默认加载流程；省流量和 2G 连接跳过主动预取。等待网络时保留当前页面，超过 180ms 才显示顶部细进度条。外链、下载与非栏目页继续使用原有导航行为；减少动态效果时关闭过渡动画。
 - `src/scripts/page-lifecycle.ts` 在每次页面进入时绑定功能，离开时取消全局监听、计时器和观察器。首页 WebGL 场景随页面释放，再进入时重新初始化；开场只在首次首页访问时播放。
-- 配色统一位于 `src/data/palette.ts`，通用导航样式位于 `src/styles/theme.css`。首页固定深色山景，不修改阅读主题偏好；内页按用户选择或系统设置使用浅灰日间、炭灰夜间，统一绿色选中下划线、链接和强调标识。音乐台与评论区共用配色。
+- 配色统一位于 `src/data/palette.ts`，通用导航样式位于 `src/styles/theme.css`。首页与内页共用同一个明暗主题（用户选择优先，否则跟随系统），导航栏的主题按钮在所有页面可用；首页另有动态效果开关，两个按钮并排。浅色首页沿用同一张山景，叠加 `theme.css` 中 `--hero-tint` / `--hero-top` / `--hero-middle` / `--hero-bottom` 的浅色遮罩，呈晨雾效果，文字用深色；深色首页保持原样。未滚动时导航栏透明压在山景上，文字颜色在 `header.css` 中按主题分别指定。开场动画（`intro.css`）和卡牌纹样（`glass-orbit.ts` 的 `applyTheme`、`orbit-preview.ts`）同样按主题取色，WebGL 背景在主题切换时重绘。内页使用浅灰日间、炭灰夜间，统一绿色选中下划线、链接和强调标识。音乐台与评论区共用配色。
 
 ## 首页
 
@@ -22,7 +22,21 @@
 - 中文界面使用自托管 Noto Sans SC Variable；标题和诗句保留现有衬线字体。字体随构建打包，访问不依赖 Google Fonts 网络。
 - 卡牌：`src/scripts/glass-orbit.ts`。只有一条 requestAnimationFrame 渲染循环，跟随显示器刷新率逐帧绘制，不再固定抽帧至 60 FPS；按时间差更新轨道并平滑指针，离屏或后台停绘。移除了与倒角相交的描边，限制像素预算、使用整数画布尺寸，并收紧相机深度范围以减少抖动。WebGL 不可用时退回静态玻璃。头像与「L.」作为同一 Three.js 组参与深度遮挡和悬停反馈，前侧卡牌可以同时掠过二者。
 - 环绕轨迹在 `src/lib/orbit-layout.mjs`：桌面 8 张、手机 6 张，沿真实倾斜圆周持续旋转，约 20 秒一周。后半圈从头像后上方经过，前半圈从头像下方、原问候语位置经过；前侧卡牌更大，后侧更小。卡牌允许掠过头像边缘，仅保留脸部中心与文字的空间；头像与卡牌共用 Three.js 深度缓冲，前侧玻璃可折射头像，后侧则被头像遮挡。DOM 头像保留链接、替代文本及加载失败时的显示。问候语移至左上方，大标题与头像之间留出通道。使用正交相机保持圆周投影稳定，圆周的 X、Y、Z 坐标满足同一半径约束；轨道有呼吸扩缩与鼠标角度响应。测试验证完整圆周、前后穿行、适量重叠和文字边界。
+- 增量动效集中在 `src/styles/motion.css`（由 `home.css` 与 `global.css` 引入）：导航悬停下划线、主题切换时新主题从按钮处圆形展开（`theme.ts` 调用 View Transitions，不支持的浏览器直接切换）、首页文章/方向/项目卡片随所在区块依次入场、热力图按列浮现、项目卡片跟随指针的光斑、「继续探索」箭头轻微起伏；内页的标题与列表入场、文章阅读进度条（CSS 滚动时间线，不支持时不显示）、目录当前项标记过渡、项目页线稿描绘。全部受首页「动态效果」开关或系统「减少动态效果」控制。
 - 通用交互样式：`src/styles/interactions.css`。图标悬停、按下反馈、箭头位移、项目轻抬起和标签页指示线均保持布局尺寸不变，并支持减少动态效果。
+
+## 项目页线稿
+
+项目列表（`src/pages/projects/index.astro`）每个项目左侧的线稿在 `src/components/ProjectSketch.astro`，按项目文件名（id）取图：研究工作台是文件树、论文、待办与热力图；具身智能是机械臂伸向杯子和它预想的未来画面；电力电子是 Buck 变换器及其驱动信号与电感电流纹波。画布 280 × 220，只写形状即可，组件会自动补上描绘动画需要的 `pathLength`。`sketch-fill` 为实心、`sketch-soft` 为浅线、`sketch-static` 为虚线；颜色仍由 `global.css` 中 `.project-visual` 的三套配色决定。新项目没有对应线稿时显示一张通用的笔记本。
+
+## 学术主页
+
+学术主页是一张可以单独转发的页面，有两个语言版本：英文在 `/academic/`（默认），中文在 `/academic/zh/`，右上角可以互相切换；发给只看中文的人时直接发中文地址。它参考常见的 GitHub 学术主页（academicpages、al-folio、Jon Barron 式单页）的内容顺序：姓名与单位、照片、简介、研究兴趣、论文、教育与实习经历、获奖、项目。
+
+- 内容：`src/data/academic.ts`（姓名、单位、简介、研究兴趣、教育、实习、获奖、项目、更新日期）。每段文字写成 `{ en: '…', zh: '…' }`，两种语言必须同时改；页面上的固定用语（栏目名、按钮）在同一文件的 `academicLabels`。`photo` 填 `public/` 下的照片文件名后显示证件照，留空则不显示图片；`email` 填写后显示邮箱。论文列表取自 `src/data/research.ts`，为空时整节不显示。照片放在 `public/`，按 4:5 竖幅裁好（现为 720 × 900 的 `academic-photo.jpg`）。
+- 页面：`src/layouts/Academic.astro`（两个语言共用），由 `src/pages/academic/index.astro`（英文）和 `src/pages/academic/zh/index.astro`（中文）分别调用；样式：`src/styles/academic.css`，英文的行距和栏宽用 `:lang(en)` 单独调整。
+- 这一页是独立页面：没有音乐台、共用导航和动效，只用浅色，不接入 ClientRouter（站内指向它的链接带 `data-astro-reload`）。`scripts/verify.mjs` 以 `data-standalone-page` 标记识别并校验它保持独立。
+- 「打印本页」调用浏览器打印，打印样式会隐藏工具栏并在外链后附上网址，可直接另存为 PDF。
 
 ## 音乐台
 

@@ -60,6 +60,15 @@ if ('IntersectionObserver' in window) {
   cleanup(() => observer.disconnect());
 } else revealElements.forEach(element => element.classList.add('is-visible'));
 
+// Project cards light up under the pointer.
+for (const card of document.querySelectorAll<HTMLElement>('.study-project')) {
+  card.addEventListener('pointermove', event => {
+    const bounds = card.getBoundingClientRect();
+    card.style.setProperty('--spot-x', `${event.clientX - bounds.left}px`);
+    card.style.setProperty('--spot-y', `${event.clientY - bounds.top}px`);
+  }, { signal });
+}
+
 const tabs = [...document.querySelectorAll<HTMLButtonElement>('[data-now-tab]')];
 const panels = [...document.querySelectorAll<HTMLElement>('[data-now-panel]')];
 function updateTabIndicator() {

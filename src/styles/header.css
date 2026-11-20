@@ -9,7 +9,8 @@
   font: 14px/1.8 var(--ui);
   transition: background-color .2s, color .2s, border-color .2s;
 }
-.site-chrome[data-section=home]:not(.is-scrolled) { background: #17231c24; border-bottom-color: #dce8df26; backdrop-filter: none; -webkit-backdrop-filter: none; }
+.site-chrome[data-section=home]:not(.is-scrolled) { background: #f5f6f41a; border-bottom-color: #24352c1c; backdrop-filter: none; -webkit-backdrop-filter: none; }
+:root[data-theme=dark] .site-chrome[data-section=home]:not(.is-scrolled) { background: #17231c24; border-bottom-color: #dce8df26; }
 .chrome-brand { flex: none; font: 600 28px/1.2 var(--display); white-space: nowrap; }
 .chrome-brand > span { color: var(--accent); }
 .chrome-nav { display: flex; align-items: center; height: 100%; margin-left: auto; gap: 28px; position: relative; }
@@ -26,8 +27,12 @@
 .chrome-motion { position: relative; }
 .chrome-motion input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
 .chrome-motion:has(input:checked) { color: var(--accent); }
-.site-chrome[data-section=home] .chrome-theme, .site-chrome:not([data-section=home]) .chrome-motion { visibility: hidden; pointer-events: none; }
-.site-chrome[data-section=home]:not(.is-scrolled) :is(.chrome-nav > a, .chrome-icon) { color: #d9e2dc; }
+.site-chrome:not([data-section=home]) .chrome-motion { visibility: hidden; pointer-events: none; }
+/* The homepage has both the motion switch and the theme switch, side by side. */
+.site-chrome[data-section=home] .chrome-appearance { display: flex; width: auto; gap: 5px; }
+.site-chrome[data-section=home]:not(.is-scrolled) :is(.chrome-nav > a, .chrome-icon) { color: #36433c; }
+.site-chrome[data-section=home]:not(.is-scrolled) .chrome-nav > a:is(:hover, [aria-current]) { color: var(--text); }
+:root[data-theme=dark] .site-chrome[data-section=home]:not(.is-scrolled) :is(.chrome-nav > a, .chrome-icon) { color: #d9e2dc; }
 .chrome-menu { display: none; }
 .site-chrome[data-loading=true]::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 30%; height: 2px; background: var(--accent); animation: chrome-loading 1s ease-in-out infinite alternate; }
 @keyframes chrome-loading { to { transform: translateX(230%); } }
@@ -36,6 +41,7 @@
   .site-chrome { height: 70px; padding: 0 20px; gap: 12px; }
   .chrome-brand { font-size: 25px; }
   .chrome-tools { margin-left: auto; gap: 2px; }
+  .site-chrome[data-section=home] .chrome-appearance { gap: 2px; }
   .chrome-menu { display: inline-flex; }
   .chrome-nav { display: none; position: absolute; left: 16px; right: 16px; top: 64px; height: auto; margin: 0; padding: 15px 20px; justify-content: space-between; gap: 16px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); box-shadow: 0 10px 25px #0002; }
   .chrome-nav.is-open { display: flex; }

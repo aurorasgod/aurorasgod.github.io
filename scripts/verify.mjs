@@ -3,6 +3,7 @@ import { readdir, readFile, stat } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { soundtracks } from '../src/data/home.ts';
 import { palettes } from '../src/data/palette.ts';
+import { academic } from '../src/data/academic.ts';
 import { createHash } from 'node:crypto';
 
 const root=resolve(process.env.STATIC_DIR || 'dist/client');
@@ -13,7 +14,7 @@ const htmlFiles=all.filter(p=>p.endsWith('.html'));
 const errors=[];
 assert.equal(new Set(soundtracks.map(track=>track.id)).size,soundtracks.length,'duplicate music track identifiers');
 for(const track of soundtracks){assert.ok(track.title&&track.src.startsWith('audio/'),'invalid music track');assert.ok((await stat(join(root,track.src))).size>0,`missing music file: ${track.src}`);}
-for(const file of htmlFiles){const html=await readFile(file,'utf8');if(/http-equiv="refresh"/i.test(html)){assert.ok(html.includes('url='),'missing redirect target');continue;}assert.ok(html.includes('lang="zh-CN"'),`missing language: ${file}`);assert.ok(/<h1[\s>]/.test(html),`missing page heading: ${file}`);for(const match of html.matchAll(/(?:href|src)="([^"#]+)"/g)){const target=match[1].replaceAll('&amp;','&');if(!target.startsWith('/'))continue;const path=decodeURIComponent(target.split(/[?#]/)[0]);if(!path.startsWith(prefix)){errors.push(`${file}: wrong base path ${path}`);continue;}let local=join(root,path.slice(prefix.length));try{const s=await stat(local);if(s.isDirectory())local=join(local,'index.html');await stat(local);}catch{errors.push(`${file}: missing ${path}`);}}}
+for(const file of htmlFiles){const html=await readFile(file,'utf8');if(/http-equiv="refresh"/i.test(html)){assert.ok(html.includes('url='),'missing redirect target');continue;}assert.ok(html.includes('lang="zh-CN"')||(html.includes('data-standalone-page')&&html.includes('<html lang="en"')),`missing language: ${file}`);assert.ok(/<h1[\s>]/.test(html),`missing page heading: ${file}`);for(const match of html.matchAll(/(?:href|src)="([^"#]+)"/g)){const target=match[1].replaceAll('&amp;','&');if(!target.startsWith('/'))continue;const path=decodeURIComponent(target.split(/[?#]/)[0]);if(!path.startsWith(prefix)){errors.push(`${file}: wrong base path ${path}`);continue;}let local=join(root,path.slice(prefix.length));try{const s=await stat(local);if(s.isDirectory())local=join(local,'index.html');await stat(local);}catch{errors.push(`${file}: missing ${path}`);}}}
 const search=JSON.parse(await readFile(join(root,'search-index.json'),'utf8'));
 assert.ok(Array.isArray(search),'invalid search index');
 for(const entry of search){assert.ok(entry.title&&entry.text&&entry.url,'incomplete search entry');await stat(join(root,entry.url.slice(prefix.length),'index.html'));}
@@ -38,7 +39,16 @@ assert.ok(home.includes('Personal Blog')&&home.includes('浙大本硕，电力�
 assert.ok(!home.includes('首页提案')&&!home.includes('noindex,nofollow'),'homepage is still a design proposal');
 assert.ok(home.includes('data-glass-orbit')&&home.includes('data-music-player'),'missing homepage experiences');
 assert.ok(home.includes('data-activity-map')&&!home.includes('now-topics'),'homepage activity calendar missing or duplicate topics remain');
-for(const file of htmlFiles){const html=await readFile(file,'utf8');if(/http-equiv="refresh"/i.test(html))continue;assert.equal((html.match(/data-music-player/g)||[]).length,1,`missing or duplicated music player: ${file}`);assert.ok(html.includes('popover="auto"'),'music player is not a popover');assert.equal((html.match(/data-site-header/g)||[]).length,1,`missing or duplicated shared header: ${file}`);assert.ok(html.includes('data-astro-transition-persist="site-header"'),`header is not persistent: ${file}`);}
+for(const file of htmlFiles){const html=await readFile(file,'utf8');if(/http-equiv="refresh"/i.test(html)||html.includes('data-standalone-page'))continue;assert.equal((html.match(/data-music-player/g)||[]).length,1,`missing or duplicated music player: ${file}`);assert.ok(html.includes('popover="auto"'),'music player is not a popover');assert.equal((html.match(/data-site-header/g)||[]).length,1,`missing or duplicated shared header: ${file}`);assert.ok(html.includes('data-astro-transition-persist="site-header"'),`header is not persistent: ${file}`);}
+for(const [language,path,htmlLang] of [['en','academic','en'],['zh','academic/zh','zh-CN']]){
+  const page=await readFile(join(root,path,'index.html'),'utf8');
+  assert.ok(page.includes(`<html lang="${htmlLang}"`),`academic page has the wrong language: ${path}`);
+  assert.ok(page.includes(academic.name[language])&&page.includes(academic.affiliation[language]),`academic page is missing its identity: ${path}`);
+  assert.ok(page.includes('hreflang="en"')&&page.includes('hreflang="zh-CN"'),`academic page does not link its other language: ${path}`);
+  assert.ok(!page.includes('data-music-player')&&!page.includes('astro-view-transitions-enabled'),`academic page must stay standalone: ${path}`);
+}
+// English is the default: the bare address must not be the Chinese page.
+assert.ok(!(await readFile(join(root,'academic','index.html'),'utf8')).includes(academic.affiliation.zh),'the default academic page must be English');
 for(const category of ['具身智能','电力电子','个人经历'])assert.ok(home.includes(category),'missing category '+category);
 assert.ok(!home.includes('学习工具')&&!home.includes('world-model')&&!home.includes('个人笔记'),'outdated home labels');
 for(const entry of search){

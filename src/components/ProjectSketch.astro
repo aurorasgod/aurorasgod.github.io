@@ -1,0 +1,97 @@
+---
+// Line drawings for the projects page, one per project id. Drawn on a 280 × 220 canvas.
+// Classes: sketch-fill = solid shape, sketch-soft = lighter line, sketch-static = dashed line (not "drawn" on entry).
+interface Props { id: string; }
+const { id } = Astro.props;
+
+// A week-by-week activity grid like the one on the homepage.
+const heat = [1, 0, 2, 0, 1, 3, 0, 0, 2, 1, 0, 3, 2, 1, 2, 0, 3, 1, 0, 2, 3, 1, 3, 0, 2, 0, 1, 2];
+const heatLevels = ['.12', '.3', '.55', '.9'];
+const heatmap = heat.map((level, index) => `<rect class="sketch-fill" opacity="${heatLevels[level]}" x="${176 + (index % 7) * 9}" y="${122 + Math.floor(index / 7) * 9}" width="6.5" height="6.5" rx="1.5"/>`).join('');
+
+const sketches: Record<string, string> = {
+  // A research workbench: file tree, a paper being read, tasks and the activity calendar.
+  'obsidian-workbench': `
+    <rect x="30" y="32" width="220" height="156" rx="9"/>
+    <path d="M30 53h220M84 53v135"/>
+    <circle class="sketch-fill" cx="44" cy="42.5" r="2.2"/><circle class="sketch-fill" cx="52.5" cy="42.5" r="2.2"/><circle class="sketch-fill" cx="61" cy="42.5" r="2.2"/>
+    <rect class="sketch-fill" opacity=".14" x="38" y="76" width="40" height="12" rx="3"/>
+    <path d="M42 70h28M48 82h24M48 94h17M42 110h28M48 122h21M48 134h14"/>
+    <path d="M98 66h52l14 14v72H98z"/>
+    <path d="M150 66v14h14"/>
+    <path d="M107 81h30"/>
+    <path class="sketch-soft" d="M107 92h48M107 100h48M107 108h34"/>
+    <rect x="107" y="118" width="48" height="26" rx="2"/>
+    <path d="M112 138l9-8 8 4 11-11 10 5"/>
+    <path class="sketch-soft" d="M98 170h66"/>
+    <path d="M98 170h40"/>
+    <circle class="sketch-fill" cx="138" cy="170" r="3"/>
+    <rect x="176" y="64" width="10" height="10" rx="2.5"/>
+    <path d="M178.5 69.2l2.2 2.3 3.8-4.6"/>
+    <path class="sketch-soft" d="M193 69h44"/>
+    <rect x="176" y="81" width="10" height="10" rx="2.5"/>
+    <path d="M178.5 86.2l2.2 2.3 3.8-4.6"/>
+    <path class="sketch-soft" d="M193 86h34"/>
+    <rect x="176" y="98" width="10" height="10" rx="2.5"/>
+    <path class="sketch-soft" d="M193 103h40"/>
+    ${heatmap}`,
+
+  // Embodied AI: an arm reaching for a cup, with the future it imagines before moving.
+  'robotics-notebook': `
+    <path d="M34 178h212"/>
+    <path d="M52 178l6-22h28l6 22"/>
+    <circle cx="72" cy="146" r="9"/><circle class="sketch-fill" cx="72" cy="146" r="2.6"/>
+    <path d="M80.8 144.2L119.6 91.9M71.2 137L110 84.7"/>
+    <circle cx="118" cy="84" r="8"/><circle class="sketch-fill" cx="118" cy="84" r="2.4"/>
+    <path d="M125.1 80.3l50.7 10.1M123.1 90.1l50.7 10.2"/>
+    <circle cx="178" cy="96" r="6"/><circle class="sketch-fill" cx="178" cy="96" r="2"/>
+    <path d="M178 102v9M165 111h26M167 111v13l4 5M189 111v13l-4 5"/>
+    <path d="M205 150h28l-3.5 28h-21z"/>
+    <path d="M232 157c9-1 10 12 .6 12.6"/>
+    <path class="sketch-static" stroke-dasharray="3 4" d="M178 133c2 16 22-2 35 9"/>
+    <path class="sketch-static" d="M206.5 139.5l7 2.8-2.4-7.2"/>
+    <path class="sketch-soft" d="M204 44v-6h42v30h-6"/>
+    <path class="sketch-soft" d="M198 50v-6h42v30h-6"/>
+    <rect x="192" y="50" width="42" height="30" rx="3"/>
+    <path d="M207 63h12l-1.4 11h-9.2z"/>
+    <path d="M204.5 58v9M221.5 58v9M204.5 58h17M213 54v4"/>
+    <path class="sketch-static sketch-soft" stroke-dasharray="1.5 4" d="M213 86v40"/>`,
+
+  // Power electronics: a buck converter with its gate signal and inductor current ripple.
+  'electronics-notebook': `
+    <circle cx="44" cy="95" r="11"/>
+    <path d="M44 88v6M41 91h6M41 100h6"/>
+    <path d="M44 84V60h34"/>
+    <path d="M79 59.4l20-10"/>
+    <circle class="sketch-fill" cx="78" cy="60" r="2"/><circle class="sketch-fill" cx="102" cy="60" r="2"/>
+    <path d="M102 60h24"/>
+    <path d="M126 60a7 7 0 0 1 14 0a7 7 0 0 1 14 0a7 7 0 0 1 14 0"/>
+    <path d="M168 60h54v14l-6 4 12 7-12 7 12 7-12 7 6 4v20"/>
+    <path d="M44 106v24h178"/>
+    <path d="M116 130v-22M108 108h16l-8-14zM108 94h16M116 94V60"/>
+    <path d="M188 60v28M177 88h22M177 96h22M188 96v34"/>
+    <circle class="sketch-fill" cx="116" cy="60" r="2"/><circle class="sketch-fill" cx="116" cy="130" r="2"/><circle class="sketch-fill" cx="188" cy="60" r="2"/><circle class="sketch-fill" cx="188" cy="130" r="2"/>
+    <path class="sketch-soft" d="M44 180h92M156 180h90"/>
+    <path d="M44 172h12v-16h22v16h22v-16h22v16h14"/>
+    <path d="M156 168l22-10 22 10 22-10 22 10"/>
+    <path class="sketch-static sketch-soft" stroke-dasharray="3 4" d="M156 163h90"/>`,
+};
+
+// Fallback for a project without its own drawing: a plain notebook page.
+const fallback = `
+    <rect x="76" y="40" width="128" height="140" rx="8"/>
+    <path d="M100 40v140"/>
+    <path class="sketch-soft" d="M116 70h66M116 86h66M116 102h44M116 126h66M116 142h52"/>`;
+
+// A unit path length lets one keyframe draw every stroke, whatever its real length.
+const markup = (sketches[id] || fallback).replace(/<(path|rect|circle)\b(?![^>]*sketch-(?:static|fill))/g, '<$1 pathLength="1"');
+---
+<svg viewBox="0 0 280 220" fill="none" set:html={markup} />
+<style is:global>
+  .project-visual { color: var(--accent); }
+  .project-visual[data-project-kind='1'] { color: var(--accent-secondary); }
+  .project-visual[data-project-kind='2'] { color: var(--muted); }
+  .project-visual svg { stroke-width: 1.35; stroke-linecap: round; stroke-linejoin: round; }
+  .project-visual .sketch-fill { fill: currentColor; stroke: none; }
+  .project-visual .sketch-soft { stroke-opacity: .45; }
+</style>

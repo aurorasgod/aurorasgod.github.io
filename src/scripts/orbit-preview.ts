@@ -42,13 +42,14 @@ export function createOrbitPreview(host: HTMLElement, signal: AbortSignal): Orbi
       ctx!.transform(cy * cz, -(cx * sz + sx * sy * cz), cy * sz, cx * cz - sx * sy * sz, 0, 0);
       const w = pose.size, h = w * 1.56;
       ctx!.lineWidth = .8;
-      ctx!.strokeStyle = '#f5e4ba';
+      const light = document.documentElement.dataset.theme !== 'dark';
+      ctx!.strokeStyle = light ? '#857650' : '#f5e4ba';
       ctx!.globalAlpha = .6;
       ctx!.beginPath();
       ctx!.roundRect(-w / 2, -h / 2, w, h, w * .055);
       ctx!.stroke();
-      ctx!.globalAlpha = glass * .12;
-      ctx!.fillStyle = '#e4eee9';
+      ctx!.globalAlpha = glass * (light ? .3 : .12);
+      ctx!.fillStyle = light ? '#ffffff' : '#e4eee9';
       ctx!.fill();
       ctx!.globalAlpha = detail * .65;
       ctx!.beginPath();
