@@ -31,9 +31,9 @@
 
 ## 学术主页
 
-学术主页是一张可以单独转发的页面，有两个语言版本：英文在 `/academic/`（默认），中文在 `/academic/zh/`，右上角可以互相切换；发给只看中文的人时直接发中文地址。它参考常见的 GitHub 学术主页（academicpages、al-folio、Jon Barron 式单页）的内容顺序：姓名与单位、照片、简介、研究兴趣、论文、教育与实习经历、获奖、项目。
+学术主页是一张可以单独转发的页面，有两个语言版本：英文在 `/academic/`（默认），中文在 `/academic/zh/`，右上角可以互相切换；发给只看中文的人时直接发中文地址。它参考常见的 GitHub 学术主页（academicpages、al-folio、Jon Barron 式单页）的内容顺序：姓名与单位、照片、简介、研究兴趣、论文、教育与实习经历、竞赛获奖、奖学金与荣誉、项目。
 
-- 内容：`src/data/academic.ts`（姓名、单位、简介、研究兴趣、教育、实习、获奖、项目、更新日期）。每段文字写成 `{ en: '…', zh: '…' }`，两种语言必须同时改；页面上的固定用语（栏目名、按钮）在同一文件的 `academicLabels`。`photo` 填 `public/` 下的照片文件名后显示证件照，留空则不显示图片；`email` 填写后显示邮箱。论文列表取自 `src/data/research.ts`，为空时整节不显示。照片放在 `public/`，按 4:5 竖幅裁好（现为 720 × 900 的 `academic-photo.jpg`）。
+- 内容：`src/data/academic.ts`（姓名、单位、简介、研究兴趣、教育、实习、竞赛获奖 `awards`、奖学金与荣誉 `honors`、项目、更新日期）。每段文字写成 `{ en: '…', zh: '…' }`，两种语言必须同时改；页面上的固定用语（栏目名、按钮）在同一文件的 `academicLabels`。`photo` 填 `public/` 下的照片文件名后显示证件照，留空则不显示图片；`email` 填写后显示邮箱。论文列表取自 `src/data/research.ts`，为空时整节不显示。照片放在 `public/`，按 4:5 竖幅裁好（现为 720 × 900 的 `academic-photo.jpg`）。
 - 页面：`src/layouts/Academic.astro`（两个语言共用），由 `src/pages/academic/index.astro`（英文）和 `src/pages/academic/zh/index.astro`（中文）分别调用；样式：`src/styles/academic.css`，英文的行距和栏宽用 `:lang(en)` 单独调整。
 - 这一页是独立页面：没有音乐台、共用导航和动效，只用浅色，不接入 ClientRouter（站内指向它的链接带 `data-astro-reload`）。`scripts/verify.mjs` 以 `data-standalone-page` 标记识别并校验它保持独立。
 - 「打印本页」调用浏览器打印，打印样式会隐藏工具栏并在外链后附上网址，可直接另存为 PDF。

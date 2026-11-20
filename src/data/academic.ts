@@ -99,6 +99,27 @@ export const academic = {
     },
   ] as Entry[],
 
+  // Scholarships and titles, most significant first. Periods are academic years.
+  honors: [
+    {
+      title: { en: 'First-Class Scholarship, Zhejiang University', zh: '浙江大学一等奖学金' },
+      period: { en: '2025–26', zh: '2025–26 学年' },
+    },
+    {
+      title: { en: 'UHV Power Grid Scholarship', zh: '特高压奖学金' },
+      subtitle: { en: 'Funded by State Grid\'s charitable foundation', zh: '国家电网公益基金会捐赠设立' },
+      period: { en: '2025–26', zh: '2025–26 学年' },
+    },
+    {
+      title: { en: 'Zhejiang Provincial Government Scholarship', zh: '浙江省政府奖学金' },
+      period: { en: '2023–24', zh: '2023–24 学年' },
+    },
+    {
+      title: { en: 'Outstanding Student, Zhejiang University', zh: '浙江大学优秀学生' },
+      period: { en: '2024–25, 2025–26', zh: '2024–25、2025–26 学年' },
+    },
+  ] as Entry[],
+
   projects: [
     {
       title: { en: 'JEPA world model research and real-robot deployment', zh: 'JEPA 世界模型研究与真机部署' },
@@ -132,6 +153,7 @@ export const academicLabels = {
   education: { en: 'Education', zh: '教育经历' },
   experience: { en: 'Experience', zh: '实习经历' },
   awards: { en: 'Awards', zh: '竞赛获奖' },
+  honors: { en: 'Honors', zh: '荣誉奖励' },
   projects: { en: 'Projects', zh: '项目经历' },
   updated: { en: 'Last updated', zh: '最后更新于' },
 };
